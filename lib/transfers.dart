@@ -48,11 +48,11 @@ class Transfers {
       if (response.statusCode == 200) {
         return true;
       } else {
-        print(response);
+        // TODO: Save which are unsynced errors
         return false;
       }
     } catch (err) {
-      print(err);
+      // TODO: Save which are unsynced errors
       return false;
     }
   }
