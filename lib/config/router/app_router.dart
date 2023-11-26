@@ -24,10 +24,10 @@ final appRouter = GoRouter(initialLocation: '/', routes: [
   ),
   GoRoute(
     path: '/servers',
-    builder: (context, state) => ServersListScreen(),
+    builder: (context, state) => const ServersListScreen(),
   ),
   GoRoute(
     path: '/folders',
-    builder: (context, state) => FoldersListScreen(),
+    builder: (context, state) => const FoldersListScreen(),
   ),
 ]);

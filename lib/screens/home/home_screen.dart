@@ -16,7 +16,6 @@ limitations under the License.
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:path/path.dart';
 import 'package:sync_client/core/core.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -43,7 +42,7 @@ class _HomeScreenView extends StatelessWidget {
           shrinkWrap: true,
           children: [
             ListTile(
-              title: const Text("Server list"),
+              title: const Text("Servers list"),
               subtitle:
                   const Text("Detect all photo sync servers in the network"),
               onTap: () {
@@ -51,7 +50,7 @@ class _HomeScreenView extends StatelessWidget {
               },
             ),
             ListTile(
-              title: const Text("Select Folder"),
+              title: const Text("Folders list"),
               subtitle:
                   const Text("Detect all photo sync servers in the network"),
               onTap: () {
