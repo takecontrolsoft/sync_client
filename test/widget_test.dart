@@ -28,9 +28,8 @@ void main() {
     await tester.tap(themeButton);
     await tester.pump();
     expect(find.byIcon(Icons.dark_mode_outlined), findsOneWidget);
-    final t = Theme.of(tester.element(find.text('Servers list')));
     // expect(
-    //   t.brightness,
+    //   Theme.of(tester.element(find.text('Servers list'))).brightness,
     //   equals(Brightness.dark),
     //   reason:
     //       "Since MaterialApp() was set to dark theme when it was built at tester.pumpWidget(), the MaterialApp should be in dark theme",
