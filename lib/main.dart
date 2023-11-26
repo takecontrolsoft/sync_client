@@ -49,7 +49,7 @@ class MyApp extends StatelessWidget {
     final appRouter = context.watch<RouterExtendedCubit>().state;
 
     return MaterialApp.router(
-        title: 'Photos Sync',
+        title: 'Photo Live',
         debugShowCheckedModeBanner: false,
         routerConfig: appRouter,
         theme: AppTheme.getTheme(context));
