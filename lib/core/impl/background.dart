@@ -17,8 +17,10 @@ limitations under the License.
 import 'dart:async';
 import 'dart:io';
 
-import 'package:sync_client/configuration.dart';
-import 'package:sync_client/transfers.dart';
+import 'package:sync_client/service_locator.dart';
+
+import 'configuration.dart';
+import 'transfers.dart';
 
 abstract class IAction {
   Future<void> execute();
@@ -26,7 +28,7 @@ abstract class IAction {
 
 class BackgroundAction implements IAction {
   final Transfers _transfers;
-  final _config = Configuration();
+  final _config = getIt<Configuration>();
 
   BackgroundAction() : _transfers = Transfers();
 

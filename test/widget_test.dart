@@ -2,22 +2,19 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sync_client/main.dart';
+import 'package:sync_client/service_locator.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  setUp(() {
+    serviceLocatorInit();
+  });
+  testWidgets('Main menu test', (WidgetTester tester) async {
+    await tester.pumpWidget(const BlocProviders());
 
-    // Verify that our counter starts at 0.
-    //expect(find.text('0'), findsOneWidget);
-    expect(find.text('Directory:'), findsNothing);
+    expect(find.text('Servers list'), findsOneWidget);
+    expect(find.text('Folders list'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    //await tester.tap(find.byIcon(Icons.add));
-    //await tester.pump();
-
-    // Verify that our counter has incremented.
-    // expect(find.text('0'), findsNothing);
-    // expect(find.text('1'), findsOneWidget);
+    await tester.tap(find.text("Sync"));
+    await tester.pump();
   });
 }
