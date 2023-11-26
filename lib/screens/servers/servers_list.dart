@@ -13,43 +13,35 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sync_client/config/config.dart';
 
-import 'screens/cubits.dart';
-import 'service_locator.dart';
-
-void main() {
-  serviceLocatorInit();
-  runApp(const BlocProviders());
-}
-
-class BlocProviders extends StatelessWidget {
-  const BlocProviders({super.key});
+class ServersListScreen extends StatelessWidget {
+  const ServersListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (context) => getIt<FoldersCubit>(),
-        )
-      ],
-      child: const MyApp(),
+    return Scaffold(
+      appBar: MainAppBar(context).appBar,
+      body: const _ServersListScreenView(),
     );
   }
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
+class _ServersListScreenView extends StatelessWidget {
+  const _ServersListScreenView();
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-        title: 'Photos Sync',
-        debugShowCheckedModeBanner: false,
-        routerConfig: appRouter,
-        theme: AppTheme(isDarkMode: false).getTheme());
+    return ListView(
+      children: const [
+        ListTile(
+          title: Text("Server 1"),
+        ),
+        ListTile(
+          title: Text("Select 2"),
+        )
+      ],
+    );
   }
 }

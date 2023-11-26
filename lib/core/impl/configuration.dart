@@ -16,28 +16,11 @@ limitations under the License.
 
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:file_picker/file_picker.dart';
 
 class Configuration {
   final Set<String> dirs = {};
   final serverUrl = Platform.environment["SYNC_SERVER_URL"];
-  static final Configuration _configuration = Configuration._internal();
   String? _deviceName;
-
-  factory Configuration() {
-    return _configuration;
-  }
-
-  Configuration._internal();
-
-  void selectSourceDir() async {
-    String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
-
-    if (selectedDirectory == null) {
-      return;
-    }
-    dirs.add(selectedDirectory);
-  }
 
   Iterable<Directory> getSourceDirs() {
     return dirs.map((e) => Directory(e));

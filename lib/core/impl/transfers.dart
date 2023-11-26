@@ -19,7 +19,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
 import 'package:http/http.dart';
 import 'package:path/path.dart' as path;
-import 'package:sync_client/configuration.dart';
+import 'configuration.dart';
 
 class Transfers {
   final _config = Configuration();
