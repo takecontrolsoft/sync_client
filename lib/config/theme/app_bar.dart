@@ -14,11 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sync_client/config/theme/theme_cubit.dart';
 
 class MainAppBar {
-  final BuildContext context;
-  MainAppBar(this.context);
-  AppBar get appBar => AppBar(
-        title: const Text("Photo Live"),
-      );
+  static AppBar appBar(BuildContext context) {
+    final ThemeCubit theme = context.watch<ThemeCubit>();
+    return AppBar(
+      title: const Text("Photo Live"),
+      actions: [
+        IconButton(
+          icon: theme.state.isDarkMode
+              ? const Icon(Icons.dark_mode_outlined)
+              : const Icon(Icons.light_mode_outlined),
+          tooltip: 'Open shopping cart',
+          onPressed: () {
+            theme.toggleTheme();
+          },
+        ),
+      ],
+    );
+  }
 }

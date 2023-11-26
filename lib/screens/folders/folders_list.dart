@@ -31,7 +31,7 @@ class FoldersListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: MainAppBar(context).appBar,
+      appBar: MainAppBar.appBar(context),
       body: _FoldersListScreenView(),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _selectFolders(context),

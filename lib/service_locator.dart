@@ -22,6 +22,7 @@ GetIt getIt = GetIt.instance;
 
 void serviceLocatorInit() {
   getIt.registerLazySingleton(() => RouterExtendedCubit());
+  getIt.registerLazySingleton(() => ThemeCubit());
   getIt.registerLazySingleton(() => Configuration());
   getIt.registerLazySingleton(() => FoldersCubit());
 }

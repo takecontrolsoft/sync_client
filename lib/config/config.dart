@@ -16,3 +16,4 @@ limitations under the License.
 export 'router/app_router.dart';
 export 'theme/app_theme.dart';
 export 'theme/app_bar.dart';
+export 'theme/theme_cubit.dart';

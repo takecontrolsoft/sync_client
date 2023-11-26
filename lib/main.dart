@@ -33,6 +33,7 @@ class BlocProviders extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context) => getIt<RouterExtendedCubit>()),
+        BlocProvider(create: (context) => getIt<ThemeCubit>()),
         BlocProvider(create: (context) => getIt<FoldersCubit>()),
       ],
       child: const MyApp(),
@@ -51,6 +52,6 @@ class MyApp extends StatelessWidget {
         title: 'Photos Sync',
         debugShowCheckedModeBanner: false,
         routerConfig: appRouter,
-        theme: AppTheme(isDarkMode: false).getTheme());
+        theme: AppTheme.getTheme(context));
   }
 }
