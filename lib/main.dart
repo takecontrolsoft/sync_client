@@ -32,9 +32,8 @@ class BlocProviders extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (context) => getIt<FoldersCubit>(),
-        )
+        BlocProvider(create: (context) => getIt<RouterExtendedCubit>()),
+        BlocProvider(create: (context) => getIt<FoldersCubit>()),
       ],
       child: const MyApp(),
     );
@@ -46,6 +45,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appRouter = context.watch<RouterExtendedCubit>().state;
+
     return MaterialApp.router(
         title: 'Photos Sync',
         debugShowCheckedModeBanner: false,

@@ -14,12 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 import 'package:get_it/get_it.dart';
+import 'package:sync_client/config/config.dart';
 import 'package:sync_client/core/core.dart';
 import 'screens/cubits.dart';
 
 GetIt getIt = GetIt.instance;
 
 void serviceLocatorInit() {
+  getIt.registerLazySingleton(() => RouterExtendedCubit());
   getIt.registerLazySingleton(() => Configuration());
-  getIt.registerSingleton(FoldersCubit());
+  getIt.registerLazySingleton(() => FoldersCubit());
 }

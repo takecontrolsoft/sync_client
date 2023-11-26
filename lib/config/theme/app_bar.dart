@@ -14,19 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 class MainAppBar {
   final BuildContext context;
   MainAppBar(this.context);
   AppBar get appBar => AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          iconSize: 20.0,
-          onPressed: () {
-            context.go("/");
-          },
-        ),
         title: const Text("Photo Live"),
       );
 }

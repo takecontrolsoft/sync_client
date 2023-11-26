@@ -46,7 +46,7 @@ class _HomeScreenView extends StatelessWidget {
               subtitle:
                   const Text("Detect all photo sync servers in the network"),
               onTap: () {
-                context.go("/servers");
+                context.push("/servers");
               },
             ),
             ListTile(
@@ -54,7 +54,7 @@ class _HomeScreenView extends StatelessWidget {
               subtitle:
                   const Text("Detect all photo sync servers in the network"),
               onTap: () {
-                context.go("/folders");
+                context.push("/folders");
               },
             )
           ],
