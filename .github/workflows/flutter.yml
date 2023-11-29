@@ -10,7 +10,7 @@ env:
   SYNC_SERVER_URL: ${{ vars.SYNC_SERVER_URL }}
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - name : Checkout source
@@ -20,6 +20,7 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt-get install -y libgtk-3-dev xvfb
+          sudo apt-get install libblkid1 liblzma5
 
       - name: Setup Ninja
         uses: seanmiddleditch/gha-setup-ninja@v4
