@@ -24,7 +24,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          sdk: stable
+          channel: 'stable'
 
       - name: Install dependencies
         run: dart pub get
@@ -57,7 +57,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          sdk: stable
+          channel: 'stable'
 
       - name: Install dependencies
         run: dart pub get
