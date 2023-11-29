@@ -1,4 +1,4 @@
-name: Sync_Client_Unit_Tests
+name: Sync_Client
 
 on:
   push:
