@@ -23,7 +23,7 @@ class ServersListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: MainAppBar(context).appBar,
+      appBar: MainAppBar.appBar(context),
       body: const _ServersListScreenView(),
     );
   }

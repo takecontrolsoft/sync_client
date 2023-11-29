@@ -1,13 +1,10 @@
 //import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sync_client/main.dart';
-import 'package:sync_client/service_locator.dart';
 
 void main() {
-  setUp(() {
-    serviceLocatorInit();
-  });
   testWidgets('Main menu test', (WidgetTester tester) async {
     await tester.pumpWidget(const BlocProviders());
 
@@ -16,5 +13,16 @@ void main() {
 
     await tester.tap(find.text("Sync"));
     await tester.pump();
+  });
+
+  testWidgets('Theme change', (WidgetTester tester) async {
+    await tester.pumpWidget(const BlocProviders());
+    Finder themeButton =
+        find.widgetWithIcon(IconButton, Icons.light_mode_outlined);
+
+    expect(themeButton, findsOneWidget);
+    await tester.tap(themeButton);
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.dark_mode_outlined), findsOneWidget);
   });
 }

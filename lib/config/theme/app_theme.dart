@@ -15,19 +15,20 @@ limitations under the License.
 */
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sync_client/config/theme/theme_cubit.dart';
 
 const seedColor = Color.fromARGB(255, 7, 80, 59);
 
 class AppTheme {
-  final bool isDarkMode;
-
-  AppTheme({required this.isDarkMode});
-
-  ThemeData getTheme() => ThemeData(
-      useMaterial3: true,
-      colorSchemeSeed: seedColor,
-      brightness: isDarkMode ? Brightness.dark : Brightness.light,
-      listTileTheme: const ListTileThemeData(
-        iconColor: seedColor,
-      ));
+  static ThemeData getTheme(BuildContext context) {
+    final theme = context.watch<ThemeCubit>();
+    return ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: seedColor,
+        brightness: theme.state.isDarkMode ? Brightness.dark : Brightness.light,
+        listTileTheme: const ListTileThemeData(
+          iconColor: seedColor,
+        ));
+  }
 }

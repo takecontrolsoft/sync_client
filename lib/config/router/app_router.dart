@@ -14,10 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sync_client/screens/screens.dart';
 
-final appRouter = GoRouter(initialLocation: '/', routes: [
+final _appRouter = GoRouter(initialLocation: '/', routes: [
   GoRoute(
     path: '/',
     builder: (context, state) => const HomeScreen(),
@@ -31,3 +32,15 @@ final appRouter = GoRouter(initialLocation: '/', routes: [
     builder: (context, state) => const FoldersListScreen(),
   ),
 ]);
+
+class RouterExtendedCubit extends Cubit<GoRouter> {
+  RouterExtendedCubit() : super(_appRouter);
+
+  void goBack() {
+    state.pop();
+  }
+
+  void goHome() {
+    state.go("/");
+  }
+}

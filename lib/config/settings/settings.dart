@@ -13,13 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-import 'package:get_it/get_it.dart';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sync_client/core/core.dart';
-import 'screens/cubits.dart';
 
-GetIt getIt = GetIt.instance;
-
-void serviceLocatorInit() {
-  getIt.registerLazySingleton(() => Configuration());
-  getIt.registerSingleton(FoldersCubit());
+class Settings extends Cubit<Configuration> {
+  Settings() : super(Configuration());
 }

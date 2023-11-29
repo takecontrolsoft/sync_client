@@ -15,7 +15,9 @@ limitations under the License.
 */
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sync_client/config/config.dart';
 import 'package:sync_client/core/core.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -24,9 +26,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Photo Live"),
-      ),
+      appBar: MainAppBar.appBar(context),
       body: const _HomeScreenView(),
     );
   }
@@ -46,7 +46,7 @@ class _HomeScreenView extends StatelessWidget {
               subtitle:
                   const Text("Detect all photo sync servers in the network"),
               onTap: () {
-                context.go("/servers");
+                context.push("/servers");
               },
             ),
             ListTile(
@@ -54,7 +54,7 @@ class _HomeScreenView extends StatelessWidget {
               subtitle:
                   const Text("Detect all photo sync servers in the network"),
               onTap: () {
-                context.go("/folders");
+                context.push("/folders");
               },
             )
           ],
@@ -66,14 +66,14 @@ class _HomeScreenView extends StatelessWidget {
           style: ButtonStyle(
             foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
           ),
-          onPressed: _run,
+          onPressed: () => _run(context.read<Settings>().state),
           child: const Text('Sync'),
         ),
       ),
     ]);
   }
 
-  void _run() {
-    BackgroundAction().execute();
+  void _run(Configuration config) {
+    BackgroundAction(config: config).execute();
   }
 }
