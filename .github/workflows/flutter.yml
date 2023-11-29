@@ -16,6 +16,9 @@ jobs:
       - name : Checkout source
         uses: actions/checkout@v3
 
+      - name: Setup Ninja
+        uses: seanmiddleditch/gha-setup-ninja@v4
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
