@@ -5,7 +5,7 @@ publish_to: 'none'
 version: 0.0.1+alpha
 
 environment:
-  sdk: '>=3.1.3 <4.0.0'
+  sdk: '>=3.2.0 <4.0.0'
 
 # Upgrade your package dependencies to the latest versions - `flutter pub upgrade --major-versions`.
 # Dependencies with newer versions: `flutter pub outdated`.
@@ -22,17 +22,19 @@ dependencies:
   http: ^1.1.0
   flutter_bloc: ^8.1.3
   bloc: ^8.1.2
-  get_it: ^7.6.4
   equatable: ^2.0.5
   go_router: ^12.1.1
 
 dev_dependencies:
+  integration_test:
+    sdk: flutter
   flutter_test:
     sdk: flutter
 
   # Lint rules are defined in `analysis_options.yaml`.
   flutter_lints: ^3.0.1
   flutter_launcher_icons: "^0.13.1"
+  bloc_test: ^9.1.5
 
 flutter:
   uses-material-design: true

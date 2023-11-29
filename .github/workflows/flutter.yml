@@ -30,5 +30,8 @@ jobs:
       - name: Analyze project source
         run: dart analyze
 
-      - name: Run tests
+      - name: Run unit tests
         run: flutter test --coverage
+
+      - name: Run integration tests
+        run: flutter test integration_test

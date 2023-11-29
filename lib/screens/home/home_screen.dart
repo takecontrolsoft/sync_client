@@ -15,6 +15,7 @@ limitations under the License.
 */
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/core/core.dart';
@@ -65,14 +66,14 @@ class _HomeScreenView extends StatelessWidget {
           style: ButtonStyle(
             foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
           ),
-          onPressed: _run,
+          onPressed: () => _run(context.read<Settings>().state),
           child: const Text('Sync'),
         ),
       ),
     ]);
   }
 
-  void _run() {
-    BackgroundAction().execute();
+  void _run(Configuration config) {
+    BackgroundAction(config: config).execute();
   }
 }

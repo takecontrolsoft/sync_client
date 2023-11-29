@@ -27,7 +27,7 @@ class MainAppBar {
           icon: theme.state.isDarkMode
               ? const Icon(Icons.dark_mode_outlined)
               : const Icon(Icons.light_mode_outlined),
-          tooltip: 'Open shopping cart',
+          tooltip: 'Change theme',
           onPressed: () {
             theme.toggleTheme();
           },

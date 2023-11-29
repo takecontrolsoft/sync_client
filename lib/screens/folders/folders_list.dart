@@ -16,8 +16,6 @@ limitations under the License.
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sync_client/config/config.dart';
-import 'package:sync_client/core/core.dart';
-import 'package:sync_client/service_locator.dart';
 
 import 'folders_cubit.dart';
 
@@ -45,10 +43,9 @@ class FoldersListScreen extends StatelessWidget {
 class _FoldersListScreenView extends StatelessWidget {
   _FoldersListScreenView();
 
-  final _config = getIt<Configuration>();
-
   @override
   Widget build(BuildContext context) {
+    final config = context.watch<Settings>();
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -57,14 +54,15 @@ class _FoldersListScreenView extends StatelessWidget {
             'Selected directories to sync:',
           ),
           BlocConsumer<FoldersCubit, String>(
-            listener: (context, state) => _config.dirs.add(state),
+            listener: (context, state) => config.state.dirs.add(state),
             builder: (context, state) {
               return ListView.builder(
                 shrinkWrap: true,
-                itemCount: _config.dirs.length,
+                itemCount: config.state.dirs.length,
                 itemBuilder: (BuildContext context, int index) {
                   return ListTile(
-                    title: Text('Directory: ${_config.dirs.elementAt(index)}'),
+                    title: Text(
+                        'Directory: ${config.state.dirs.elementAt(index)}'),
                   );
                 },
               );
