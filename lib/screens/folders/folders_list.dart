@@ -30,7 +30,7 @@ class FoldersListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MainAppBar.appBar(context),
-      body: _FoldersListScreenView(),
+      body: const _FoldersListScreenView(),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _selectFolders(context),
         tooltip: 'Select folder',
@@ -41,7 +41,7 @@ class FoldersListScreen extends StatelessWidget {
 }
 
 class _FoldersListScreenView extends StatelessWidget {
-  _FoldersListScreenView();
+  const _FoldersListScreenView();
 
   @override
   Widget build(BuildContext context) {
