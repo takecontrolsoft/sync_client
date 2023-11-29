@@ -6,10 +6,6 @@ on:
   pull_request:
     branches: [ "main" ]
 
-concurrency:
-      group: ${{ github.head_ref || (github.workflow && github.run_id) }}
-      cancel-in-progress: true
-
 env:
   SYNC_SERVER_URL: ${{ vars.SYNC_SERVER_URL }}
 jobs:
