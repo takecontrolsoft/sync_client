@@ -67,7 +67,12 @@ jobs:
           repo: 'takecontrolsoft/sync_server'
           version: 'tags/v0.0.1-alpha'
           file: 'sync_server-v0.0.1-alpha-linux-amd64'
+          target: 'sync_server/sync_server'
           token: ${{ secrets.GITHUB_TOKEN }}
+
+          
+      - name: Run sync server
+        run: sync_server/sync_server -p 3000 -d /sync_server
 
       - name: Run integration tests
         run: xvfb-run flutter test integration_test
