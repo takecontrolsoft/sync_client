@@ -71,6 +71,6 @@ jobs:
 
       - name: Install dependencies
         run: dart pub get
-        
+
       - name: Run integration tests
         run: xvfb-run flutter test integration_test
