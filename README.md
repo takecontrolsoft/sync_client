@@ -8,4 +8,4 @@
 [![Docker Hub](https://img.shields.io/badge/Docker_Hub-sync_server-blue)](https://hub.docker.com/repository/docker/takecontrolorg/sync_server/general)
 
 # sync client
-Flutter app for uploading files in background.
+Flutter app for syncing device photos and videos to the server in background.
