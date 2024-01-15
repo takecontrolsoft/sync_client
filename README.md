@@ -1,6 +1,7 @@
 <img src="https://takecontrolsoft.eu/wp-content/uploads/2023/11/TakeControlTransparentGreenLogo-1.png" alt="Sync Device by Take Control - software & infrastructure" width="25%">
 
 [![Web site](https://img.shields.io/badge/Web_site-takecontrolsoft.eu-pink)](https://takecontrolsoft.eu/)
+[![Discord](https://img.shields.io/badge/Discord-Chat-lightgrey?style=flat&logo=discord)](https://discord.gg/GyxGznbC)
 [![Linked in](https://img.shields.io/badge/Linked_In-takecontrolsoft-blue?style=flat&logo=linkedin)](https://www.linkedin.com/company/take-control-si/)
 [![Docker Hub](https://img.shields.io/badge/Docker_Hub-takecontrolorg-blue?style=flat&logo=docker)](https://hub.docker.com/repository/docker/takecontrolorg/sync_server/general)
 
