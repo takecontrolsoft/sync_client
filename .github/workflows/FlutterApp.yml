@@ -70,3 +70,6 @@ jobs:
 
       - name: Run integration tests
         run: xvfb-run flutter test integration_test
+
+      - name: Dump docker logs on failure
+        uses: jwalton/gh-docker-logs@v2
