@@ -21,7 +21,7 @@ class MainAppBar {
   static AppBar appBar(BuildContext context) {
     final ThemeCubit theme = context.watch<ThemeCubit>();
     return AppBar(
-      title: const Text("Photo Live"),
+      title: const Text("Mobi Sync"),
       actions: [
         IconButton(
           icon: theme.state.isDarkMode

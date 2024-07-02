@@ -4,12 +4,12 @@ flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   remove_alpha_ios: true
-  image_path: "images/tc-logo.png"
+  image_path: "images/mobi-sync.png"
   min_sdk_android: 21
   windows:
     generate: true
-    image_path: "images/tc-logo.png"
+    image_path: "images/mobi-sync.png"
     icon_size: 48
   macos:
     generate: true
-    image_path: "images/tc-logo.png"
+    image_path: "images/mobi-sync.png"
