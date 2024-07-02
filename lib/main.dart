@@ -47,7 +47,7 @@ class MyApp extends StatelessWidget {
     final appRouter = context.watch<RouterExtendedCubit>().state;
 
     return MaterialApp.router(
-        title: 'Photo Live',
+        title: 'Mobi Sync',
         debugShowCheckedModeBanner: false,
         routerConfig: appRouter,
         theme: AppTheme.getTheme(context));
