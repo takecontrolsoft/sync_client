@@ -41,8 +41,8 @@ flutter:
 
   assets:
      - images/
-     
+
 flutter_icons:
-  image_path: "images/MobiSync.png"
+  image_path: "images/mobi-sync.png"
   android: true
   ios: true
