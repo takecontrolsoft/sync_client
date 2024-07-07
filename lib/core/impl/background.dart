@@ -16,7 +16,9 @@ limitations under the License.
 
 import 'dart:async';
 import 'dart:io';
-import 'configuration.dart';
+import 'package:sync_client/config/config.dart';
+import 'package:sync_client/storage/storage.dart';
+
 import 'transfers.dart';
 
 abstract class IAction {
@@ -25,15 +27,16 @@ abstract class IAction {
 
 class BackgroundAction implements IAction {
   final Transfers _transfers;
-  final Configuration config;
 
-  BackgroundAction({required this.config}) : _transfers = Transfers();
+  BackgroundAction() : _transfers = Transfers();
 
   @override
   Future<void> execute() async {
-    await config.getDeviceInfo();
-
-    final dirs = config.getSourceDirs();
+    final dirs =
+        await DeviceSettings.getSourceDirectories(currentDevice.settings);
+    if (dirs == null) {
+      return;
+    }
     for (var dir in dirs) {
       final files = await getFilesFromExternalStorage(dir);
       await _uploadFiles(files);

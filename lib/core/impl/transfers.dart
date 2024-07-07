@@ -19,10 +19,10 @@ import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
 import 'package:http/http.dart';
 import 'package:path/path.dart' as path;
-import 'configuration.dart';
+import 'package:sync_client/storage/storage.dart';
 
 class Transfers {
-  final _config = Configuration();
+  Transfers();
 
   MediaType? _getMediaType(String filename) {
     final detectedFileType = lookupMimeType(filename);
@@ -31,17 +31,19 @@ class Transfers {
   }
 
   Uri _getUrl(String relPath) {
-    return Uri.parse("${_config.serverUrl}/$relPath");
+    if (currentDevice.settings?.serverUrl == null) {
+      return Uri();
+    }
+    return Uri.parse("${currentDevice.settings?.serverUrl!}/$relPath");
   }
 
   Future<bool> sendFile(String filename) async {
-    final deviceName = await _config.getDeviceInfo();
     var request = MultipartRequest('POST', _getUrl("upload"));
     final file = File(filename);
     final len = file.lengthSync();
     final name = path.basename(filename);
     try {
-      request.files.add(MultipartFile(deviceName, file.openRead(), len,
+      request.files.add(MultipartFile(currentDevice.name, file.openRead(), len,
           filename: name, contentType: _getMediaType(filename)));
       var streamedResponse = await request.send();
       var response = await Response.fromStream(streamedResponse);

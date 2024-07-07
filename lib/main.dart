@@ -16,9 +16,11 @@ limitations under the License.
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sync_client/config/config.dart';
-import 'screens/cubits.dart';
+import 'package:sync_client/storage/storage.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initCurrentDevice();
   runApp(const BlocProviders());
 }
 
@@ -30,9 +32,7 @@ class BlocProviders extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context) => RouterExtendedCubit()),
-        BlocProvider(create: (context) => Settings()),
-        BlocProvider(create: (context) => ThemeCubit()),
-        BlocProvider(create: (context) => FoldersCubit()),
+        BlocProvider(create: (context) => ThemeCubit())
       ],
       child: const MyApp(),
     );

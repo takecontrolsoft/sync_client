@@ -13,18 +13,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:realm/realm.dart';
 import 'package:sync_client/config/config.dart';
+import 'package:sync_client/storage/realm.dart';
+import 'package:sync_client/storage/storage.dart';
 
-import 'folders_cubit.dart';
+import '../components/widgets.dart';
 
 class FoldersListScreen extends StatelessWidget {
   const FoldersListScreen({super.key});
-
-  void _selectFolders(BuildContext context) {
-    context.read<FoldersCubit>().selectSourceDir();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,11 +31,22 @@ class FoldersListScreen extends StatelessWidget {
       appBar: MainAppBar.appBar(context),
       body: const _FoldersListScreenView(),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _selectFolders(context),
+        onPressed: () => selectSourceDir(context),
         tooltip: 'Select folder',
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  void selectSourceDir(BuildContext context) async {
+    String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+
+    if (selectedDirectory == null) {
+      return;
+    }
+    localRealm.write(() {
+      currentDevice.settings?.mediaDirectories.add(selectedDirectory);
+    });
   }
 }
 
@@ -45,7 +55,6 @@ class _FoldersListScreenView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final config = context.watch<Settings>();
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -53,18 +62,20 @@ class _FoldersListScreenView extends StatelessWidget {
           const Text(
             'Selected directories to sync:',
           ),
-          BlocConsumer<FoldersCubit, String>(
-            listener: (context, state) => config.state.dirs.add(state),
-            builder: (context, state) {
+          StreamBuilder<RealmSetChanges<String>>(
+            stream: currentDevice.settings?.mediaDirectories.changes,
+            builder: (context, snapshot) {
+              final data = snapshot.data;
+
+              if (data == null) return waitingIndicator();
+
+              final results = data.set.asResults();
               return ListView.builder(
                 shrinkWrap: true,
-                itemCount: config.state.dirs.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return ListTile(
-                    title: Text(
-                        'Directory: ${config.state.dirs.elementAt(index)}'),
-                  );
-                },
+                itemCount: results.realm.isClosed ? 0 : results.length,
+                itemBuilder: (context, index) => results[index].isNotEmpty
+                    ? ListTile(title: Text('Directory: ${results[index]}'))
+                    : Container(),
               );
             },
           ),

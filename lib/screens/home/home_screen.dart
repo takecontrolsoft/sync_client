@@ -13,9 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/core/core.dart';
@@ -64,16 +62,16 @@ class _HomeScreenView extends StatelessWidget {
         width: double.maxFinite,
         child: TextButton(
           style: ButtonStyle(
-            foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+            foregroundColor: WidgetStateProperty.all<Color>(Colors.blue),
           ),
-          onPressed: () => _run(context.read<Settings>().state),
+          onPressed: () => _run(),
           child: const Text('Sync'),
         ),
       ),
     ]);
   }
 
-  void _run(Configuration config) {
-    BackgroundAction(config: config).execute();
+  void _run() async {
+    BackgroundAction().execute();
   }
 }
