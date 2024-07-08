@@ -15,8 +15,11 @@ limitations under the License.
 */
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path/path.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/core/core.dart';
+import 'package:sync_client/screens/components/components.dart';
+import 'package:sync_client/storage/storage.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -40,17 +43,17 @@ class _HomeScreenView extends StatelessWidget {
           shrinkWrap: true,
           children: [
             ListTile(
-              title: const Text("Servers list"),
+              title: const Text("Server address"),
               subtitle:
-                  const Text("Detect all photo sync servers in the network"),
+                  Text("Server set to: ${currentDevice.settings?.serverUrl}"),
               onTap: () {
                 context.push("/servers");
               },
             ),
             ListTile(
-              title: const Text("Folders list"),
+              title: const Text("Folders to sync"),
               subtitle:
-                  const Text("Detect all photo sync servers in the network"),
+                  const Text("A list of folders to be send to the server"),
               onTap: () {
                 context.push("/folders");
               },
@@ -59,15 +62,8 @@ class _HomeScreenView extends StatelessWidget {
         ),
       ),
       SizedBox(
-        width: double.maxFinite,
-        child: TextButton(
-          style: ButtonStyle(
-            foregroundColor: WidgetStateProperty.all<Color>(Colors.blue),
-          ),
-          onPressed: () => _run(),
-          child: const Text('Sync'),
-        ),
-      ),
+          width: double.maxFinite,
+          child: okButton(context, "Send to server", onPressed: () => _run())),
     ]);
   }
 

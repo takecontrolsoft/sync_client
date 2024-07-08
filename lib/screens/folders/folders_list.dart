@@ -17,10 +17,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:realm/realm.dart';
 import 'package:sync_client/config/config.dart';
+import 'package:sync_client/screens/components/components.dart';
 import 'package:sync_client/storage/realm.dart';
 import 'package:sync_client/storage/storage.dart';
-
-import '../components/widgets.dart';
 
 class FoldersListScreen extends StatelessWidget {
   const FoldersListScreen({super.key});
@@ -74,7 +73,7 @@ class _FoldersListScreenView extends StatelessWidget {
                 shrinkWrap: true,
                 itemCount: results.realm.isClosed ? 0 : results.length,
                 itemBuilder: (context, index) => results[index].isNotEmpty
-                    ? ListTile(title: Text('Directory: ${results[index]}'))
+                    ? FolderItem(results[index])
                     : Container(),
               );
             },

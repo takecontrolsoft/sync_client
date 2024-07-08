@@ -16,6 +16,8 @@ limitations under the License.
 
 import 'package:flutter/material.dart';
 import 'package:sync_client/config/config.dart';
+import 'package:sync_client/screens/components/components.dart';
+import 'package:sync_client/storage/storage.dart';
 
 class ServersListScreen extends StatelessWidget {
   const ServersListScreen({super.key});
@@ -31,17 +33,10 @@ class ServersListScreen extends StatelessWidget {
 
 class _ServersListScreenView extends StatelessWidget {
   const _ServersListScreenView();
+
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: const [
-        ListTile(
-          title: Text("Server 1"),
-        ),
-        ListTile(
-          title: Text("Select 2"),
-        )
-      ],
-    );
+    return Center(
+        child: EditServerForm(currentDevice.settings?.serverUrl ?? ""));
   }
 }

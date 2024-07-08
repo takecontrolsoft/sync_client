@@ -6,7 +6,6 @@ Widget formLayout(BuildContext context, Widget? contentWidget) {
       padding:
           EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
-          color: Colors.grey.shade100,
           padding: const EdgeInsets.fromLTRB(50, 25, 50, 25),
           child: Center(
             child: contentWidget,
