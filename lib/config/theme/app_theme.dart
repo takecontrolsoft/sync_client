@@ -50,7 +50,7 @@ class AppTheme {
   }
 }
 
-headerFooterBoxDecoration(BuildContext context, bool isHeader) {
+BoxDecoration headerFooterBoxDecoration(BuildContext context, bool isHeader) {
   final theme = Theme.of(context);
   return BoxDecoration(
     color: theme.colorScheme.surface,
@@ -64,7 +64,7 @@ headerFooterBoxDecoration(BuildContext context, bool isHeader) {
   );
 }
 
-errorBoxDecoration(BuildContext context) {
+BoxDecoration errorBoxDecoration(BuildContext context) {
   final theme = Theme.of(context);
   return BoxDecoration(
       border: Border.all(color: Colors.black),
@@ -72,7 +72,7 @@ errorBoxDecoration(BuildContext context) {
       borderRadius: const BorderRadius.all(Radius.circular(8)));
 }
 
-infoBoxDecoration(BuildContext context) {
+BoxDecoration infoBoxDecoration(BuildContext context) {
   final theme = Theme.of(context);
   return BoxDecoration(
       border: Border.all(color: Colors.black),
@@ -80,24 +80,24 @@ infoBoxDecoration(BuildContext context) {
       borderRadius: const BorderRadius.all(Radius.circular(8)));
 }
 
-errorTextStyle(BuildContext context, {bool bold = false}) {
+TextStyle errorTextStyle(BuildContext context, {bool bold = false}) {
   final theme = Theme.of(context);
   return TextStyle(
       color: theme.colorScheme.error,
       fontWeight: bold ? FontWeight.bold : FontWeight.normal);
 }
 
-infoTextStyle(BuildContext context, {bool bold = false}) {
+TextStyle infoTextStyle(BuildContext context, {bool bold = false}) {
   return TextStyle(
       color: Colors.black,
       fontWeight: bold ? FontWeight.bold : FontWeight.normal);
 }
 
-boldTextStyle() {
+TextStyle boldTextStyle() {
   return const TextStyle(color: Colors.black, fontWeight: FontWeight.bold);
 }
 
-importantTextStyle(BuildContext context) {
+TextStyle importantTextStyle(BuildContext context) {
   return TextStyle(
       color: forestGreenColor, fontWeight: FontWeight.bold, fontSize: 12);
 }

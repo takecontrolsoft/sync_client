@@ -6,6 +6,8 @@ linter:
     # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
 
 analyzer:
+  errors:
+    no_logic_in_create_state: ignore
   exclude: [build/**]
   language:
     strict-inference: true

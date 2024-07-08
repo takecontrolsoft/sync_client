@@ -15,7 +15,6 @@ limitations under the License.
 */
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:path/path.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/core/core.dart';
 import 'package:sync_client/screens/components/components.dart';

@@ -7,15 +7,15 @@ class EditServerForm extends StatefulWidget {
   const EditServerForm(this.item, {super.key});
 
   @override
-  _EditServerFormState createState() => _EditServerFormState(item);
+  EditServerFormState createState() => EditServerFormState(item);
 }
 
-class _EditServerFormState extends State<EditServerForm> {
+class EditServerFormState extends State<EditServerForm> {
   final _formKey = GlobalKey<FormState>();
   final String item;
   late TextEditingController _serverController;
 
-  _EditServerFormState(this.item);
+  EditServerFormState(this.item);
 
   @override
   void initState() {
@@ -39,7 +39,7 @@ class _EditServerFormState extends State<EditServerForm> {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Text("Enter server name or IP address"),
+                const Text("Enter server name or IP address"),
                 TextFormField(
                   controller: _serverController,
                 ),
