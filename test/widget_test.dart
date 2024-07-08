@@ -5,6 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Widgets tests', () {
+    testWidgets('Empty', (WidgetTester tester) async {
+      await tester.pump();
+    });
     // testWidgets('Main menu test', (WidgetTester tester) async {
     //   await tester.pumpWidget(const BlocProviders());
 
