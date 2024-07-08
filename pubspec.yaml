@@ -5,7 +5,7 @@ publish_to: 'none'
 version: 0.0.1+alpha
 
 environment:
-  sdk: '>=3.2.0 <4.0.0'
+  sdk: '>=3.2.0 <5.0.0'
 
 # Upgrade your package dependencies to the latest versions - `flutter pub upgrade --major-versions`.
 # Dependencies with newer versions: `flutter pub outdated`.

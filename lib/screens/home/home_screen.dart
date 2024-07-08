@@ -43,8 +43,14 @@ class _HomeScreenView extends StatelessWidget {
           children: [
             ListTile(
               title: const Text("Server address"),
-              subtitle:
-                  Text("Server set to: ${currentDevice.settings?.serverUrl}"),
+              subtitle: StatefulBuilder(
+                builder: (BuildContext context, StateSetter setState) {
+                  currentDevice.settings?.changes
+                      .listen((changes) => setState(() {}));
+                  return Text(
+                      "Server set to: ${currentDevice.settings?.serverUrl}");
+                },
+              ),
               onTap: () {
                 context.push("/servers");
               },
