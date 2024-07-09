@@ -15,3 +15,4 @@ limitations under the License.
 */
 export 'realm.dart';
 export 'schema.dart';
+export 'sync_schema.dart';

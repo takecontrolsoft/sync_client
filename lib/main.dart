@@ -16,6 +16,7 @@ limitations under the License.
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sync_client/config/config.dart';
+import 'package:sync_client/services/services.dart';
 import 'package:sync_client/storage/storage.dart';
 
 void main() async {
@@ -32,7 +33,12 @@ class BlocProviders extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context) => RouterExtendedCubit()),
-        BlocProvider(create: (context) => ThemeCubit())
+        BlocProvider(create: (context) => ThemeCubit()),
+        BlocProvider(create: (context) => AppServicesCubit('mobisync-qzgosdd')),
+        BlocProvider(create: (context) {
+          final app = context.watch<AppServicesCubit>().state;
+          return RealmServicesCubit(app);
+        }),
       ],
       child: const MyApp(),
     );

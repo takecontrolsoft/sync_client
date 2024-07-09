@@ -34,7 +34,7 @@ Widget loginButton(BuildContext context,
     margin: const EdgeInsets.symmetric(vertical: 25),
     child: ElevatedButton(
       style: ButtonStyle(
-          foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
+          backgroundColor: WidgetStateProperty.all(forestGreenColor),
           textStyle: WidgetStateProperty.all<TextStyle>(
               const TextStyle(color: Colors.white, fontSize: 20)),
           shape: WidgetStateProperty.all<RoundedRectangleBorder>(
