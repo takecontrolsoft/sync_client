@@ -9,5 +9,11 @@
 [![License](https://img.shields.io/badge/License-Apache-purple)](https://www.apache.org/licenses/LICENSE-2.0)
 [![CI](https://github.com/takecontrolsoft/sync_client/actions/workflows/FlutterApp.yml/badge.svg)](https://github.com/takecontrolsoft/sync_client/actions/workflows/FlutterApp.yml)
 
+<img src="https://mobisync.eu/img/logo.svg" alt="MobiSync of Take Control - Software & Infrastructure" width="5%">
+
+# Mobi Sync Client App for wireless syncing of photos and videos from devices to home server. (https://mobisync.eu)
+
 # sync client
 Flutter app for syncing device photos and videos to the server in background.
+
+**_The owner of the project is **["Take Control - software & infrastructure"](https://takecontrolsoft.eu/)**_**
