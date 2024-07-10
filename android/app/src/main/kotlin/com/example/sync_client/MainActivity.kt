@@ -1,4 +1,4 @@
-package com.example.sync_client
+package eu.mobisync.sync_client
 
 import io.flutter.embedding.android.FlutterActivity
 

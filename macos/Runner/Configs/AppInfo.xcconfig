@@ -8,7 +8,7 @@
 PRODUCT_NAME = sync_client
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.syncClient
+PRODUCT_BUNDLE_IDENTIFIER = eu.mobisync.syncClient
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2023 com.example. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2023 eu.mobisync. All rights reserved.

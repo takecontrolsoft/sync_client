@@ -1,0 +1,47 @@
+name: Release
+# This workflow is triggered when a new tag is published
+# `git tag v0.0.1`
+# `git push --tags`
+# If the tag already exists, use this commanf to delete it `git tag -d v0.0.1`
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions: write-all
+
+jobs:
+  release:
+    if: contains(github.ref, 'tags/v')
+    permissions: write-all
+    runs-on: ubuntu-latest
+    outputs: 
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      v_num:  ${{ steps.version.outputs.number }}
+
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Get version number
+        id: version
+        run: |
+          echo "number=$(echo '${{ github.ref }}' | cut -d '/' -f 3)" >>${GITHUB_OUTPUT}
+
+      - name: Show version number
+        run: |
+          echo ${{ steps.version.outputs.number }}
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
+         
