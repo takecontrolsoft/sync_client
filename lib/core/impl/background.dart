@@ -43,7 +43,8 @@ class BackgroundAction implements IAction {
     }
   }
 
-  Future<void> _uploadFiles(List<FileSystemEntity> files, userName) async {
+  Future<void> _uploadFiles(
+      List<FileSystemEntity> files, String userName) async {
     for (var file in files) {
       if (!FileSystemEntity.isDirectorySync(file.path)) {
         DateTime lastDate = await File(file.path).lastModified();
