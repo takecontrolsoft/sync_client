@@ -12,6 +12,7 @@ class RealmServicesCubit extends Cubit<Realm> {
     if (state.subscriptions.isEmpty) {
       updateSubscriptions();
     }
+    print(state.config.path);
   }
 
   Future<void> updateSubscriptions() async {

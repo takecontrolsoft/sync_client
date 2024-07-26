@@ -101,11 +101,13 @@ class DeviceInfo extends _DeviceInfo
     String? id,
     String? model,
     Settings? settings,
+    DeviceError? lastError,
   }) {
     RealmObjectBase.set(this, 'name', name);
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, 'model', model);
     RealmObjectBase.set(this, 'settings', settings);
+    RealmObjectBase.set(this, 'lastError', lastError);
   }
 
   DeviceInfo._();
@@ -133,6 +135,13 @@ class DeviceInfo extends _DeviceInfo
       RealmObjectBase.set(this, 'settings', value);
 
   @override
+  DeviceError? get lastError =>
+      RealmObjectBase.get<DeviceError>(this, 'lastError') as DeviceError?;
+  @override
+  set lastError(covariant DeviceError? value) =>
+      RealmObjectBase.set(this, 'lastError', value);
+
+  @override
   Stream<RealmObjectChanges<DeviceInfo>> get changes =>
       RealmObjectBase.getChanges<DeviceInfo>(this);
 
@@ -149,6 +158,7 @@ class DeviceInfo extends _DeviceInfo
       'id': id.toEJson(),
       'model': model.toEJson(),
       'settings': settings.toEJson(),
+      'lastError': lastError.toEJson(),
     };
   }
 
@@ -160,12 +170,14 @@ class DeviceInfo extends _DeviceInfo
         'id': EJsonValue id,
         'model': EJsonValue model,
         'settings': EJsonValue settings,
+        'lastError': EJsonValue lastError,
       } =>
         DeviceInfo(
           fromEJson(name),
           id: fromEJson(id),
           model: fromEJson(model),
           settings: fromEJson(settings),
+          lastError: fromEJson(lastError),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -180,6 +192,68 @@ class DeviceInfo extends _DeviceInfo
       SchemaProperty('model', RealmPropertyType.string, optional: true),
       SchemaProperty('settings', RealmPropertyType.object,
           optional: true, linkTarget: 'Settings'),
+      SchemaProperty('lastError', RealmPropertyType.object,
+          optional: true, linkTarget: 'DeviceError'),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}
+
+class DeviceError extends _DeviceError
+    with RealmEntity, RealmObjectBase, RealmObject {
+  DeviceError(
+    String errorMessage,
+  ) {
+    RealmObjectBase.set(this, 'errorMessage', errorMessage);
+  }
+
+  DeviceError._();
+
+  @override
+  String get errorMessage =>
+      RealmObjectBase.get<String>(this, 'errorMessage') as String;
+  @override
+  set errorMessage(String value) =>
+      RealmObjectBase.set(this, 'errorMessage', value);
+
+  @override
+  Stream<RealmObjectChanges<DeviceError>> get changes =>
+      RealmObjectBase.getChanges<DeviceError>(this);
+
+  @override
+  Stream<RealmObjectChanges<DeviceError>> changesFor(
+          [List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<DeviceError>(this, keyPaths);
+
+  @override
+  DeviceError freeze() => RealmObjectBase.freezeObject<DeviceError>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'errorMessage': errorMessage.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(DeviceError value) => value.toEJson();
+  static DeviceError _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        'errorMessage': EJsonValue errorMessage,
+      } =>
+        DeviceError(
+          fromEJson(errorMessage),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(DeviceError._);
+    register(_toEJson, _fromEJson);
+    return SchemaObject(ObjectType.realmObject, DeviceError, 'DeviceError', [
+      SchemaProperty('errorMessage', RealmPropertyType.string),
     ]);
   }();
 

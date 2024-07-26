@@ -14,4 +14,10 @@ class _DeviceInfo {
   late String? id;
   late String? model;
   late _Settings? settings;
+  late _DeviceError? lastError;
+}
+
+@RealmModel()
+class _DeviceError {
+  late String errorMessage;
 }

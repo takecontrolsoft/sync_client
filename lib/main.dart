@@ -51,7 +51,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appRouter = context.watch<RouterExtendedCubit>().state;
-
     return MaterialApp.router(
         title: 'Mobi Sync',
         debugShowCheckedModeBanner: false,

@@ -22,7 +22,7 @@ import 'package:sync_client/storage/storage.dart';
 import 'transfers.dart';
 
 abstract class IAction {
-  Future<void> execute();
+  Future<void> execute(String userName);
 }
 
 class BackgroundAction implements IAction {
@@ -31,7 +31,7 @@ class BackgroundAction implements IAction {
   BackgroundAction() : _transfers = Transfers();
 
   @override
-  Future<void> execute() async {
+  Future<void> execute(String userName) async {
     final dirs =
         await DeviceSettings.getSourceDirectories(currentDevice.settings);
     if (dirs == null) {
@@ -39,14 +39,14 @@ class BackgroundAction implements IAction {
     }
     for (var dir in dirs) {
       final files = await getFilesFromExternalStorage(dir);
-      await _uploadFiles(files);
+      await _uploadFiles(files, userName);
     }
   }
 
-  Future<void> _uploadFiles(List<FileSystemEntity> files) async {
+  Future<void> _uploadFiles(List<FileSystemEntity> files, userName) async {
     for (var file in files) {
       if (!FileSystemEntity.isDirectorySync(file.path)) {
-        await _transfers.sendFile(file.path);
+        await _transfers.sendFile(file.path, userName);
       }
     }
   }

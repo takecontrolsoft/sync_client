@@ -22,12 +22,13 @@ import 'package:path/path.dart' as path;
 import 'schema.dart';
 
 final Realm localRealm = Realm(Configuration.local(
-  [Settings.schema, DeviceInfo.schema],
+  [Settings.schema, DeviceInfo.schema, DeviceError.schema],
   path: path.join(Configuration.defaultStoragePath, 'settings.realm'),
 ));
 late DeviceInfo currentDevice;
 
 Future<DeviceInfo> initCurrentDevice() async {
+  print(localRealm.config.path);
   currentDevice = await DeviceSettings.currentDeviceInfo();
   DeviceInfo? device = localRealm
       .query<DeviceInfo>(r'name == $0', [currentDevice.name]).singleOrNull;

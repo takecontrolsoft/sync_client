@@ -11,9 +11,10 @@
 
 <img src="https://mobisync.eu/img/logo.svg" alt="MobiSync of Take Control - Software & Infrastructure" width="5%">
 
-# Mobi Sync Client App for wireless syncing of photos and videos from devices to home server. (https://mobisync.eu)
+# Mobi Sync Client 
+An App for wireless syncing of photos and videos from devices to home server. (https://mobisync.eu)
 
-# sync client
-Flutter app for syncing device photos and videos to the server in background.
+# Building and release
+Go to CONTRIBUTING.md for more instructions.
 
 **_The owner of the project is **["Take Control - software & infrastructure"](https://takecontrolsoft.eu/)**_**

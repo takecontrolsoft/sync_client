@@ -23,9 +23,11 @@ class DeviceSettings {
   static Future<DeviceInfo> currentDeviceInfo() async {
     final deviceInfoPlugin = DeviceInfoPlugin();
     final deviceInfo = await deviceInfoPlugin.deviceInfo;
+
     String? deviceName = deviceInfo.data["deviceId"];
     deviceName ??= deviceInfo.data["id"];
-    deviceName ??= deviceInfo.data["model"];
+    deviceName ??= (deviceInfo.data["model"] ?? "") +
+        (deviceInfo.data["systemGUID"] ?? "");
     deviceName ??= "unknown";
     DeviceInfo di = DeviceInfo(deviceName,
         id: deviceInfo.data["id"], model: deviceInfo.data["model"]);

@@ -14,10 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:realm/realm.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/core/core.dart';
 import 'package:sync_client/screens/components/components.dart';
+import 'package:sync_client/services/services.dart';
 import 'package:sync_client/storage/storage.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -34,8 +37,10 @@ class HomeScreen extends StatelessWidget {
 
 class _HomeScreenView extends StatelessWidget {
   const _HomeScreenView();
+
   @override
   Widget build(BuildContext context) {
+    final App app = context.watch<AppServicesCubit>().state;
     return Column(children: [
       SingleChildScrollView(
         child: ListView(
@@ -68,11 +73,29 @@ class _HomeScreenView extends StatelessWidget {
       ),
       SizedBox(
           width: double.maxFinite,
-          child: okButton(context, "Send to server", onPressed: () => _run())),
+          child: okButton(context, "Send to server",
+              onPressed: () => _run(app.currentUser))),
+      /*  Padding(
+        padding: const EdgeInsets.all(25),
+        child: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            currentDevice.lastError?.changes
+                .listen((changes) => setState(() {}));
+            return Text(currentDevice.lastError?.errorMessage ?? "",
+                style: errorTextStyle(context), textAlign: TextAlign.center);
+          },
+        ),
+      ), */
     ]);
   }
 
-  void _run() async {
-    BackgroundAction().execute();
+  void _run(User? user) async {
+    if (user == null) {
+      currentDevice.lastError = DeviceError("No logged in user.");
+    }
+    if (user!.profile.email == null) {
+      currentDevice.lastError = DeviceError("Missing user name.");
+    }
+    BackgroundAction().execute(user.profile.email!);
   }
 }
