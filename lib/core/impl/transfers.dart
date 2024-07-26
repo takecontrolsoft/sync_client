@@ -37,9 +37,10 @@ class Transfers {
     return Uri.parse("${currentDevice.settings?.serverUrl!}/$relPath");
   }
 
-  Future<bool> sendFile(String filename, String userName) async {
+  Future<bool> sendFile(
+      String filename, String userName, String dateClassifier) async {
     var request = MultipartRequest('POST', _getUrl("upload"));
-    final hdr = <String, String>{"user": userName};
+    final hdr = <String, String>{"user": userName, "date": dateClassifier};
     request.headers.addEntries(hdr.entries);
     final file = File(filename);
     final len = file.lengthSync();
