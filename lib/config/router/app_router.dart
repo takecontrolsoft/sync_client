@@ -18,7 +18,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sync_client/screens/screens.dart';
 
-final _appRouter = GoRouter(initialLocation: '/login', routes: [
+final _appRouter = GoRouter(initialLocation: '/', routes: [
   GoRoute(
     path: '/',
     builder: (context, state) => const HomeScreen(),
@@ -30,6 +30,10 @@ final _appRouter = GoRouter(initialLocation: '/login', routes: [
   GoRoute(
     path: '/folders',
     builder: (context, state) => const FoldersListScreen(),
+  ),
+  GoRoute(
+    path: '/dates',
+    builder: (context, state) => const DateTimeScreen(),
   ),
   GoRoute(
     path: '/login',

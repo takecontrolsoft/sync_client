@@ -15,9 +15,17 @@ class _DeviceInfo {
   late String? model;
   late _Settings? settings;
   late _DeviceError? lastError;
+  late DateTime? lastSyncDateTime;
+  final List<_FileError> fileErrors = [];
 }
 
 @RealmModel()
 class _DeviceError {
   late String errorMessage;
+}
+
+@RealmModel()
+class _FileError {
+  late String errorMessage;
+  late String filename;
 }

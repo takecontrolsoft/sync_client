@@ -102,12 +102,17 @@ class DeviceInfo extends _DeviceInfo
     String? model,
     Settings? settings,
     DeviceError? lastError,
+    DateTime? lastSyncDateTime,
+    Iterable<FileError> fileErrors = const [],
   }) {
     RealmObjectBase.set(this, 'name', name);
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, 'model', model);
     RealmObjectBase.set(this, 'settings', settings);
     RealmObjectBase.set(this, 'lastError', lastError);
+    RealmObjectBase.set(this, 'lastSyncDateTime', lastSyncDateTime);
+    RealmObjectBase.set<RealmList<FileError>>(
+        this, 'fileErrors', RealmList<FileError>(fileErrors));
   }
 
   DeviceInfo._();
@@ -142,6 +147,21 @@ class DeviceInfo extends _DeviceInfo
       RealmObjectBase.set(this, 'lastError', value);
 
   @override
+  DateTime? get lastSyncDateTime =>
+      RealmObjectBase.get<DateTime>(this, 'lastSyncDateTime') as DateTime?;
+  @override
+  set lastSyncDateTime(DateTime? value) =>
+      RealmObjectBase.set(this, 'lastSyncDateTime', value);
+
+  @override
+  RealmList<FileError> get fileErrors =>
+      RealmObjectBase.get<FileError>(this, 'fileErrors')
+          as RealmList<FileError>;
+  @override
+  set fileErrors(covariant RealmList<FileError> value) =>
+      throw RealmUnsupportedSetError();
+
+  @override
   Stream<RealmObjectChanges<DeviceInfo>> get changes =>
       RealmObjectBase.getChanges<DeviceInfo>(this);
 
@@ -159,6 +179,8 @@ class DeviceInfo extends _DeviceInfo
       'model': model.toEJson(),
       'settings': settings.toEJson(),
       'lastError': lastError.toEJson(),
+      'lastSyncDateTime': lastSyncDateTime.toEJson(),
+      'fileErrors': fileErrors.toEJson(),
     };
   }
 
@@ -171,6 +193,8 @@ class DeviceInfo extends _DeviceInfo
         'model': EJsonValue model,
         'settings': EJsonValue settings,
         'lastError': EJsonValue lastError,
+        'lastSyncDateTime': EJsonValue lastSyncDateTime,
+        'fileErrors': EJsonValue fileErrors,
       } =>
         DeviceInfo(
           fromEJson(name),
@@ -178,6 +202,8 @@ class DeviceInfo extends _DeviceInfo
           model: fromEJson(model),
           settings: fromEJson(settings),
           lastError: fromEJson(lastError),
+          lastSyncDateTime: fromEJson(lastSyncDateTime),
+          fileErrors: fromEJson(fileErrors),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -194,6 +220,10 @@ class DeviceInfo extends _DeviceInfo
           optional: true, linkTarget: 'Settings'),
       SchemaProperty('lastError', RealmPropertyType.object,
           optional: true, linkTarget: 'DeviceError'),
+      SchemaProperty('lastSyncDateTime', RealmPropertyType.timestamp,
+          optional: true),
+      SchemaProperty('fileErrors', RealmPropertyType.object,
+          linkTarget: 'FileError', collectionType: RealmCollectionType.list),
     ]);
   }();
 
@@ -254,6 +284,77 @@ class DeviceError extends _DeviceError
     register(_toEJson, _fromEJson);
     return SchemaObject(ObjectType.realmObject, DeviceError, 'DeviceError', [
       SchemaProperty('errorMessage', RealmPropertyType.string),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}
+
+class FileError extends _FileError
+    with RealmEntity, RealmObjectBase, RealmObject {
+  FileError(
+    String errorMessage,
+    String filename,
+  ) {
+    RealmObjectBase.set(this, 'errorMessage', errorMessage);
+    RealmObjectBase.set(this, 'filename', filename);
+  }
+
+  FileError._();
+
+  @override
+  String get errorMessage =>
+      RealmObjectBase.get<String>(this, 'errorMessage') as String;
+  @override
+  set errorMessage(String value) =>
+      RealmObjectBase.set(this, 'errorMessage', value);
+
+  @override
+  String get filename =>
+      RealmObjectBase.get<String>(this, 'filename') as String;
+  @override
+  set filename(String value) => RealmObjectBase.set(this, 'filename', value);
+
+  @override
+  Stream<RealmObjectChanges<FileError>> get changes =>
+      RealmObjectBase.getChanges<FileError>(this);
+
+  @override
+  Stream<RealmObjectChanges<FileError>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<FileError>(this, keyPaths);
+
+  @override
+  FileError freeze() => RealmObjectBase.freezeObject<FileError>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'errorMessage': errorMessage.toEJson(),
+      'filename': filename.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(FileError value) => value.toEJson();
+  static FileError _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        'errorMessage': EJsonValue errorMessage,
+        'filename': EJsonValue filename,
+      } =>
+        FileError(
+          fromEJson(errorMessage),
+          fromEJson(filename),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(FileError._);
+    register(_toEJson, _fromEJson);
+    return SchemaObject(ObjectType.realmObject, FileError, 'FileError', [
+      SchemaProperty('errorMessage', RealmPropertyType.string),
+      SchemaProperty('filename', RealmPropertyType.string),
     ]);
   }();
 

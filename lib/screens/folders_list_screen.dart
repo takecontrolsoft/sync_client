@@ -54,9 +54,11 @@ class _FoldersListScreenView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return Container(
+      margin: const EdgeInsets.only(
+          left: 10.0, right: 10.0, top: 30.0, bottom: 30.0),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
           const Text(
             'Selected directories to sync:',

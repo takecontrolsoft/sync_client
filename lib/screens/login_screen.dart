@@ -16,6 +16,7 @@ limitations under the License.
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:realm/realm.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/screens/components/components.dart';
 import 'package:sync_client/services/services.dart';
@@ -122,6 +123,14 @@ class _LogInScreenState extends State<LogInScreen> {
       });
     } catch (err) {
       setState(() {
+        if (err is AppException) {
+          if (err.statusCode == 401) {
+            _errorMessage = "Invalid username or password";
+          } else {
+            _errorMessage = err.message;
+          }
+          return;
+        }
         _errorMessage = err.toString();
       });
     }

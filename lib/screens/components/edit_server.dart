@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sync_client/storage/realm.dart';
-import '../widgets.dart';
+import 'widgets.dart';
 
 class EditServerForm extends StatefulWidget {
   final String item;
@@ -36,17 +36,16 @@ class EditServerFormState extends State<EditServerForm> {
         Form(
             key: _formKey,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
-                const Text("Enter server name or IP address"),
+                const Text("Enter server address (http://ip:3000)"),
                 TextFormField(
                   controller: _serverController,
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 15),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       cancelButton(context),
                       okButton(context, "Update",

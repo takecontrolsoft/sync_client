@@ -48,9 +48,10 @@ class BackgroundAction implements IAction {
     for (var file in files) {
       if (!FileSystemEntity.isDirectorySync(file.path)) {
         DateTime lastDate = await File(file.path).lastModified();
-        String dateClassifier =
-            "${lastDate.year}-${lastDate.month}-${lastDate.day}";
-        await _transfers.sendFile(file.path, userName, dateClassifier);
+        if (currentDevice.lastSyncDateTime == null ||
+            lastDate.isAfter(currentDevice.lastSyncDateTime!)) {
+          await _transfers.sendFile(file.path, userName, lastDate);
+        }
       }
     }
   }

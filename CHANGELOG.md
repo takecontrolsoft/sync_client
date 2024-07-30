@@ -1,6 +1,21 @@
 <img src="https://mobisync.eu/img/logo.svg" alt="MobiSync of Take Control - Software & Infrastructure" width="5%">
 
-# Mobi Sync Client App for wireless syncing of photos and videos from devices to home server. (https://mobisync.eu)
+# Mobi Sync Client 
+An App for wireless syncing of photos and videos from devices to home server. (https://mobisync.eu)
+
+## 1.0.4 Release notes (2024-07-30)
+
+### Enhancements
+* Added Last date of synchronization.
+* Added single login.
+* Added logout button.
+* Improved error handling
+
+### Fixes
+* Fixed certificate negotiation problem for Android 7 or older
+* MongoDB Realm version upgraded to 3.3.0
+
+**Versions 1.0.2 and 1.0.3 are grouped under 1.0.4 and haven't been released separately.**
 
 ## 1.0.1 Release notes (2024-07-27)
 

@@ -15,13 +15,16 @@ limitations under the License.
 */
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sync_client/config/theme/theme_cubit.dart';
+import 'package:sync_client/services/app_services.dart';
 
 class MainAppBar {
   static AppBar appBar(BuildContext context) {
     final ThemeCubit theme = context.watch<ThemeCubit>();
+    final AppServicesCubit appService = context.watch<AppServicesCubit>();
     return AppBar(
-      title: const Text("Mobi Sync"),
+      title: const Text("Mobi Sync Client"),
       actions: [
         IconButton(
           icon: theme.state.isDarkMode
@@ -32,7 +35,18 @@ class MainAppBar {
             theme.toggleTheme();
           },
         ),
+        IconButton(
+          icon: const Icon(Icons.logout),
+          tooltip: 'Log out',
+          onPressed: () async => await logOut(context, appService),
+        ),
       ],
     );
+  }
+
+  static Future<void> logOut(
+      BuildContext context, AppServicesCubit appService) async {
+    await appService.logOut();
+    context.push('/login');
   }
 }

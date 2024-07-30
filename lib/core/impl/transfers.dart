@@ -38,7 +38,10 @@ class Transfers {
   }
 
   Future<bool> sendFile(
-      String filename, String userName, String dateClassifier) async {
+      String filename, String userName, DateTime lastDate) async {
+    String dateClassifier =
+        "${lastDate.year}-${lastDate.month}-${lastDate.day}";
+
     var request = MultipartRequest('POST', _getUrl("upload"));
     final hdr = <String, String>{"user": userName, "date": dateClassifier};
     request.headers.addEntries(hdr.entries);
@@ -51,13 +54,23 @@ class Transfers {
       var streamedResponse = await request.send();
       var response = await Response.fromStream(streamedResponse);
       if (response.statusCode == 200) {
+        localRealm.write(() {
+          if (currentDevice.lastSyncDateTime == null ||
+              lastDate.isAfter(currentDevice.lastSyncDateTime!)) {
+            currentDevice.lastSyncDateTime = lastDate;
+          }
+        });
         return true;
       } else {
-        // TODO: Save which are unsynced errors
+        localRealm.write(() {
+          currentDevice.fileErrors.add(FileError(response.body, filename));
+        });
         return false;
       }
     } catch (err) {
-      // TODO: Save which are unsynced errors
+      localRealm.write(() {
+        currentDevice.lastError = DeviceError(err.toString());
+      });
       return false;
     }
   }

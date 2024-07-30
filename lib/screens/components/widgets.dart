@@ -51,7 +51,7 @@ Widget templateButton(BuildContext context,
     String text = "button",
     void Function()? onPressed}) {
   return Container(
-    margin: const EdgeInsets.symmetric(horizontal: 10),
+    margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
     child: ElevatedButton(
       style: ButtonStyle(backgroundColor: WidgetStateProperty.all(color)),
       onPressed: onPressed,

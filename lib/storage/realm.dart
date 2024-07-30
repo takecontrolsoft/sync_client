@@ -22,7 +22,7 @@ import 'package:path/path.dart' as path;
 import 'schema.dart';
 
 final Realm localRealm = Realm(Configuration.local(
-  [Settings.schema, DeviceInfo.schema, DeviceError.schema],
+  [Settings.schema, DeviceInfo.schema, DeviceError.schema, FileError.schema],
   path: path.join(Configuration.defaultStoragePath, 'settings.realm'),
 ));
 late DeviceInfo currentDevice;

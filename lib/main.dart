@@ -52,7 +52,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final appRouter = context.watch<RouterExtendedCubit>().state;
     return MaterialApp.router(
-        title: 'Mobi Sync',
+        title: 'Mobi Sync Client',
         debugShowCheckedModeBanner: false,
         routerConfig: appRouter,
         theme: AppTheme.getTheme(context));

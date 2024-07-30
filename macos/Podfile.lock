@@ -2,7 +2,7 @@ PODS:
   - device_info_plus (0.0.1):
     - FlutterMacOS
   - FlutterMacOS (1.0.0)
-  - realm (3.1.0):
+  - realm (3.3.0):
     - FlutterMacOS
 
 DEPENDENCIES:
@@ -21,7 +21,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   device_info_plus: ce1b7762849d3ec103d0e0517299f2db7ad60720
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
-  realm: c1884c3b1fd67f67b76c4bb4a263e69536e45434
+  realm: 9176042a6bb352cfc4f3acd0d2f482a7b073b12b
 
 PODFILE CHECKSUM: 236401fc2c932af29a9fcf0e97baeeb2d750d367
 
