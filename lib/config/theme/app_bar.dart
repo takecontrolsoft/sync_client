@@ -47,6 +47,7 @@ class MainAppBar {
   static Future<void> logOut(
       BuildContext context, AppServicesCubit appService) async {
     await appService.logOut();
+    // ignore: use_build_context_synchronously
     context.push('/login');
   }
 }

@@ -8,6 +8,7 @@ linter:
 analyzer:
   errors:
     no_logic_in_create_state: ignore
+    override_on_non_overriding_member: ignore
   exclude: [build/**]
   language:
     strict-inference: true

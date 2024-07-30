@@ -25,10 +25,10 @@ class LogInScreen extends StatefulWidget {
   const LogInScreen({super.key});
 
   @override
-  _LogInScreenState createState() => _LogInScreenState();
+  LogInScreenState createState() => LogInScreenState();
 }
 
-class _LogInScreenState extends State<LogInScreen> {
+class LogInScreenState extends State<LogInScreen> {
   bool _isLogin = true;
   String? _errorMessage;
 
