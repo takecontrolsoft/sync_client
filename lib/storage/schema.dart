@@ -1,31 +1,22 @@
-import 'package:realm/realm.dart';
-part 'schema.realm.dart';
-
-@RealmModel()
-class _Settings {
-  late String? serverUrl;
-  late _DeviceInfo? device;
-  Set<String> mediaDirectories = {};
+class User {
+  late String email;
+  late String password;
 }
 
-@RealmModel()
-class _DeviceInfo {
+class DeviceSettings {
   late String name;
   late String? id;
   late String? model;
-  late _Settings? settings;
-  late _DeviceError? lastError;
+  late String? serverUrl;
+  late User? currentUser;
+  Set<String> mediaDirectories = {};
+  late String? lastErrorMessage;
   late DateTime? lastSyncDateTime;
-  final List<_FileError> fileErrors = [];
+  late List<FileError> fileErrors = [];
 }
 
-@RealmModel()
-class _DeviceError {
-  late String errorMessage;
-}
-
-@RealmModel()
-class _FileError {
-  late String errorMessage;
-  late String filename;
+class FileError {
+  final String errorMessage;
+  final String filename;
+  FileError(this.filename, this.errorMessage);
 }

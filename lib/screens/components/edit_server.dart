@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sync_client/storage/realm.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sync_client/services/services.dart';
 import 'widgets.dart';
 
 class EditServerForm extends StatefulWidget {
@@ -31,6 +32,7 @@ class EditServerFormState extends State<EditServerForm> {
 
   @override
   Widget build(BuildContext context) {
+    final deviceService = context.watch<DeviceServicesCubit>();
     return formLayout(
         context,
         Form(
@@ -49,8 +51,8 @@ class EditServerFormState extends State<EditServerForm> {
                     children: [
                       cancelButton(context),
                       okButton(context, "Update",
-                          onPressed: () async =>
-                              await update(context, _serverController.text)),
+                          onPressed: () async => await update(
+                              context, deviceService, _serverController.text)),
                     ],
                   ),
                 ),
@@ -58,13 +60,10 @@ class EditServerFormState extends State<EditServerForm> {
             )));
   }
 
-  Future<void> update(BuildContext context, String newServer) async {
+  Future<void> update(BuildContext context, DeviceServicesCubit deviceService,
+      String newServer) async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        localRealm.write(() {
-          currentDevice.settings?.serverUrl = newServer;
-        });
-      });
+      deviceService.state.serverUrl = newServer;
       Navigator.pop(context);
     }
   }

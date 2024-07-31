@@ -17,4 +17,3 @@ export 'router/app_router.dart';
 export 'theme/app_theme.dart';
 export 'theme/app_bar.dart';
 export 'theme/theme_cubit.dart';
-export 'device/device_settings.dart';

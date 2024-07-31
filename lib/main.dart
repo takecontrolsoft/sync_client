@@ -17,11 +17,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/services/services.dart';
-import 'package:sync_client/storage/storage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initCurrentDevice();
+  //await initCurrentDevice();
   runApp(const BlocProviders());
 }
 
@@ -34,11 +33,7 @@ class BlocProviders extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => RouterExtendedCubit()),
         BlocProvider(create: (context) => ThemeCubit()),
-        BlocProvider(create: (context) => AppServicesCubit('mobisync-qzgosdd')),
-        BlocProvider(create: (context) {
-          final app = context.watch<AppServicesCubit>().state;
-          return RealmServicesCubit(app);
-        }),
+        BlocProvider(create: (context) => DeviceServicesCubit()),
       ],
       child: const MyApp(),
     );

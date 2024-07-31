@@ -31,10 +31,10 @@ class Transfers {
   }
 
   Uri _getUrl(String relPath) {
-    if (currentDevice.settings?.serverUrl == null) {
+    if (currentDeviceSettings.serverUrl == null) {
       return Uri();
     }
-    return Uri.parse("${currentDevice.settings?.serverUrl!}/$relPath");
+    return Uri.parse("${currentDeviceSettings.serverUrl!}/$relPath");
   }
 
   Future<bool> sendFile(
@@ -49,28 +49,24 @@ class Transfers {
     final len = file.lengthSync();
     final name = path.basename(filename);
     try {
-      request.files.add(MultipartFile(currentDevice.name, file.openRead(), len,
+      request.files.add(MultipartFile(
+          currentDeviceSettings.name, file.openRead(), len,
           filename: name, contentType: _getMediaType(filename)));
       var streamedResponse = await request.send();
       var response = await Response.fromStream(streamedResponse);
       if (response.statusCode == 200) {
-        localRealm.write(() {
-          if (currentDevice.lastSyncDateTime == null ||
-              lastDate.isAfter(currentDevice.lastSyncDateTime!)) {
-            currentDevice.lastSyncDateTime = lastDate;
-          }
-        });
+        if (currentDeviceSettings.lastSyncDateTime == null ||
+            lastDate.isAfter(currentDeviceSettings.lastSyncDateTime!)) {
+          currentDeviceSettings.lastSyncDateTime = lastDate;
+        }
         return true;
       } else {
-        localRealm.write(() {
-          currentDevice.fileErrors.add(FileError(response.body, filename));
-        });
+        currentDeviceSettings.fileErrors
+            .add(FileError(response.body, filename));
         return false;
       }
     } catch (err) {
-      localRealm.write(() {
-        currentDevice.lastError = DeviceError(err.toString());
-      });
+      currentDeviceSettings.lastErrorMessage = err.toString();
       return false;
     }
   }

@@ -2,26 +2,20 @@ PODS:
   - device_info_plus (0.0.1):
     - FlutterMacOS
   - FlutterMacOS (1.0.0)
-  - realm (3.3.0):
-    - FlutterMacOS
 
 DEPENDENCIES:
   - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
-  - realm (from `Flutter/ephemeral/.symlinks/plugins/realm/macos`)
 
 EXTERNAL SOURCES:
   device_info_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
-  realm:
-    :path: Flutter/ephemeral/.symlinks/plugins/realm/macos
 
 SPEC CHECKSUMS:
   device_info_plus: ce1b7762849d3ec103d0e0517299f2db7ad60720
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
-  realm: 9176042a6bb352cfc4f3acd0d2f482a7b073b12b
 
 PODFILE CHECKSUM: e6941affa76272697b93766f7a7df72c8e5d2cb8
 

@@ -16,8 +16,8 @@ limitations under the License.
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:realm/realm.dart';
 import 'package:sync_client/config/config.dart';
+import 'package:sync_client/core/core.dart';
 import 'package:sync_client/screens/components/components.dart';
 import 'package:sync_client/services/services.dart';
 
@@ -110,25 +110,21 @@ class LogInScreenState extends State<LogInScreen> {
 
   void _logInOrSignUpUser(
       BuildContext context, String email, String password) async {
-    final appServices = context.read<AppServicesCubit>();
+    final deviceServices = context.read<DeviceServicesCubit>();
     clearError();
     try {
       if (_isLogin) {
-        await appServices.logInUserEmailPassword(email, password);
+        await deviceServices.logInUserEmailPassword(email, password);
       } else {
-        await appServices.registerUserEmailPassword(email, password);
+        await deviceServices.registerUserEmailPassword(email, password);
       }
       setState(() {
         context.push("/");
       });
     } catch (err) {
       setState(() {
-        if (err is AppException) {
-          if (err.statusCode == 401) {
-            _errorMessage = "Invalid username or password";
-          } else {
-            _errorMessage = err.message;
-          }
+        if (err is CustomError) {
+          _errorMessage = err.message;
           return;
         }
         _errorMessage = err.toString();

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sync_client/storage/realm.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sync_client/services/services.dart';
 
 enum FolderMenuOption { edit, delete }
 
@@ -10,6 +11,7 @@ class FolderItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final deviceService = context.watch<DeviceServicesCubit>();
     return folder.isNotEmpty
         ? ListTile(
             leading: const Icon(Icons.folder),
@@ -18,7 +20,7 @@ class FolderItem extends StatelessWidget {
               width: 25,
               child: PopupMenuButton<FolderMenuOption>(
                 onSelected: (menuItem) =>
-                    handleMenuClick(context, menuItem, folder),
+                    handleMenuClick(context, deviceService, menuItem, folder),
                 itemBuilder: (context) => [
                   const PopupMenuItem<FolderMenuOption>(
                     value: FolderMenuOption.delete,
@@ -34,12 +36,10 @@ class FolderItem extends StatelessWidget {
         : Container();
   }
 
-  void handleMenuClick(
-      BuildContext context, FolderMenuOption menuItem, String folder) {
+  void handleMenuClick(BuildContext context, DeviceServicesCubit deviceService,
+      FolderMenuOption menuItem, String folder) {
     if (menuItem == FolderMenuOption.delete) {
-      localRealm.write(() {
-        currentDevice.settings?.mediaDirectories.remove(folder);
-      });
+      deviceService.state.mediaDirectories.remove(folder);
     }
   }
 }

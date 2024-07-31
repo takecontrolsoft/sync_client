@@ -13,6 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-export 'realm.dart';
+import 'package:sync_client/storage/schema.dart';
+
 export 'schema.dart';
-export 'sync_schema.dart';
+
+final DeviceSettings currentDeviceSettings = DeviceSettings();

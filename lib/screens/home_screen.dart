@@ -16,7 +16,6 @@ limitations under the License.
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:realm/realm.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/core/core.dart';
 import 'package:sync_client/screens/components/components.dart';
@@ -41,13 +40,12 @@ class _HomeScreenView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final App app = context.watch<AppServicesCubit>().state;
-    if (app.currentUser == null) {
+    final DeviceServicesCubit deviceService =
+        context.watch<DeviceServicesCubit>();
+    if (deviceService.currentUser == null) {
       context.push("/login");
     }
-    localRealm.write(() {
-      currentDevice.lastError = DeviceError("");
-    });
+    deviceService.state.lastErrorMessage = "";
     return Container(
         margin: const EdgeInsets.only(
             left: 10.0, right: 10.0, top: 30.0, bottom: 30.0),
@@ -60,14 +58,11 @@ class _HomeScreenView extends StatelessWidget {
                     child: ListTile(
                   title: const Text("Server address"),
                   leading: const Icon(Icons.cloud),
-                  subtitle: StatefulBuilder(
-                    builder: (BuildContext context, StateSetter setState) {
-                      currentDevice.settings?.changes
-                          .listen((changes) => setState(() {}));
-                      return Text(
-                          "Server set to: ${currentDevice.settings?.serverUrl ?? ""}");
-                    },
-                  ),
+                  subtitle: BlocConsumer<DeviceServicesCubit, DeviceSettings>(
+                      listener: (context, state) => state.serverUrl,
+                      builder: (context, state) {
+                        return Text("Server set to: ${state.serverUrl ?? ""}");
+                      }),
                   onTap: () {
                     context.push("/servers");
                   },
@@ -76,15 +71,13 @@ class _HomeScreenView extends StatelessWidget {
                     child: ListTile(
                   leading: const Icon(Icons.folder),
                   title: const Text("Folders to sync"),
-                  subtitle: StatefulBuilder(
-                    builder: (BuildContext context, StateSetter setState) {
-                      currentDevice.settings?.changes
-                          .listen((changes) => setState(() {}));
-                      return Text(
-                        "Selected folders count: ${currentDevice.settings == null ? "0" : currentDevice.settings!.mediaDirectories.length}",
-                      );
-                    },
-                  ),
+                  subtitle: BlocConsumer<DeviceServicesCubit, DeviceSettings>(
+                      listener: (context, state) => state.mediaDirectories,
+                      builder: (context, state) {
+                        return Text(
+                          "Selected folders count: ${state.mediaDirectories.length}",
+                        );
+                      }),
                   onTap: () {
                     context.push("/folders");
                   },
@@ -93,17 +86,15 @@ class _HomeScreenView extends StatelessWidget {
                     child: ListTile(
                   leading: const Icon(Icons.calendar_today),
                   title: const Text("Last synced file date"),
-                  subtitle: StatefulBuilder(
-                    builder: (BuildContext context, StateSetter setState) {
-                      currentDevice.changes
-                          .listen((changes) => setState(() {}));
-                      final DateFormat formatter =
-                          DateFormat('yyyy-MM-dd hh:ss');
-                      return Text(
-                        "Last file date: ${currentDevice.lastSyncDateTime == null ? "" : formatter.format(currentDevice.lastSyncDateTime!)}",
-                      );
-                    },
-                  ),
+                  subtitle: BlocConsumer<DeviceServicesCubit, DeviceSettings>(
+                      listener: (context, state) => state.lastSyncDateTime,
+                      builder: (context, state) {
+                        final DateFormat formatter =
+                            DateFormat('yyyy-MM-dd hh:ss');
+                        return Text(
+                          "Selected folders count: ${formatter.format(state.lastSyncDateTime!)}",
+                        );
+                      }),
                   onTap: () {
                     context.push("/dates");
                   },
@@ -114,44 +105,38 @@ class _HomeScreenView extends StatelessWidget {
           SizedBox(
               width: double.maxFinite,
               child: okButton(context, "Send to server",
-                  onPressed: () => _run(app.currentUser))),
+                  onPressed: () => _run(deviceService))),
           Padding(
             padding: const EdgeInsets.all(25),
-            child: StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
-                currentDevice.lastError?.changes
-                    .listen((changes) => setState(() {}));
-                return Text(currentDevice.lastError?.errorMessage ?? "",
-                    style: errorTextStyle(context),
-                    textAlign: TextAlign.center);
-              },
-            ),
+            child: BlocConsumer<DeviceServicesCubit, DeviceSettings>(
+                listener: (context, state) => state.lastErrorMessage,
+                builder: (context, state) {
+                  return Text(state.lastErrorMessage ?? "",
+                      style: errorTextStyle(context),
+                      textAlign: TextAlign.center);
+                }),
           ),
         ]));
   }
 
-  void _run(User? user) async {
+  void _run(DeviceServicesCubit deviceService) async {
     String errorText = "";
-    if (user == null) {
+    if (deviceService.currentUser == null) {
       errorText = "No logged in user.";
     }
-    if (user!.profile.email == null) {
+    if (deviceService.currentUser!.email.isEmpty) {
       errorText = "Missing user name.";
     }
-    if (currentDevice.settings == null ||
-        currentDevice.settings!.mediaDirectories.isEmpty) {
+    if (deviceService.state.mediaDirectories.isEmpty) {
       errorText = "Please select folders to sync.";
     }
-    if (currentDevice.settings == null ||
-        (currentDevice.settings!.serverUrl ?? "").isEmpty) {
+    if (deviceService.state.serverUrl == null) {
       errorText = "Please select server address.";
     }
-    localRealm.write(() {
-      currentDevice.lastError?.errorMessage = errorText;
-    });
+    deviceService.state.lastErrorMessage = errorText;
     if (errorText.isNotEmpty) {
       return;
     }
-    BackgroundAction().execute(user.profile.email!);
+    BackgroundAction().execute(deviceService.currentUser!.email);
   }
 }

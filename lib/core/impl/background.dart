@@ -16,7 +16,6 @@ limitations under the License.
 
 import 'dart:async';
 import 'dart:io';
-import 'package:sync_client/config/config.dart';
 import 'package:sync_client/storage/storage.dart';
 
 import 'transfers.dart';
@@ -32,8 +31,7 @@ class BackgroundAction implements IAction {
 
   @override
   Future<void> execute(String userName) async {
-    final dirs =
-        await DeviceSettings.getSourceDirectories(currentDevice.settings);
+    final dirs = await _getSourceDirectories();
     if (dirs == null) {
       return;
     }
@@ -43,13 +41,20 @@ class BackgroundAction implements IAction {
     }
   }
 
+  Future<Iterable<Directory>?> _getSourceDirectories() async {
+    if (currentDeviceSettings.id == null) {
+      return Future.value();
+    }
+    return currentDeviceSettings.mediaDirectories.map((e) => Directory(e));
+  }
+
   Future<void> _uploadFiles(
       List<FileSystemEntity> files, String userName) async {
     for (var file in files) {
       if (!FileSystemEntity.isDirectorySync(file.path)) {
         DateTime lastDate = await File(file.path).lastModified();
-        if (currentDevice.lastSyncDateTime == null ||
-            lastDate.isAfter(currentDevice.lastSyncDateTime!)) {
+        if (currentDeviceSettings.lastSyncDateTime == null ||
+            lastDate.isAfter(currentDeviceSettings.lastSyncDateTime!)) {
           await _transfers.sendFile(file.path, userName, lastDate);
         }
       }

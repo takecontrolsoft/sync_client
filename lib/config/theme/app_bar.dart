@@ -17,12 +17,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sync_client/config/theme/theme_cubit.dart';
-import 'package:sync_client/services/app_services.dart';
+import 'package:sync_client/services/device_services.dart';
 
 class MainAppBar {
   static AppBar appBar(BuildContext context) {
     final ThemeCubit theme = context.watch<ThemeCubit>();
-    final AppServicesCubit appService = context.watch<AppServicesCubit>();
+    final DeviceServicesCubit deviceService =
+        context.watch<DeviceServicesCubit>();
     return AppBar(
       title: const Text("Mobi Sync Client"),
       actions: [
@@ -38,15 +39,15 @@ class MainAppBar {
         IconButton(
           icon: const Icon(Icons.logout),
           tooltip: 'Log out',
-          onPressed: () async => await logOut(context, appService),
+          onPressed: () async => await logOut(context, deviceService),
         ),
       ],
     );
   }
 
   static Future<void> logOut(
-      BuildContext context, AppServicesCubit appService) async {
-    await appService.logOut();
+      BuildContext context, DeviceServicesCubit deviceService) async {
+    await deviceService.logOut();
     // ignore: use_build_context_synchronously
     context.push('/login');
   }

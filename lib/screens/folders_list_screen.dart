@@ -15,10 +15,10 @@ limitations under the License.
 */
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:realm/realm.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/screens/components/components.dart';
-import 'package:sync_client/storage/realm.dart';
+import 'package:sync_client/services/services.dart';
 import 'package:sync_client/storage/storage.dart';
 
 class FoldersListScreen extends StatelessWidget {
@@ -43,9 +43,7 @@ class FoldersListScreen extends StatelessWidget {
     if (selectedDirectory == null) {
       return;
     }
-    localRealm.write(() {
-      currentDevice.settings?.mediaDirectories.add(selectedDirectory);
-    });
+    currentDeviceSettings.mediaDirectories.add(selectedDirectory);
   }
 }
 
@@ -63,23 +61,21 @@ class _FoldersListScreenView extends StatelessWidget {
           const Text(
             'Selected directories to sync:',
           ),
-          StreamBuilder<RealmSetChanges<String>>(
-            stream: currentDevice.settings?.mediaDirectories.changes,
-            builder: (context, snapshot) {
-              final data = snapshot.data;
-
-              if (data == null) return waitingIndicator();
-
-              final results = data.set.asResults();
-              return ListView.builder(
-                shrinkWrap: true,
-                itemCount: results.realm.isClosed ? 0 : results.length,
-                itemBuilder: (context, index) => results[index].isNotEmpty
-                    ? FolderItem(results[index])
-                    : Container(),
-              );
-            },
-          ),
+          BlocConsumer<DeviceServicesCubit, DeviceSettings>(
+              listenWhen: (previous, current) =>
+                  previous.mediaDirectories.length !=
+                  current.mediaDirectories.length,
+              listener: (context, state) => state.mediaDirectories,
+              builder: (context, state) {
+                return ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: state.mediaDirectories.length,
+                  itemBuilder: (context, index) =>
+                      state.mediaDirectories.elementAt(index).isNotEmpty
+                          ? FolderItem(state.mediaDirectories.elementAt(index))
+                          : Container(),
+                );
+              })
         ],
       ),
     );
