@@ -17,10 +17,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/services/services.dart';
+import 'package:sync_client/storage/storage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  //await initCurrentDevice();
+  await loadDeviceSettings();
   runApp(const BlocProviders());
 }
 

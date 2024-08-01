@@ -26,24 +26,28 @@ class FoldersListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final deviceService = context.watch<DeviceServicesCubit>();
     return Scaffold(
       appBar: MainAppBar.appBar(context),
       body: const _FoldersListScreenView(),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => selectSourceDir(context),
+        onPressed: () => selectSourceDir(context, deviceService),
         tooltip: 'Select folder',
         child: const Icon(Icons.add),
       ),
     );
   }
 
-  void selectSourceDir(BuildContext context) async {
+  void selectSourceDir(
+      BuildContext context, DeviceServicesCubit deviceService) async {
     String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
 
     if (selectedDirectory == null) {
       return;
     }
-    currentDeviceSettings.mediaDirectories.add(selectedDirectory);
+    deviceService.edit((state) {
+      state.mediaDirectories.add(selectedDirectory);
+    });
   }
 }
 

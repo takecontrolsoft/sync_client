@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sync_client/services/services.dart';
+import 'package:sync_client/storage/storage.dart';
 
 enum FolderMenuOption { edit, delete }
 
@@ -39,7 +40,9 @@ class FolderItem extends StatelessWidget {
   void handleMenuClick(BuildContext context, DeviceServicesCubit deviceService,
       FolderMenuOption menuItem, String folder) {
     if (menuItem == FolderMenuOption.delete) {
-      deviceService.state.mediaDirectories.remove(folder);
+      deviceService.edit((state) {
+        state.mediaDirectories.remove(folder);
+      });
     }
   }
 }

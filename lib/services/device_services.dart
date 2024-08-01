@@ -1,14 +1,9 @@
-import 'dart:io';
-
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sync_client/storage/storage.dart';
 
 class DeviceServicesCubit extends Cubit<DeviceSettings> {
   User? currentUser;
-  DeviceServicesCubit() : super(currentDeviceSettings) {
-    _initCurrentDevice();
-  }
+  DeviceServicesCubit() : super(currentDeviceSettings);
 
   Future<User> logInUserEmailPassword(String email, String password) async {
     if (state.currentUser == null ||
@@ -23,9 +18,7 @@ class DeviceServicesCubit extends Cubit<DeviceSettings> {
   }
 
   Future<User> registerUserEmailPassword(String email, String password) async {
-    state.currentUser ??= User()
-      ..email = email
-      ..password = password;
+    state.currentUser ??= User(email)..password = password;
     currentUser = state.currentUser;
     emit(state);
     return currentUser!;
@@ -37,17 +30,10 @@ class DeviceServicesCubit extends Cubit<DeviceSettings> {
     }
   }
 
-  static Future<void> _initCurrentDevice() async {
-    final deviceInfoPlugin = DeviceInfoPlugin();
-    final deviceInfo = await deviceInfoPlugin.deviceInfo;
-
-    String? deviceName = deviceInfo.data["deviceId"];
-    deviceName ??= deviceInfo.data["id"];
-    deviceName ??= (deviceInfo.data["model"] ?? "") +
-        (deviceInfo.data["systemGUID"] ?? "");
-    deviceName ??= "unknown";
-    currentDeviceSettings.name = deviceName;
-    currentDeviceSettings.id = deviceInfo.data["id"];
-    currentDeviceSettings.model = deviceInfo.data["model"];
+  T edit<T>(T Function(DeviceSettings) editCallback) {
+    T result = editCallback(state);
+    saveDeviceSettings(state);
+    emit(state);
+    return result;
   }
 }

@@ -138,5 +138,6 @@ class _HomeScreenView extends StatelessWidget {
       return;
     }
     BackgroundAction().execute(deviceService.currentUser!.email);
+    saveDeviceSettings(deviceService.state);
   }
 }

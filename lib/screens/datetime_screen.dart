@@ -30,14 +30,16 @@ class DateTimeScreen extends StatelessWidget {
     return Scaffold(
         appBar: MainAppBar.appBar(context), body: const _DateTimeScreenView());
   }
-
-  void resetDateTime(DeviceServicesCubit deviceService) async {
-    deviceService.state.lastSyncDateTime = null;
-  }
 }
 
 class _DateTimeScreenView extends StatelessWidget {
   const _DateTimeScreenView();
+
+  void resetDateTime(DeviceServicesCubit deviceService) async {
+    deviceService.edit((state) {
+      state.lastSyncDateTime = null;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,8 +58,12 @@ class _DateTimeScreenView extends StatelessWidget {
               title: BlocBuilder<DeviceServicesCubit, DeviceSettings>(
                   builder: (context, state) {
                 final DateFormat formatter = DateFormat('yyyy-MM-dd hh:ss');
-                return Text(
-                    'Date time: ${state.lastSyncDateTime == null ? "" : formatter.format(state.lastSyncDateTime!)}');
+                if (state.lastSyncDateTime == null) {
+                  return const Text('Date time: ');
+                } else {
+                  return Text(
+                      'Date time: ${formatter.format(state.lastSyncDateTime!)}');
+                }
               }),
               trailing: SizedBox(
                 width: 25,
@@ -83,7 +89,7 @@ class _DateTimeScreenView extends StatelessWidget {
   void handleMenuClick(BuildContext context, DeviceServicesCubit deviceService,
       DateTimeMenuOption menuItem) {
     if (menuItem == DateTimeMenuOption.reset) {
-      deviceService.state.lastSyncDateTime = DateTime(1800, 1, 1);
+      resetDateTime(deviceService);
     }
   }
 }

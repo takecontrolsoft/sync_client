@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sync_client/services/services.dart';
+import 'package:sync_client/storage/storage.dart';
 import 'widgets.dart';
 
 class EditServerForm extends StatefulWidget {
@@ -63,7 +64,10 @@ class EditServerFormState extends State<EditServerForm> {
   Future<void> update(BuildContext context, DeviceServicesCubit deviceService,
       String newServer) async {
     if (_formKey.currentState!.validate()) {
-      deviceService.state.serverUrl = newServer;
+      deviceService.edit((state) {
+        state.serverUrl = newServer;
+      });
+
       Navigator.pop(context);
     }
   }

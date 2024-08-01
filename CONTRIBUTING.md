@@ -5,7 +5,7 @@
 `flutter clean`  
 `flutter pub get`    
 `flutter pub upgrade --major-versions`
-`dart run realm generate`  
+`dart run build_runner build --delete-conflicting-outputs`  
 
 ## How to release
 `git tag v0.0.2`      

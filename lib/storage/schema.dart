@@ -1,22 +1,46 @@
+import 'package:json_annotation/json_annotation.dart';
+part 'schema.g.dart';
+
+@JsonSerializable()
 class User {
-  late String email;
-  late String password;
+  User(this.email);
+
+  String email;
+  String? password;
+
+  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserToJson(this);
 }
 
+@JsonSerializable()
 class DeviceSettings {
-  late String name;
-  late String? id;
-  late String? model;
-  late String? serverUrl;
-  late User? currentUser;
+  DeviceSettings(this.name);
+
+  String name;
+  String? id;
+  String? model;
+  String? serverUrl;
+  User? currentUser;
   Set<String> mediaDirectories = {};
-  late String? lastErrorMessage;
-  late DateTime? lastSyncDateTime;
-  late List<FileError> fileErrors = [];
+  String? lastErrorMessage;
+  DateTime? lastSyncDateTime;
+  List<FileError> fileErrors = [];
+
+  factory DeviceSettings.fromJson(Map<String, dynamic> json) =>
+      _$DeviceSettingsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$DeviceSettingsToJson(this);
 }
 
+@JsonSerializable()
 class FileError {
+  FileError(this.filename, this.errorMessage);
   final String errorMessage;
   final String filename;
-  FileError(this.filename, this.errorMessage);
+
+  factory FileError.fromJson(Map<String, dynamic> json) =>
+      _$FileErrorFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FileErrorToJson(this);
 }
