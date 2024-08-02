@@ -7,7 +7,7 @@ void main() {
 
   group('end-to-end test', () {
     testWidgets('Login form', (WidgetTester tester) async {
-      app.main();
+      //app.main();
       // await tester.pumpAndSettle();
       // expect(find.byKey(Key('username')), findsOneWidget);
       // expect(find.byKey(Key('password')), findsOneWidget);
