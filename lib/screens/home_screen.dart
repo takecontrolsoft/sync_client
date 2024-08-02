@@ -1,3 +1,5 @@
+// ignore_for_file: must_be_immutable
+
 /*
 	Copyright 2023 Take Control - Software & Infrastructure
 
@@ -32,13 +34,13 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MainAppBar.appBar(context),
-      body: _HomeScreenView(),
+      body: HomeScreenView(),
     );
   }
 }
 
-class _HomeScreenView extends StatelessWidget {
-  _HomeScreenView();
+class HomeScreenView extends StatelessWidget {
+  HomeScreenView();
   StreamController<ProcessedFile> processedFileController =
       StreamController<ProcessedFile>();
 

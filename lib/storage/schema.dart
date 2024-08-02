@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:json_annotation/json_annotation.dart';
 import 'package:sync_client/core/core.dart';
 part 'schema.g.dart';
