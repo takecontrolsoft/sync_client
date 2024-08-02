@@ -6,3 +6,7 @@ class CustomError extends Error {
 final class InvalidCredentialError extends CustomError {
   InvalidCredentialError() : super("Invalid username or password");
 }
+
+final class RequiredNicknameError extends CustomError {
+  RequiredNicknameError() : super("Nickname is required.");
+}

@@ -35,30 +35,45 @@ class BackgroundAction implements IAction {
     if (dirs == null) {
       return;
     }
+    DateTime lastMaxSyncedFileDate =
+        currentDeviceSettings.lastSyncDateTime ?? DateTime(1800);
+    DateTime maxSyncedFileDate = lastMaxSyncedFileDate;
     for (var dir in dirs) {
       final files = await getFilesFromExternalStorage(dir);
-      await _uploadFiles(files, userName);
+      DateTime lastFileDate =
+          await _uploadFiles(files, userName, lastMaxSyncedFileDate);
+      if (lastFileDate.isAfter(maxSyncedFileDate)) {
+        maxSyncedFileDate = lastFileDate;
+      }
     }
+    currentDeviceSettings.lastSyncDateTime = maxSyncedFileDate;
   }
 
   Future<Iterable<Directory>?> _getSourceDirectories() async {
-    if (currentDeviceSettings.id == null) {
+    if (currentDeviceSettings.name.isEmpty) {
       return Future.value();
     }
     return currentDeviceSettings.mediaDirectories.map((e) => Directory(e));
   }
 
-  Future<void> _uploadFiles(
-      List<FileSystemEntity> files, String userName) async {
+  Future<DateTime> _uploadFiles(List<FileSystemEntity> files, String userName,
+      DateTime lastMaxSyncedFileDate) async {
+    DateTime maxSyncedFileDate = lastMaxSyncedFileDate;
     for (var file in files) {
       if (!FileSystemEntity.isDirectorySync(file.path)) {
-        DateTime lastDate = await File(file.path).lastModified();
-        if (currentDeviceSettings.lastSyncDateTime == null ||
-            lastDate.isAfter(currentDeviceSettings.lastSyncDateTime!)) {
-          await _transfers.sendFile(file.path, userName, lastDate);
+        DateTime lastFileDate = await File(file.path).lastModified();
+        String dateClassifier = "${lastFileDate.year}-${lastFileDate.month}";
+
+        if (lastFileDate.isAfter(lastMaxSyncedFileDate)) {
+          if (await _transfers.sendFile(file.path, userName, dateClassifier)) {
+            if (lastFileDate.isAfter(maxSyncedFileDate)) {
+              maxSyncedFileDate = lastFileDate;
+            }
+          }
         }
       }
     }
+    return maxSyncedFileDate;
   }
 
   Future<List<FileSystemEntity>> getFilesFromExternalStorage(

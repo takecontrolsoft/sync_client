@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:json_annotation/json_annotation.dart';
+import 'package:sync_client/core/core.dart';
 part 'schema.g.dart';
 
 @JsonSerializable()
@@ -7,6 +10,7 @@ class User {
 
   String email;
   String? password;
+  bool? loggedIn = false;
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
@@ -31,6 +35,15 @@ class DeviceSettings {
       _$DeviceSettingsFromJson(json);
 
   Map<String, dynamic> toJson() => _$DeviceSettingsToJson(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+    bool areEqual = compareJson(toJson(), (other as DeviceSettings).toJson());
+    return areEqual;
+  }
 }
 
 @JsonSerializable()

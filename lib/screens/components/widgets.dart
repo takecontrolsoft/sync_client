@@ -46,6 +46,26 @@ Widget loginButton(BuildContext context,
   );
 }
 
+Widget syncButton(BuildContext context,
+    {void Function()? onPressed, Widget? child}) {
+  return Container(
+    height: 50,
+    width: 250,
+    margin: const EdgeInsets.symmetric(vertical: 25, horizontal: 50),
+    child: ElevatedButton(
+      style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.all(forestGreenColor),
+          textStyle: WidgetStateProperty.all<TextStyle>(
+              const TextStyle(color: Colors.white, fontSize: 20)),
+          shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+              RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.0)))),
+      onPressed: onPressed,
+      child: child,
+    ),
+  );
+}
+
 Widget templateButton(BuildContext context,
     {Color color = Colors.grey,
     String text = "button",

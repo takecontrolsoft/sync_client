@@ -16,3 +16,4 @@ limitations under the License.
 export 'impl/background.dart';
 export 'impl/transfers.dart';
 export 'errors/custom_errors.dart';
+export 'utils/json_utils.dart';

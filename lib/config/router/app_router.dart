@@ -14,41 +14,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sync_client/screens/screens.dart';
 
-final _appRouter = GoRouter(initialLocation: '/', routes: [
-  GoRoute(
-    path: '/',
-    builder: (context, state) => const HomeScreen(),
-  ),
-  GoRoute(
-    path: '/servers',
-    builder: (context, state) => const ServersListScreen(),
-  ),
-  GoRoute(
-    path: '/folders',
-    builder: (context, state) => const FoldersListScreen(),
-  ),
-  GoRoute(
-    path: '/dates',
-    builder: (context, state) => const DateTimeScreen(),
-  ),
-  GoRoute(
-    path: '/login',
-    builder: (context, state) => const LogInScreen(),
-  ),
-]);
-
-class RouterExtendedCubit extends Cubit<GoRouter> {
-  RouterExtendedCubit() : super(_appRouter);
-
-  void goBack() {
-    state.pop();
-  }
-
-  void goHome() {
-    state.go("/");
-  }
+GoRouter getAppRouter(bool isAuthenticated) {
+  return GoRouter(initialLocation: isAuthenticated ? '/' : "/login", routes: [
+    GoRoute(
+      path: '/',
+      builder: (context, state) => const HomeScreen(),
+    ),
+    GoRoute(
+      path: '/servers',
+      builder: (context, state) => const ServersListScreen(),
+    ),
+    GoRoute(
+      path: '/folders',
+      builder: (context, state) => const FoldersListScreen(),
+    ),
+    GoRoute(
+      path: '/dates',
+      builder: (context, state) => const DateTimeScreen(),
+    ),
+    GoRoute(
+      path: '/login',
+      builder: (context, state) =>
+          const NicknameScreen(), // const LogInScreen(),
+    ),
+  ]);
 }

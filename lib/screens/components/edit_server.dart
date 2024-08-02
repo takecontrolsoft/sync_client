@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sync_client/services/services.dart';
 import 'package:sync_client/storage/storage.dart';
 import 'widgets.dart';
@@ -33,7 +34,7 @@ class EditServerFormState extends State<EditServerForm> {
 
   @override
   Widget build(BuildContext context) {
-    final deviceService = context.watch<DeviceServicesCubit>();
+    final deviceService = context.read<DeviceServicesCubit>();
     return formLayout(
         context,
         Form(
@@ -64,11 +65,10 @@ class EditServerFormState extends State<EditServerForm> {
   Future<void> update(BuildContext context, DeviceServicesCubit deviceService,
       String newServer) async {
     if (_formKey.currentState!.validate()) {
-      deviceService.edit((state) {
+      await deviceService.edit((state) {
         state.serverUrl = newServer;
       });
-
-      Navigator.pop(context);
+      context.pop();
     }
   }
 }

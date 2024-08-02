@@ -23,7 +23,7 @@ class MainAppBar {
   static AppBar appBar(BuildContext context) {
     final ThemeCubit theme = context.watch<ThemeCubit>();
     final DeviceServicesCubit deviceService =
-        context.watch<DeviceServicesCubit>();
+        context.read<DeviceServicesCubit>();
     return AppBar(
       title: const Text("Mobi Sync Client"),
       actions: [

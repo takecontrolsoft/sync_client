@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sync_client/services/services.dart';
-import 'package:sync_client/storage/storage.dart';
 
 enum FolderMenuOption { edit, delete }
 
@@ -12,7 +11,7 @@ class FolderItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final deviceService = context.watch<DeviceServicesCubit>();
+    final deviceService = context.read<DeviceServicesCubit>();
     return folder.isNotEmpty
         ? ListTile(
             leading: const Icon(Icons.folder),
@@ -20,8 +19,8 @@ class FolderItem extends StatelessWidget {
             trailing: SizedBox(
               width: 25,
               child: PopupMenuButton<FolderMenuOption>(
-                onSelected: (menuItem) =>
-                    handleMenuClick(context, deviceService, menuItem, folder),
+                onSelected: (menuItem) async => await handleMenuClick(
+                    context, deviceService, menuItem, folder),
                 itemBuilder: (context) => [
                   const PopupMenuItem<FolderMenuOption>(
                     value: FolderMenuOption.delete,
@@ -37,11 +36,15 @@ class FolderItem extends StatelessWidget {
         : Container();
   }
 
-  void handleMenuClick(BuildContext context, DeviceServicesCubit deviceService,
-      FolderMenuOption menuItem, String folder) {
+  Future<void> handleMenuClick(
+      BuildContext context,
+      DeviceServicesCubit deviceService,
+      FolderMenuOption menuItem,
+      String folder) async {
     if (menuItem == FolderMenuOption.delete) {
-      deviceService.edit((state) {
+      await deviceService.edit((state) {
         state.mediaDirectories.remove(folder);
+        state.lastSyncDateTime = null;
       });
     }
   }

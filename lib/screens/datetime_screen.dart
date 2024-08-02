@@ -16,6 +16,7 @@ limitations under the License.
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sync_client/config/config.dart';
+import 'package:sync_client/screens/components/components.dart';
 import 'package:sync_client/services/services.dart';
 import 'package:sync_client/storage/storage.dart';
 import 'package:intl/intl.dart';
@@ -36,14 +37,14 @@ class _DateTimeScreenView extends StatelessWidget {
   const _DateTimeScreenView();
 
   void resetDateTime(DeviceServicesCubit deviceService) async {
-    deviceService.edit((state) {
+    await deviceService.edit((state) {
       state.lastSyncDateTime = null;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final deviceService = context.watch<DeviceServicesCubit>();
+    final deviceService = context.read<DeviceServicesCubit>();
     return Container(
       margin: const EdgeInsets.only(
           left: 10.0, right: 10.0, top: 30.0, bottom: 30.0),
@@ -55,16 +56,14 @@ class _DateTimeScreenView extends StatelessWidget {
           ),
           ListTile(
               leading: const Icon(Icons.calendar_today),
-              title: BlocBuilder<DeviceServicesCubit, DeviceSettings>(
-                  builder: (context, state) {
-                final DateFormat formatter = DateFormat('yyyy-MM-dd hh:ss');
-                if (state.lastSyncDateTime == null) {
-                  return const Text('Date time: ');
-                } else {
-                  return Text(
-                      'Date time: ${formatter.format(state.lastSyncDateTime!)}');
-                }
-              }),
+              title: Reactive<DeviceServicesCubit, DeviceSettings>(
+                  buildWhen: (previous, current) =>
+                      previous.lastSyncDateTime != current.lastSyncDateTime,
+                  child: (context, state) {
+                    final DateFormat formatter = DateFormat('yyyy-MM-dd hh:ss');
+                    return Text(
+                        'Date time: ${state.lastSyncDateTime == null ? "" : formatter.format(state.lastSyncDateTime!)}');
+                  }),
               trailing: SizedBox(
                 width: 25,
                 child: PopupMenuButton<DateTimeMenuOption>(

@@ -37,7 +37,7 @@ Future<DeviceSettings> updateCurrentDevice(
       (deviceInfo.data["model"] ?? "") + (deviceInfo.data["systemGUID"] ?? "");
   deviceName ??= "unknown";
   deviceSettings.name = deviceName;
-  deviceSettings.id = deviceInfo.data["id"];
+  deviceSettings.id = deviceInfo.data["id"] ?? deviceInfo.data["systemGUID"];
   deviceSettings.model = deviceInfo.data["model"];
   return deviceSettings;
 }
@@ -63,7 +63,7 @@ Future<void> loadDeviceSettings() async {
   currentDeviceSettings = DeviceSettings.fromJson(jsonDecode(jsonAsString));
 }
 
-void saveDeviceSettings(DeviceSettings deviceSettings) async {
+Future<void> saveDeviceSettings(DeviceSettings deviceSettings) async {
   Directory appDocDir = await getApplicationDocumentsDirectory();
   File jsonFile = File("${appDocDir.path}/$dataFilename");
   jsonFile.writeAsStringSync(jsonEncode(deviceSettings.toJson()));

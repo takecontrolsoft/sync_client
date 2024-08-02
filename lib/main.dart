@@ -32,9 +32,8 @@ class BlocProviders extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (context) => RouterExtendedCubit()),
-        BlocProvider(create: (context) => ThemeCubit()),
         BlocProvider(create: (context) => DeviceServicesCubit()),
+        BlocProvider(create: (context) => ThemeCubit()),
       ],
       child: const MyApp(),
     );
@@ -46,11 +45,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appRouter = context.watch<RouterExtendedCubit>().state;
+    final deviceService = context.read<DeviceServicesCubit>();
     return MaterialApp.router(
         title: 'Mobi Sync Client',
         debugShowCheckedModeBanner: false,
-        routerConfig: appRouter,
+        routerConfig: getAppRouter(deviceService.isAuthenticated()),
         theme: AppTheme.getTheme(context));
   }
 }

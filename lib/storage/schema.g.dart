@@ -8,11 +8,14 @@ part of 'schema.dart';
 
 User _$UserFromJson(Map<String, dynamic> json) => User(
       json['email'] as String,
-    )..password = json['password'] as String?;
+    )
+      ..password = json['password'] as String?
+      ..loggedIn = json['loggedIn'] as bool?;
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'email': instance.email,
       'password': instance.password,
+      'loggedIn': instance.loggedIn,
     };
 
 DeviceSettings _$DeviceSettingsFromJson(Map<String, dynamic> json) =>

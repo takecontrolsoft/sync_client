@@ -41,11 +41,14 @@ class _HomeScreenView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final DeviceServicesCubit deviceService =
-        context.watch<DeviceServicesCubit>();
-    if (deviceService.currentUser == null) {
-      context.push("/login");
-    }
+        context.read<DeviceServicesCubit>();
     deviceService.state.lastErrorMessage = "";
+
+    if (!deviceService.isAuthenticated()) {
+      context.push("/login");
+      return Container();
+    }
+
     return Container(
         margin: const EdgeInsets.only(
             left: 10.0, right: 10.0, top: 30.0, bottom: 30.0),
@@ -54,15 +57,23 @@ class _HomeScreenView extends StatelessWidget {
             child: ListView(
               shrinkWrap: true,
               children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 25),
+                  child: Text(
+                    "Nickname: ${deviceService.state.currentUser?.email ?? ""}",
+                    style: const TextStyle(
+                        fontSize: 25, fontWeight: FontWeight.bold),
+                  ),
+                ),
                 Card(
                     child: ListTile(
                   title: const Text("Server address"),
                   leading: const Icon(Icons.cloud),
-                  subtitle: BlocConsumer<DeviceServicesCubit, DeviceSettings>(
-                      listener: (context, state) => state.serverUrl,
-                      builder: (context, state) {
-                        return Text("Server set to: ${state.serverUrl ?? ""}");
-                      }),
+                  subtitle: Reactive<DeviceServicesCubit, DeviceSettings>(
+                      child: (context, state) =>
+                          Text("Server set to: ${state.serverUrl ?? ""}"),
+                      buildWhen: (previous, current) =>
+                          previous.serverUrl != current.serverUrl),
                   onTap: () {
                     context.push("/servers");
                   },
@@ -71,13 +82,12 @@ class _HomeScreenView extends StatelessWidget {
                     child: ListTile(
                   leading: const Icon(Icons.folder),
                   title: const Text("Folders to sync"),
-                  subtitle: BlocConsumer<DeviceServicesCubit, DeviceSettings>(
-                      listener: (context, state) => state.mediaDirectories,
-                      builder: (context, state) {
-                        return Text(
-                          "Selected folders count: ${state.mediaDirectories.length}",
-                        );
-                      }),
+                  subtitle: Reactive<DeviceServicesCubit, DeviceSettings>(
+                      child: (context, state) => Text(
+                          "Selected folders count: ${state.mediaDirectories.length}"),
+                      buildWhen: (previous, current) =>
+                          previous.mediaDirectories.length !=
+                          current.mediaDirectories.length),
                   onTap: () {
                     context.push("/folders");
                   },
@@ -86,15 +96,12 @@ class _HomeScreenView extends StatelessWidget {
                     child: ListTile(
                   leading: const Icon(Icons.calendar_today),
                   title: const Text("Last synced file date"),
-                  subtitle: BlocConsumer<DeviceServicesCubit, DeviceSettings>(
-                      listener: (context, state) => state.lastSyncDateTime,
-                      builder: (context, state) {
-                        final DateFormat formatter =
-                            DateFormat('yyyy-MM-dd hh:ss');
-                        return Text(
-                          "Selected folders count: ${formatter.format(state.lastSyncDateTime!)}",
-                        );
-                      }),
+                  subtitle: Reactive<DeviceServicesCubit, DeviceSettings>(
+                      child: (context, state) {
+                    final DateFormat formatter = DateFormat('yyyy-MM-dd hh:ss');
+                    return Text(
+                        'Date time: ${state.lastSyncDateTime == null ? "" : formatter.format(state.lastSyncDateTime!)}');
+                  }),
                   onTap: () {
                     context.push("/dates");
                   },
@@ -104,27 +111,27 @@ class _HomeScreenView extends StatelessWidget {
           ),
           SizedBox(
               width: double.maxFinite,
-              child: okButton(context, "Send to server",
+              child: syncButton(context,
+                  child: Text("Send to server"),
                   onPressed: () => _run(deviceService))),
           Padding(
             padding: const EdgeInsets.all(25),
-            child: BlocConsumer<DeviceServicesCubit, DeviceSettings>(
-                listener: (context, state) => state.lastErrorMessage,
-                builder: (context, state) {
-                  return Text(state.lastErrorMessage ?? "",
-                      style: errorTextStyle(context),
-                      textAlign: TextAlign.center);
-                }),
+            child: Reactive<DeviceServicesCubit, DeviceSettings>(
+                buildWhen: (previous, current) =>
+                    previous.lastErrorMessage != current.lastErrorMessage,
+                child: (context, state) => Text(state.lastErrorMessage ?? "",
+                    style: errorTextStyle(context),
+                    textAlign: TextAlign.center)),
           ),
         ]));
   }
 
   void _run(DeviceServicesCubit deviceService) async {
     String errorText = "";
-    if (deviceService.currentUser == null) {
+    if (!deviceService.isAuthenticated()) {
       errorText = "No logged in user.";
     }
-    if (deviceService.currentUser!.email.isEmpty) {
+    if (deviceService.state.currentUser!.email.isEmpty) {
       errorText = "Missing user name.";
     }
     if (deviceService.state.mediaDirectories.isEmpty) {
@@ -137,7 +144,7 @@ class _HomeScreenView extends StatelessWidget {
     if (errorText.isNotEmpty) {
       return;
     }
-    BackgroundAction().execute(deviceService.currentUser!.email);
-    saveDeviceSettings(deviceService.state);
+    await BackgroundAction().execute(deviceService.state.currentUser!.email);
+    await deviceService.edit((state) {});
   }
 }

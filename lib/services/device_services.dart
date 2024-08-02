@@ -1,9 +1,18 @@
+import 'dart:convert';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sync_client/storage/storage.dart';
 
 class DeviceServicesCubit extends Cubit<DeviceSettings> {
-  User? currentUser;
   DeviceServicesCubit() : super(currentDeviceSettings);
+
+  bool isAuthenticated() {
+    bool loggedIn = state.currentUser?.loggedIn ?? false;
+    if (!loggedIn) {
+      logOut();
+    }
+    return loggedIn;
+  }
 
   Future<User> logInUserEmailPassword(String email, String password) async {
     if (state.currentUser == null ||
@@ -11,29 +20,49 @@ class DeviceServicesCubit extends Cubit<DeviceSettings> {
         state.currentUser?.password != password) {
       throw ArgumentError("Invalid user credentials", email);
     }
-
-    currentUser = state.currentUser;
+    await edit(
+      (state) {
+        state.currentUser!.loggedIn = true;
+      },
+    );
     emit(state);
-    return currentUser!;
+    return state.currentUser!;
   }
 
   Future<User> registerUserEmailPassword(String email, String password) async {
-    state.currentUser ??= User(email)..password = password;
-    currentUser = state.currentUser;
-    emit(state);
-    return currentUser!;
+    await edit(
+      (state) {
+        if (state.currentUser == null) {
+          state.currentUser ??= User(email)..password = password;
+        } else {
+          state.currentUser!.email = email;
+          state.currentUser!.password = password;
+        }
+        state.currentUser!.loggedIn = true;
+      },
+    );
+    return state.currentUser!;
   }
 
   Future<void> logOut() async {
-    if (currentUser != null) {
-      currentUser = null;
+    if (isAuthenticated()) {
+      edit(
+        (state) {
+          state.currentUser!.loggedIn = false;
+        },
+      );
+      state.currentUser = null;
     }
   }
 
-  T edit<T>(T Function(DeviceSettings) editCallback) {
-    T result = editCallback(state);
-    saveDeviceSettings(state);
-    emit(state);
+  Future<T> edit<T>(T Function(DeviceSettings) editCallback) async {
+    DeviceSettings newState =
+        DeviceSettings.fromJson(json.decode(jsonEncode(state.toJson())));
+    T result = editCallback(newState);
+    await saveDeviceSettings(newState);
+    currentDeviceSettings = newState;
+    emit(newState);
+
     return result;
   }
 }

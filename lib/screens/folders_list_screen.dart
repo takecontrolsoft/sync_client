@@ -26,7 +26,7 @@ class FoldersListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final deviceService = context.watch<DeviceServicesCubit>();
+    final deviceService = context.read<DeviceServicesCubit>();
     return Scaffold(
       appBar: MainAppBar.appBar(context),
       body: const _FoldersListScreenView(),
@@ -45,8 +45,9 @@ class FoldersListScreen extends StatelessWidget {
     if (selectedDirectory == null) {
       return;
     }
-    deviceService.edit((state) {
+    await deviceService.edit((state) {
       state.mediaDirectories.add(selectedDirectory);
+      state.lastSyncDateTime = null;
     });
   }
 }
@@ -65,21 +66,19 @@ class _FoldersListScreenView extends StatelessWidget {
           const Text(
             'Selected directories to sync:',
           ),
-          BlocConsumer<DeviceServicesCubit, DeviceSettings>(
-              listenWhen: (previous, current) =>
+          Reactive<DeviceServicesCubit, DeviceSettings>(
+              buildWhen: (previous, current) =>
                   previous.mediaDirectories.length !=
                   current.mediaDirectories.length,
-              listener: (context, state) => state.mediaDirectories,
-              builder: (context, state) {
-                return ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: state.mediaDirectories.length,
-                  itemBuilder: (context, index) =>
-                      state.mediaDirectories.elementAt(index).isNotEmpty
-                          ? FolderItem(state.mediaDirectories.elementAt(index))
-                          : Container(),
-                );
-              })
+              child: (context, state) => ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: state.mediaDirectories.length,
+                    itemBuilder: (context, index) => state.mediaDirectories
+                            .elementAt(index)
+                            .isNotEmpty
+                        ? FolderItem(state.mediaDirectories.elementAt(index))
+                        : Container(),
+                  ))
         ],
       ),
     );

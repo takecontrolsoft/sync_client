@@ -38,10 +38,7 @@ class Transfers {
   }
 
   Future<bool> sendFile(
-      String filename, String userName, DateTime lastDate) async {
-    String dateClassifier =
-        "${lastDate.year}-${lastDate.month}-${lastDate.day}";
-
+      String filename, String userName, String dateClassifier) async {
     var request = MultipartRequest('POST', _getUrl("upload"));
     final hdr = <String, String>{"user": userName, "date": dateClassifier};
     request.headers.addEntries(hdr.entries);
@@ -54,19 +51,11 @@ class Transfers {
           filename: name, contentType: _getMediaType(filename)));
       var streamedResponse = await request.send();
       var response = await Response.fromStream(streamedResponse);
-      if (response.statusCode == 200) {
-        if (currentDeviceSettings.lastSyncDateTime == null ||
-            lastDate.isAfter(currentDeviceSettings.lastSyncDateTime!)) {
-          currentDeviceSettings.lastSyncDateTime = lastDate;
-        }
-        return true;
-      } else {
-        currentDeviceSettings.fileErrors
-            .add(FileError(response.body, filename));
-        return false;
-      }
+      print("SENT: $filename");
+      return response.statusCode == 200;
     } catch (err) {
       currentDeviceSettings.lastErrorMessage = err.toString();
+      print("ERROR: $filename [${err.toString()}]");
       return false;
     }
   }
