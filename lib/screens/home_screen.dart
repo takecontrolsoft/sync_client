@@ -13,6 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -30,19 +32,21 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MainAppBar.appBar(context),
-      body: const _HomeScreenView(),
+      body: _HomeScreenView(),
     );
   }
 }
 
 class _HomeScreenView extends StatelessWidget {
-  const _HomeScreenView();
+  _HomeScreenView();
+  StreamController<ProcessedFile> processedFileController =
+      StreamController<ProcessedFile>();
 
   @override
   Widget build(BuildContext context) {
     final DeviceServicesCubit deviceService =
         context.read<DeviceServicesCubit>();
-    deviceService.state.lastErrorMessage = "";
+    deviceService.state.lastErrorMessage = null;
 
     if (!deviceService.isAuthenticated()) {
       context.push("/login");
@@ -50,80 +54,155 @@ class _HomeScreenView extends StatelessWidget {
     }
 
     return Container(
-        margin: const EdgeInsets.only(
-            left: 10.0, right: 10.0, top: 30.0, bottom: 30.0),
+      margin: const EdgeInsets.only(
+          left: 10.0, right: 10.0, top: 30.0, bottom: 30.0),
+      child: SingleChildScrollView(
         child: Column(children: [
-          SingleChildScrollView(
-            child: ListView(
-              shrinkWrap: true,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 25),
-                  child: Text(
-                    "Nickname: ${deviceService.state.currentUser?.email ?? ""}",
-                    style: const TextStyle(
-                        fontSize: 25, fontWeight: FontWeight.bold),
-                  ),
+          ListView(
+            shrinkWrap: true,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 25),
+                child: Text(
+                  "Nickname: ${deviceService.state.currentUser?.email ?? ""}",
+                  style: const TextStyle(
+                      fontSize: 25, fontWeight: FontWeight.bold),
                 ),
-                Card(
-                    child: ListTile(
-                  title: const Text("Server address"),
-                  leading: const Icon(Icons.cloud),
-                  subtitle: Reactive<DeviceServicesCubit, DeviceSettings>(
-                      child: (context, state) =>
-                          Text("Server set to: ${state.serverUrl ?? ""}"),
-                      buildWhen: (previous, current) =>
-                          previous.serverUrl != current.serverUrl),
-                  onTap: () {
-                    context.push("/servers");
-                  },
-                )),
-                Card(
-                    child: ListTile(
-                  leading: const Icon(Icons.folder),
-                  title: const Text("Folders to sync"),
-                  subtitle: Reactive<DeviceServicesCubit, DeviceSettings>(
-                      child: (context, state) => Text(
-                          "Selected folders count: ${state.mediaDirectories.length}"),
-                      buildWhen: (previous, current) =>
-                          previous.mediaDirectories.length !=
-                          current.mediaDirectories.length),
-                  onTap: () {
-                    context.push("/folders");
-                  },
-                )),
-                Card(
-                    child: ListTile(
-                  leading: const Icon(Icons.calendar_today),
-                  title: const Text("Last synced file date"),
-                  subtitle: Reactive<DeviceServicesCubit, DeviceSettings>(
-                      child: (context, state) {
-                    final DateFormat formatter = DateFormat('yyyy-MM-dd hh:ss');
-                    return Text(
-                        'Date time: ${state.lastSyncDateTime == null ? "" : formatter.format(state.lastSyncDateTime!)}');
-                  }),
-                  onTap: () {
-                    context.push("/dates");
-                  },
-                ))
-              ],
-            ),
+              ),
+              Card(
+                  child: ListTile(
+                title: const Text("Server address"),
+                leading: const Icon(Icons.cloud),
+                subtitle: Reactive<DeviceServicesCubit, DeviceSettings>(
+                    child: (context, state) =>
+                        Text("Server set to: ${state.serverUrl ?? ""}"),
+                    buildWhen: (previous, current) =>
+                        previous.serverUrl != current.serverUrl),
+                onTap: () {
+                  context.push("/servers");
+                },
+              )),
+              Card(
+                  child: ListTile(
+                leading: const Icon(Icons.folder),
+                title: const Text("Folders to sync"),
+                subtitle: Reactive<DeviceServicesCubit, DeviceSettings>(
+                    child: (context, state) => Text(
+                        "Selected folders count: ${state.mediaDirectories.length}"),
+                    buildWhen: (previous, current) =>
+                        previous.mediaDirectories.length !=
+                        current.mediaDirectories.length),
+                onTap: () {
+                  context.push("/folders");
+                },
+              )),
+              Card(
+                  child: ListTile(
+                leading: const Icon(Icons.calendar_today),
+                title: const Text("Last synced file date"),
+                subtitle: Reactive<DeviceServicesCubit, DeviceSettings>(
+                    child: (context, state) {
+                  final DateFormat formatter = DateFormat('yyyy-MM-dd hh:ss');
+                  return Text(
+                      'Date time: ${state.lastSyncDateTime == null ? "" : formatter.format(state.lastSyncDateTime!)}');
+                }),
+                onTap: () {
+                  context.push("/dates");
+                },
+              ))
+            ],
           ),
           SizedBox(
               width: double.maxFinite,
               child: syncButton(context,
-                  child: Text("Send to server"),
+                  child: const Text("Send to server"),
                   onPressed: () => _run(deviceService))),
           Padding(
-            padding: const EdgeInsets.all(25),
+            padding: const EdgeInsets.only(left: 25, right: 25),
             child: Reactive<DeviceServicesCubit, DeviceSettings>(
                 buildWhen: (previous, current) =>
+                    current.lastErrorMessage == null ||
                     previous.lastErrorMessage != current.lastErrorMessage,
-                child: (context, state) => Text(state.lastErrorMessage ?? "",
-                    style: errorTextStyle(context),
-                    textAlign: TextAlign.center)),
-          ),
-        ]));
+                child: (context, state) => deviceService
+                            .state.lastErrorMessage !=
+                        null
+                    ? Text(state.lastErrorMessage ?? "",
+                        style: errorTextStyle(context),
+                        textAlign: TextAlign.center)
+                    : StreamBuilder<ProcessedFile>(
+                        stream: processedFileController.stream,
+                        builder: (BuildContext context,
+                            AsyncSnapshot<ProcessedFile> snapshot) {
+                          List<Widget> children;
+                          if (snapshot.hasError) {
+                            children = <Widget>[
+                              const Icon(
+                                Icons.error_outline,
+                                color: Colors.red,
+                                size: 30,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Text(
+                                    'Error: ${(snapshot.error as CustomError).message}'),
+                              ),
+                            ];
+                          } else {
+                            switch (snapshot.connectionState) {
+                              case ConnectionState.none:
+                                children = const <Widget>[
+                                  Icon(
+                                    Icons.info,
+                                    color: Colors.blue,
+                                    size: 30,
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.only(top: 2),
+                                    child: Text('Select a lot'),
+                                  ),
+                                ];
+                              case ConnectionState.waiting:
+                                children = const <Widget>[];
+                              case ConnectionState.active:
+                                children = <Widget>[
+                                  const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 2),
+                                    child: Text('\$${snapshot.data?.filename}'),
+                                  ),
+                                  okButton(context, "Stop", onPressed: () {
+                                    processedFileController
+                                        .addError(SyncCanceledError());
+                                    processedFileController.close();
+                                  }),
+                                ];
+                              case ConnectionState.done:
+                                children = <Widget>[
+                                  const Icon(
+                                    Icons.check_circle_outline,
+                                    color: Colors.green,
+                                    size: 30,
+                                  ),
+                                  const Padding(
+                                    padding: EdgeInsets.only(top: 2),
+                                    child: Text('Completed'),
+                                  ),
+                                ];
+                            }
+                          }
+                          return Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: children,
+                          );
+                        })),
+          )
+        ]),
+      ),
+    );
   }
 
   void _run(DeviceServicesCubit deviceService) async {
@@ -140,11 +219,26 @@ class _HomeScreenView extends StatelessWidget {
     if (deviceService.state.serverUrl == null) {
       errorText = "Please select server address.";
     }
-    deviceService.state.lastErrorMessage = errorText;
+
     if (errorText.isNotEmpty) {
+      await deviceService.edit((state) {
+        state.lastErrorMessage = errorText;
+      });
       return;
     }
-    await BackgroundAction().execute(deviceService.state.currentUser!.email);
-    await deviceService.edit((state) {});
+
+    if (processedFileController.isClosed) {
+      processedFileController = StreamController<ProcessedFile>();
+    }
+    await deviceService.edit((state) {
+      state.lastErrorMessage = null;
+    });
+    await BackgroundAction().execute(
+        processedFileController, deviceService.state.currentUser!.email);
+
+    await deviceService.edit((state) {
+      state.lastSyncDateTime = currentDeviceSettings.lastSyncDateTime;
+    });
+    processedFileController.close();
   }
 }

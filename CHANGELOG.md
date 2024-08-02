@@ -3,6 +3,14 @@
 # Mobi Sync Client 
 An App for wireless syncing of photos and videos from devices to home server. (https://mobisync.eu)
 
+## 1.0.5 Release notes (2024-08-02)
+
+### Enhancements
+* Stored device settings in json format.
+* Extended BloC state management.
+* Replaced user login with creating a nickname only.
+* Added status indicator while syncing files.
+
 ## 1.0.4 Release notes (2024-07-30)
 
 ### Enhancements

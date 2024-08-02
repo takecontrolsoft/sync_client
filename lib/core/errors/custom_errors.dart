@@ -10,3 +10,11 @@ final class InvalidCredentialError extends CustomError {
 final class RequiredNicknameError extends CustomError {
   RequiredNicknameError() : super("Nickname is required.");
 }
+
+final class SyncCanceledError extends CustomError {
+  SyncCanceledError() : super("Canceled operation.");
+}
+
+final class SyncError extends CustomError {
+  SyncError(String errorText) : super("Synchronization error: $errorText");
+}

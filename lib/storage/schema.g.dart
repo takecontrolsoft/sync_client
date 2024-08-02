@@ -34,10 +34,7 @@ DeviceSettings _$DeviceSettingsFromJson(Map<String, dynamic> json) =>
       ..lastErrorMessage = json['lastErrorMessage'] as String?
       ..lastSyncDateTime = json['lastSyncDateTime'] == null
           ? null
-          : DateTime.parse(json['lastSyncDateTime'] as String)
-      ..fileErrors = (json['fileErrors'] as List<dynamic>)
-          .map((e) => FileError.fromJson(e as Map<String, dynamic>))
-          .toList();
+          : DateTime.parse(json['lastSyncDateTime'] as String);
 
 Map<String, dynamic> _$DeviceSettingsToJson(DeviceSettings instance) =>
     <String, dynamic>{
@@ -49,15 +46,16 @@ Map<String, dynamic> _$DeviceSettingsToJson(DeviceSettings instance) =>
       'mediaDirectories': instance.mediaDirectories.toList(),
       'lastErrorMessage': instance.lastErrorMessage,
       'lastSyncDateTime': instance.lastSyncDateTime?.toIso8601String(),
-      'fileErrors': instance.fileErrors,
     };
 
-FileError _$FileErrorFromJson(Map<String, dynamic> json) => FileError(
+ProcessedFile _$ProcessedFileFromJson(Map<String, dynamic> json) =>
+    ProcessedFile(
       json['filename'] as String,
-      json['errorMessage'] as String,
+      errorMessage: json['errorMessage'] as String?,
     );
 
-Map<String, dynamic> _$FileErrorToJson(FileError instance) => <String, dynamic>{
+Map<String, dynamic> _$ProcessedFileToJson(ProcessedFile instance) =>
+    <String, dynamic>{
       'errorMessage': instance.errorMessage,
       'filename': instance.filename,
     };

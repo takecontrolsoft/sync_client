@@ -16,12 +16,12 @@ limitations under the License.
 
 import 'dart:async';
 import 'dart:io';
+import 'package:sync_client/core/core.dart';
 import 'package:sync_client/storage/storage.dart';
 
-import 'transfers.dart';
-
 abstract class IAction {
-  Future<void> execute(String userName);
+  Future<Stream<ProcessedFile>> execute(
+      StreamController<ProcessedFile> processedFileController, String userName);
 }
 
 class BackgroundAction implements IAction {
@@ -30,23 +30,30 @@ class BackgroundAction implements IAction {
   BackgroundAction() : _transfers = Transfers();
 
   @override
-  Future<void> execute(String userName) async {
+  Future<Stream<ProcessedFile>> execute(
+      StreamController<ProcessedFile> processedFileController,
+      String userName) async {
     final dirs = await _getSourceDirectories();
     if (dirs == null) {
-      return;
+      return processedFileController.stream;
     }
     DateTime lastMaxSyncedFileDate =
         currentDeviceSettings.lastSyncDateTime ?? DateTime(1800);
     DateTime maxSyncedFileDate = lastMaxSyncedFileDate;
     for (var dir in dirs) {
       final files = await getFilesFromExternalStorage(dir);
-      DateTime lastFileDate =
-          await _uploadFiles(files, userName, lastMaxSyncedFileDate);
+      if (processedFileController.isClosed) {
+        return processedFileController.stream;
+      }
+      DateTime lastFileDate = await _uploadFiles(
+          processedFileController, files, userName, lastMaxSyncedFileDate);
       if (lastFileDate.isAfter(maxSyncedFileDate)) {
         maxSyncedFileDate = lastFileDate;
       }
     }
-    currentDeviceSettings.lastSyncDateTime = maxSyncedFileDate;
+    currentDeviceSettings.lastSyncDateTime =
+        maxSyncedFileDate == DateTime(1800) ? null : maxSyncedFileDate;
+    return processedFileController.stream;
   }
 
   Future<Iterable<Directory>?> _getSourceDirectories() async {
@@ -56,7 +63,10 @@ class BackgroundAction implements IAction {
     return currentDeviceSettings.mediaDirectories.map((e) => Directory(e));
   }
 
-  Future<DateTime> _uploadFiles(List<FileSystemEntity> files, String userName,
+  Future<DateTime> _uploadFiles(
+      StreamController<ProcessedFile> processedFileController,
+      List<FileSystemEntity> files,
+      String userName,
       DateTime lastMaxSyncedFileDate) async {
     DateTime maxSyncedFileDate = lastMaxSyncedFileDate;
     for (var file in files) {
@@ -65,7 +75,11 @@ class BackgroundAction implements IAction {
         String dateClassifier = "${lastFileDate.year}-${lastFileDate.month}";
 
         if (lastFileDate.isAfter(lastMaxSyncedFileDate)) {
-          if (await _transfers.sendFile(file.path, userName, dateClassifier)) {
+          if (processedFileController.isClosed) {
+            return maxSyncedFileDate;
+          }
+          if (await _transfers.sendFile(
+              processedFileController, file.path, userName, dateClassifier)) {
             if (lastFileDate.isAfter(maxSyncedFileDate)) {
               maxSyncedFileDate = lastFileDate;
             }

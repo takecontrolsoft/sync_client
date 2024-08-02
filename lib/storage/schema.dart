@@ -29,7 +29,6 @@ class DeviceSettings {
   Set<String> mediaDirectories = {};
   String? lastErrorMessage;
   DateTime? lastSyncDateTime;
-  List<FileError> fileErrors = [];
 
   factory DeviceSettings.fromJson(Map<String, dynamic> json) =>
       _$DeviceSettingsFromJson(json);
@@ -46,14 +45,8 @@ class DeviceSettings {
   }
 }
 
-@JsonSerializable()
-class FileError {
-  FileError(this.filename, this.errorMessage);
-  final String errorMessage;
+class ProcessedFile {
+  ProcessedFile(this.filename, {this.errorMessage});
+  final String? errorMessage;
   final String filename;
-
-  factory FileError.fromJson(Map<String, dynamic> json) =>
-      _$FileErrorFromJson(json);
-
-  Map<String, dynamic> toJson() => _$FileErrorToJson(this);
 }

@@ -13,12 +13,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+import 'dart:async';
 import 'dart:io';
 
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
 import 'package:http/http.dart';
 import 'package:path/path.dart' as path;
+import 'package:sync_client/core/core.dart';
 import 'package:sync_client/storage/storage.dart';
 
 class Transfers {
@@ -37,7 +39,7 @@ class Transfers {
     return Uri.parse("${currentDeviceSettings.serverUrl!}/$relPath");
   }
 
-  Future<bool> sendFile(
+  Future<bool> sendFile(StreamController<ProcessedFile> processedFileController,
       String filename, String userName, String dateClassifier) async {
     var request = MultipartRequest('POST', _getUrl("upload"));
     final hdr = <String, String>{"user": userName, "date": dateClassifier};
@@ -51,11 +53,23 @@ class Transfers {
           filename: name, contentType: _getMediaType(filename)));
       var streamedResponse = await request.send();
       var response = await Response.fromStream(streamedResponse);
-      print("SENT: $filename");
-      return response.statusCode == 200;
+      if (processedFileController.isClosed) {
+        return false;
+      } else {
+        processedFileController.add(ProcessedFile(filename));
+        print("SENT: $filename");
+        return response.statusCode == 200;
+      }
     } catch (err) {
-      currentDeviceSettings.lastErrorMessage = err.toString();
-      print("ERROR: $filename [${err.toString()}]");
+      currentDeviceSettings.lastErrorMessage =
+          "ERROR: $filename [${err.toString()}]";
+      if (processedFileController.isClosed) {
+        return false;
+      }
+      processedFileController
+          .addError(SyncError(currentDeviceSettings.lastErrorMessage!));
+
+      print(currentDeviceSettings.lastErrorMessage);
       return false;
     }
   }
