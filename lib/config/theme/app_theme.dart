@@ -16,7 +16,9 @@ limitations under the License.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:sync_client/config/theme/theme_cubit.dart';
+import 'package:popup_menu/popup_menu.dart';
+
+import '../config.dart';
 
 const seedColor = Color.fromARGB(255, 246, 113, 31);
 
@@ -104,6 +106,20 @@ TextStyle boldTextStyle() {
 TextStyle importantTextStyle(BuildContext context) {
   return TextStyle(
       color: objectColor, fontWeight: FontWeight.bold, fontSize: 12);
+}
+
+MenuItem mainMenuItem(BuildContext context, AppMenuOption menuOption,
+    String title, IconData icon) {
+  final themeCubit = context.read<ThemeCubit>();
+  final theme = Theme.of(context);
+
+  return MenuItem(
+      title: title,
+      userInfo: menuOption,
+      image: Icon(icon, color: theme.listTileTheme.iconColor),
+      textStyle: TextStyle(
+        color: themeCubit.state.isDarkMode ? Colors.black : Colors.white,
+      ));
 }
 
 MaterialColor objectColor = MaterialColor(

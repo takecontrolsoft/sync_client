@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:popup_menu/popup_menu.dart';
@@ -61,42 +62,26 @@ class MainAppBar {
     }
 
     void getMenu(BuildContext context) {
-      final appTheme = AppTheme.themeData(context, theme);
       PopupMenu menu = PopupMenu(
           context: context,
           config: MenuConfig(
-              backgroundColor: appTheme.colorScheme.primary,
-              lineColor: appTheme.listTileTheme.iconColor!),
+              maxColumn: 4,
+              backgroundColor:
+                  theme.state.isDarkMode ? Colors.white : Colors.black,
+              lineColor: Theme.of(context).listTileTheme.iconColor!),
           items: [
-            MenuItem(
-                title: 'Home',
-                userInfo: AppMenuOption.home,
-                image:
-                    Icon(Icons.home, color: appTheme.listTileTheme.iconColor),
-                textStyle: appTheme.primaryTextTheme.titleSmall!),
-            MenuItem(
-                title: 'Sync',
-                userInfo: AppMenuOption.sync,
-                image:
-                    Icon(Icons.sync, color: appTheme.listTileTheme.iconColor)),
-            MenuItem(
-                title: theme.state.isDarkMode ? "Light" : "Dark",
-                userInfo: AppMenuOption.theme,
-                image: Icon(
-                    theme.state.isDarkMode
-                        ? Icons.light_mode_outlined
-                        : Icons.dark_mode_outlined,
-                    color: appTheme.listTileTheme.iconColor)),
-            MenuItem(
-                title: 'Account',
-                userInfo: AppMenuOption.account,
-                image: Icon(Icons.person,
-                    color: appTheme.listTileTheme.iconColor)),
-            MenuItem(
-                title: 'LogOut',
-                userInfo: AppMenuOption.logout,
-                image:
-                    Icon(Icons.logout, color: appTheme.listTileTheme.iconColor))
+            mainMenuItem(context, AppMenuOption.home, "Home", Icons.home),
+            mainMenuItem(context, AppMenuOption.sync, "Sync", Icons.sync),
+            mainMenuItem(
+                context,
+                AppMenuOption.theme,
+                theme.state.isDarkMode ? "Light" : "Dark",
+                theme.state.isDarkMode
+                    ? Icons.light_mode_outlined
+                    : Icons.dark_mode_outlined),
+            mainMenuItem(
+                context, AppMenuOption.account, "Account", Icons.person),
+            mainMenuItem(context, AppMenuOption.logout, "LogOut", Icons.logout),
           ],
           onClickMenu: onClickMenu,
           onDismiss: onDismiss);
