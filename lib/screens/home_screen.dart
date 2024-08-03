@@ -120,88 +120,17 @@ class HomeScreenView extends StatelessWidget {
                   child: const Text("Send to server"),
                   onPressed: () => _run(deviceService))),
           Padding(
-            padding: const EdgeInsets.only(left: 25, right: 25),
-            child: Reactive<DeviceServicesCubit, DeviceSettings>(
+              padding: const EdgeInsets.only(left: 25, right: 25),
+              child: Reactive<DeviceServicesCubit, DeviceSettings>(
                 buildWhen: (previous, current) =>
                     current.lastErrorMessage == null ||
                     previous.lastErrorMessage != current.lastErrorMessage,
-                child: (context, state) => deviceService
-                            .state.lastErrorMessage !=
-                        null
-                    ? Text(state.lastErrorMessage ?? "",
-                        style: errorTextStyle(context),
-                        textAlign: TextAlign.center)
-                    : StreamBuilder<ProcessedFile>(
-                        stream: processedFileController.stream,
-                        builder: (BuildContext context,
-                            AsyncSnapshot<ProcessedFile> snapshot) {
-                          List<Widget> children;
-                          if (snapshot.hasError) {
-                            children = <Widget>[
-                              const Icon(
-                                Icons.error_outline,
-                                color: Colors.red,
-                                size: 30,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(top: 2),
-                                child: Text(
-                                    'Error: ${(snapshot.error as CustomError).message}'),
-                              ),
-                            ];
-                          } else {
-                            switch (snapshot.connectionState) {
-                              case ConnectionState.none:
-                                children = const <Widget>[
-                                  Icon(
-                                    Icons.info,
-                                    color: Colors.blue,
-                                    size: 30,
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.only(top: 2),
-                                    child: Text('Select a lot'),
-                                  ),
-                                ];
-                              case ConnectionState.waiting:
-                                children = const <Widget>[];
-                              case ConnectionState.active:
-                                children = <Widget>[
-                                  const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 2),
-                                    child: Text('\$${snapshot.data?.filename}'),
-                                  ),
-                                  okButton(context, "Stop", onPressed: () {
-                                    processedFileController
-                                        .addError(SyncCanceledError());
-                                    processedFileController.close();
-                                  }),
-                                ];
-                              case ConnectionState.done:
-                                children = <Widget>[
-                                  const Icon(
-                                    Icons.check_circle_outline,
-                                    color: Colors.green,
-                                    size: 30,
-                                  ),
-                                  const Padding(
-                                    padding: EdgeInsets.only(top: 2),
-                                    child: Text('Completed'),
-                                  ),
-                                ];
-                            }
-                          }
-                          return Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: children,
-                          );
-                        })),
-          )
+                child: (context, state) => SyncFilesStatusWidget(
+                  context,
+                  deviceService,
+                  processedFileController,
+                ),
+              ))
         ]),
       ),
     );

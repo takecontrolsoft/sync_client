@@ -23,6 +23,10 @@ const seedColor = Color.fromARGB(255, 246, 113, 31);
 class AppTheme {
   static ThemeData getTheme(BuildContext context) {
     final theme = context.watch<ThemeCubit>();
+    return themeData(context, theme);
+  }
+
+  static ThemeData themeData(BuildContext context, ThemeCubit theme) {
     return ThemeData(
       useMaterial3: true,
       colorSchemeSeed: seedColor,
@@ -37,7 +41,7 @@ class AppTheme {
       ),
       checkboxTheme: CheckboxThemeData(
         checkColor: WidgetStateProperty.all(Colors.white),
-        fillColor: WidgetStateProperty.all(forestGreenColor),
+        fillColor: WidgetStateProperty.all(objectColor),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ButtonStyle(
@@ -99,10 +103,10 @@ TextStyle boldTextStyle() {
 
 TextStyle importantTextStyle(BuildContext context) {
   return TextStyle(
-      color: forestGreenColor, fontWeight: FontWeight.bold, fontSize: 12);
+      color: objectColor, fontWeight: FontWeight.bold, fontSize: 12);
 }
 
-MaterialColor forestGreenColor = MaterialColor(
+MaterialColor objectColor = MaterialColor(
   const Color.fromRGBO(246, 113, 31, 1).value,
   const <int, Color>{
     50: Color.fromRGBO(246, 113, 31, 0.1),

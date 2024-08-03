@@ -34,7 +34,7 @@ Widget loginButton(BuildContext context,
     margin: const EdgeInsets.symmetric(vertical: 25),
     child: ElevatedButton(
       style: ButtonStyle(
-          backgroundColor: WidgetStateProperty.all(forestGreenColor),
+          backgroundColor: WidgetStateProperty.all(objectColor),
           textStyle: WidgetStateProperty.all<TextStyle>(
               const TextStyle(color: Colors.white, fontSize: 20)),
           shape: WidgetStateProperty.all<RoundedRectangleBorder>(
@@ -54,7 +54,7 @@ Widget syncButton(BuildContext context,
     margin: const EdgeInsets.symmetric(vertical: 25, horizontal: 50),
     child: ElevatedButton(
       style: ButtonStyle(
-          backgroundColor: WidgetStateProperty.all(forestGreenColor),
+          backgroundColor: WidgetStateProperty.all(objectColor),
           textStyle: WidgetStateProperty.all<TextStyle>(
               const TextStyle(color: Colors.white, fontSize: 20)),
           shape: WidgetStateProperty.all<RoundedRectangleBorder>(
@@ -92,7 +92,7 @@ Widget okButton(BuildContext context, String text,
     {void Function()? onPressed}) {
   return templateButton(
     context,
-    color: forestGreenColor,
+    color: objectColor,
     text: text,
     onPressed: onPressed,
   );
