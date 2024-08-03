@@ -37,12 +37,20 @@ class MainAppBar {
       final option = item.menuUserInfo as AppMenuOption;
       switch (option) {
         case AppMenuOption.home:
-          context.push("/");
+          if (context.canPop()) {
+            context.pop();
+          }
         case AppMenuOption.sync:
+          if (context.canPop()) {
+            context.pop();
+          }
           context.push("/sync");
         case AppMenuOption.theme:
           theme.toggleTheme();
         case AppMenuOption.account:
+          if (context.canPop()) {
+            context.pop();
+          }
           context.push("/account");
         case AppMenuOption.logout:
           await logOut(context, deviceService);
@@ -111,6 +119,9 @@ class MainAppBar {
       BuildContext context, DeviceServicesCubit deviceService) async {
     await deviceService.logOut();
     // ignore: use_build_context_synchronously
+    if (context.canPop()) {
+      context.pop();
+    }
     context.push('/login');
   }
 }

@@ -20,3 +20,4 @@ export 'login_screen.dart';
 export 'datetime_screen.dart';
 export 'components/components.dart';
 export 'nickname_screen.dart';
+export 'sync_screen.dart';
