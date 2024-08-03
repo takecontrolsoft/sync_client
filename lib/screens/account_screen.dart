@@ -20,22 +20,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sync_client/config/config.dart';
+import 'package:sync_client/screens/components/components.dart';
 import 'package:sync_client/services/services.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class AccountScreen extends StatelessWidget {
+  const AccountScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MainAppBar.appBar(context),
-      body: const HomeScreenView(),
+      body: const AccountScreenView(),
     );
   }
 }
 
-class HomeScreenView extends StatelessWidget {
-  const HomeScreenView({super.key});
+class AccountScreenView extends StatelessWidget {
+  const AccountScreenView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -63,9 +64,17 @@ class HomeScreenView extends StatelessWidget {
                   style: const TextStyle(
                       fontSize: 25, fontWeight: FontWeight.bold),
                 ),
-              )
+              ),
             ],
-          )
+          ),
+          SizedBox(
+              width: double.maxFinite,
+              child: okButton(context, "Delete my server files",
+                  onPressed: () {})),
+          SizedBox(
+              width: double.maxFinite,
+              child: okButton(context, "Delete my local settings",
+                  onPressed: () {})),
         ]),
       ),
     );

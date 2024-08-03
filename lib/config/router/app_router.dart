@@ -28,6 +28,10 @@ GoRouter getAppRouter(bool isAuthenticated) {
       builder: (context, state) => const SyncScreen(),
     ),
     GoRoute(
+      path: '/account',
+      builder: (context, state) => const AccountScreen(),
+    ),
+    GoRoute(
       path: '/servers',
       builder: (context, state) => const ServersListScreen(),
     ),

@@ -14,12 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:popup_menu/popup_menu.dart';
 import 'package:sync_client/config/config.dart';
-import 'package:sync_client/config/theme/theme_cubit.dart';
 import 'package:sync_client/services/device_services.dart';
 
 enum AppMenuOption { home, sync, theme, account, logout }
@@ -29,7 +27,6 @@ class MainAppBar {
     final ThemeCubit theme = context.watch<ThemeCubit>();
     final DeviceServicesCubit deviceService =
         context.read<DeviceServicesCubit>();
-    PopupMenu menu;
     GlobalKey btnKey = GlobalKey();
 
     void onClickMenu(MenuItemProvider item) async {
@@ -57,18 +54,6 @@ class MainAppBar {
       }
     }
 
-    void onDismiss() {
-      print('Menu is dismiss');
-    }
-
-    void onShow() {
-      print('Menu is show');
-    }
-
-    void stateChanged(bool isShow) {
-      print('menu is ${isShow ? 'showing' : 'closed'}');
-    }
-
     void getMenu(BuildContext context) {
       PopupMenu menu = PopupMenu(
           context: context,
@@ -91,8 +76,7 @@ class MainAppBar {
                 context, AppMenuOption.account, "Account", Icons.person),
             mainMenuItem(context, AppMenuOption.logout, "LogOut", Icons.logout),
           ],
-          onClickMenu: onClickMenu,
-          onDismiss: onDismiss);
+          onClickMenu: onClickMenu);
       menu.show(widgetKey: btnKey);
     }
 
@@ -120,8 +104,10 @@ class MainAppBar {
     await deviceService.logOut();
     // ignore: use_build_context_synchronously
     if (context.canPop()) {
+      // ignore: use_build_context_synchronously
       context.pop();
     }
+    // ignore: use_build_context_synchronously
     context.push('/login');
   }
 }

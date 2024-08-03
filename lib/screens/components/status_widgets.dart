@@ -7,7 +7,7 @@ import 'package:sync_client/screens/components/components.dart';
 import 'package:sync_client/services/services.dart';
 import 'package:sync_client/storage/storage.dart';
 
-Widget SyncFilesStatusWidget(
+Widget syncFilesStatusWidget(
   BuildContext context,
   DeviceServicesCubit deviceService,
   StreamController<ProcessedFile> processedFileController,

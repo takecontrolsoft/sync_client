@@ -56,7 +56,7 @@ class _DateTimeScreenView extends StatelessWidget {
           ),
           ListTile(
               leading: const Icon(Icons.calendar_today),
-              title: Reactive<DeviceServicesCubit, DeviceSettings>(
+              title: reactiveBuilder<DeviceServicesCubit, DeviceSettings>(
                   buildWhen: (previous, current) =>
                       previous.lastSyncDateTime != current.lastSyncDateTime,
                   child: (context, state) {

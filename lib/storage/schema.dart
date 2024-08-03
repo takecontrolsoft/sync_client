@@ -41,6 +41,9 @@ class DeviceSettings {
     bool areEqual = compareJson(toJson(), (other as DeviceSettings).toJson());
     return areEqual;
   }
+
+  @override
+  int get hashCode => super.hashCode + 1;
 }
 
 class ProcessedFile {

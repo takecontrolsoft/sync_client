@@ -47,15 +47,3 @@ Map<String, dynamic> _$DeviceSettingsToJson(DeviceSettings instance) =>
       'lastErrorMessage': instance.lastErrorMessage,
       'lastSyncDateTime': instance.lastSyncDateTime?.toIso8601String(),
     };
-
-ProcessedFile _$ProcessedFileFromJson(Map<String, dynamic> json) =>
-    ProcessedFile(
-      json['filename'] as String,
-      errorMessage: json['errorMessage'] as String?,
-    );
-
-Map<String, dynamic> _$ProcessedFileToJson(ProcessedFile instance) =>
-    <String, dynamic>{
-      'errorMessage': instance.errorMessage,
-      'filename': instance.filename,
-    };

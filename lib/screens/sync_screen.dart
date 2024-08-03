@@ -40,7 +40,7 @@ class SyncScreen extends StatelessWidget {
 }
 
 class SyncScreenView extends StatelessWidget {
-  SyncScreenView();
+  SyncScreenView({super.key});
   StreamController<ProcessedFile> processedFileController =
       StreamController<ProcessedFile>();
 
@@ -75,7 +75,7 @@ class SyncScreenView extends StatelessWidget {
                   child: ListTile(
                 title: const Text("Server address"),
                 leading: const Icon(Icons.cloud),
-                subtitle: Reactive<DeviceServicesCubit, DeviceSettings>(
+                subtitle: reactiveBuilder<DeviceServicesCubit, DeviceSettings>(
                     child: (context, state) =>
                         Text("Server set to: ${state.serverUrl ?? ""}"),
                     buildWhen: (previous, current) =>
@@ -88,7 +88,7 @@ class SyncScreenView extends StatelessWidget {
                   child: ListTile(
                 leading: const Icon(Icons.folder),
                 title: const Text("Folders to sync"),
-                subtitle: Reactive<DeviceServicesCubit, DeviceSettings>(
+                subtitle: reactiveBuilder<DeviceServicesCubit, DeviceSettings>(
                     child: (context, state) => Text(
                         "Selected folders count: ${state.mediaDirectories.length}"),
                     buildWhen: (previous, current) =>
@@ -102,7 +102,7 @@ class SyncScreenView extends StatelessWidget {
                   child: ListTile(
                 leading: const Icon(Icons.calendar_today),
                 title: const Text("Last synced file date"),
-                subtitle: Reactive<DeviceServicesCubit, DeviceSettings>(
+                subtitle: reactiveBuilder<DeviceServicesCubit, DeviceSettings>(
                     child: (context, state) {
                   final DateFormat formatter = DateFormat('yyyy-MM-dd hh:ss');
                   return Text(
@@ -121,11 +121,11 @@ class SyncScreenView extends StatelessWidget {
                   onPressed: () => _run(deviceService))),
           Padding(
               padding: const EdgeInsets.only(left: 25, right: 25),
-              child: Reactive<DeviceServicesCubit, DeviceSettings>(
+              child: reactiveBuilder<DeviceServicesCubit, DeviceSettings>(
                 buildWhen: (previous, current) =>
                     current.lastErrorMessage == null ||
                     previous.lastErrorMessage != current.lastErrorMessage,
-                child: (context, state) => SyncFilesStatusWidget(
+                child: (context, state) => syncFilesStatusWidget(
                   context,
                   deviceService,
                   processedFileController,

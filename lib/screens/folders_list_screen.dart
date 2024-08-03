@@ -66,7 +66,7 @@ class _FoldersListScreenView extends StatelessWidget {
           const Text(
             'Selected directories to sync:',
           ),
-          Reactive<DeviceServicesCubit, DeviceSettings>(
+          reactiveBuilder<DeviceServicesCubit, DeviceSettings>(
               buildWhen: (previous, current) =>
                   previous.mediaDirectories.length !=
                   current.mediaDirectories.length,

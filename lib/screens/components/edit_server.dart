@@ -67,6 +67,7 @@ class EditServerFormState extends State<EditServerForm> {
       await deviceService.edit((state) {
         state.serverUrl = newServer;
       });
+      // ignore: use_build_context_synchronously
       context.pop();
     }
   }
