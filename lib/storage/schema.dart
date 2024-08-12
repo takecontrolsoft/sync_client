@@ -17,10 +17,9 @@ class User {
 
 @JsonSerializable()
 class DeviceSettings {
-  DeviceSettings(this.name);
+  DeviceSettings(this.id);
 
-  String name;
-  String? id;
+  String id;
   String? model;
   String? serverUrl;
   User? currentUser;
@@ -50,4 +49,21 @@ class ProcessedFile {
   ProcessedFile(this.filename, {this.errorMessage});
   final String? errorMessage;
   final String filename;
+}
+
+@JsonSerializable()
+class NetFolder {
+  NetFolder(this.name, {this.subFolders});
+  final String name;
+  final List<NetFolder>? subFolders;
+
+  factory NetFolder.fromJson(Map<String, dynamic> json) =>
+      _$NetFolderFromJson(json);
+
+  Map<String, dynamic> toJson() => _$NetFolderToJson(this);
+}
+
+class NetPhoto {
+  NetPhoto(this.link);
+  final String link;
 }

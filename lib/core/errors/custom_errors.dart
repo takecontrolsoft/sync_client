@@ -18,3 +18,7 @@ final class SyncCanceledError extends CustomError {
 final class SyncError extends CustomError {
   SyncError(String errorText) : super("Synchronization error: $errorText");
 }
+
+final class GetFoldersError extends CustomError {
+  GetFoldersError() : super("Failed to get folders from server.");
+}

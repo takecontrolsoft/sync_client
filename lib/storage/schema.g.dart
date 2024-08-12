@@ -20,9 +20,8 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
 
 DeviceSettings _$DeviceSettingsFromJson(Map<String, dynamic> json) =>
     DeviceSettings(
-      json['name'] as String,
+      json['id'] as String,
     )
-      ..id = json['id'] as String?
       ..model = json['model'] as String?
       ..serverUrl = json['serverUrl'] as String?
       ..currentUser = json['currentUser'] == null
@@ -38,7 +37,6 @@ DeviceSettings _$DeviceSettingsFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$DeviceSettingsToJson(DeviceSettings instance) =>
     <String, dynamic>{
-      'name': instance.name,
       'id': instance.id,
       'model': instance.model,
       'serverUrl': instance.serverUrl,
@@ -46,4 +44,16 @@ Map<String, dynamic> _$DeviceSettingsToJson(DeviceSettings instance) =>
       'mediaDirectories': instance.mediaDirectories.toList(),
       'lastErrorMessage': instance.lastErrorMessage,
       'lastSyncDateTime': instance.lastSyncDateTime?.toIso8601String(),
+    };
+
+NetFolder _$NetFolderFromJson(Map<String, dynamic> json) => NetFolder(
+      json['name'] as String,
+      subFolders: (json['subFolders'] as List<dynamic>?)
+          ?.map((e) => NetFolder.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$NetFolderToJson(NetFolder instance) => <String, dynamic>{
+      'name': instance.name,
+      'subFolders': instance.subFolders,
     };

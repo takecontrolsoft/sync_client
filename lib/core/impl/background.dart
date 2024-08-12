@@ -57,7 +57,7 @@ class BackgroundAction implements IAction {
   }
 
   Future<Iterable<Directory>?> _getSourceDirectories() async {
-    if (currentDeviceSettings.name.isEmpty) {
+    if (currentDeviceSettings.id.isEmpty) {
       return Future.value();
     }
     return currentDeviceSettings.mediaDirectories.map((e) => Directory(e));

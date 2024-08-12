@@ -28,6 +28,7 @@ dependencies:
   json_annotation: ^4.9.0
   path_provider: ^2.1.4
   popup_menu: ^2.0.0
+  uuid: ^4.4.2
 
 dev_dependencies:
   integration_test:

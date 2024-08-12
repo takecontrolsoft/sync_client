@@ -16,7 +16,7 @@ limitations under the License.
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
+import 'package:uuid/uuid.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -32,13 +32,11 @@ Future<DeviceSettings> updateCurrentDevice(
   final deviceInfoPlugin = DeviceInfoPlugin();
   final deviceInfo = await deviceInfoPlugin.deviceInfo;
 
-  String? deviceName = deviceInfo.data["deviceId"];
-  deviceName ??= deviceInfo.data["id"];
-  deviceName ??=
-      (deviceInfo.data["model"] ?? "") + (deviceInfo.data["systemGUID"] ?? "");
-  deviceName ??= "unknown";
-  deviceSettings.name = deviceName;
-  deviceSettings.id = deviceInfo.data["id"] ?? deviceInfo.data["systemGUID"];
+  String? deviceId = deviceInfo.data["deviceId"];
+  deviceId ??= deviceInfo.data["id"];
+  deviceId ??= deviceInfo.data["systemGUID"];
+  deviceId ??= Uuid().v4();
+  deviceSettings.id = deviceId;
   deviceSettings.model = deviceInfo.data["model"];
   return deviceSettings;
 }

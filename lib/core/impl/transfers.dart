@@ -16,41 +16,29 @@ limitations under the License.
 import 'dart:async';
 import 'dart:io';
 
-import 'package:http_parser/http_parser.dart';
-import 'package:mime/mime.dart';
 import 'package:http/http.dart';
 import 'package:path/path.dart' as path;
 import 'package:sync_client/core/core.dart';
 import 'package:sync_client/storage/storage.dart';
 
+import 'request_utils.dart';
+
 class Transfers {
   Transfers();
 
-  MediaType? _getMediaType(String filename) {
-    final detectedFileType = lookupMimeType(filename);
-    if (detectedFileType == null) return null;
-    return MediaType.parse(detectedFileType);
-  }
-
-  Uri _getUrl(String relPath) {
-    if (currentDeviceSettings.serverUrl == null) {
-      return Uri();
-    }
-    return Uri.parse("${currentDeviceSettings.serverUrl!}/$relPath");
-  }
-
   Future<bool> sendFile(StreamController<ProcessedFile> processedFileController,
       String filename, String userName, String dateClassifier) async {
-    var request = MultipartRequest('POST', _getUrl("upload"));
+    var request = MultipartRequest('POST', getUrl("upload"));
     final hdr = <String, String>{"user": userName, "date": dateClassifier};
     request.headers.addEntries(hdr.entries);
+
     final file = File(filename);
     final len = file.lengthSync();
     final name = path.basename(filename);
     try {
       request.files.add(MultipartFile(
-          currentDeviceSettings.name, file.openRead(), len,
-          filename: name, contentType: _getMediaType(filename)));
+          currentDeviceSettings.id, file.openRead(), len,
+          filename: name, contentType: getMediaType(filename)));
       var streamedResponse = await request.send();
       var response = await Response.fromStream(streamedResponse);
       if (processedFileController.isClosed) {
