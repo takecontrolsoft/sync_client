@@ -22,7 +22,6 @@ import 'package:sync_client/config/config.dart';
 import 'package:sync_client/core/core.dart';
 import 'package:sync_client/services/services.dart';
 import 'package:sync_client/storage/storage.dart';
-
 import 'components/components.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -55,93 +54,117 @@ class HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
 
-Widget ItemsView(BuildContext context) {
-  final DeviceServicesCubit deviceService = context.read<DeviceServicesCubit>();
-  deviceService.state.lastErrorMessage = null;
-
-  if (!deviceService.isAuthenticated()) {
-    context.push("/login");
-    return Container();
+  List<String> GetChildrenFolders(List<NetFolder>? folders) {
+    final List<String> allSubFolders = [];
+    if (folders != null) {
+      folders.forEach((f) {
+        allSubFolders.add(f.name);
+        if (f.subFolders != null) {
+          allSubFolders.addAll(GetChildrenFolders(f.subFolders));
+        }
+      });
+    }
+    return allSubFolders;
   }
 
-  return Container(
-      margin: const EdgeInsets.only(
-          left: 10.0, right: 10.0, top: 30.0, bottom: 30.0),
-      child: FutureBuilder<List<NetFolder>?>(
-        future: GetFolders(
-            deviceService.state.currentUser!.email, deviceService.state.id),
+  Future<List<String>> GetAllFolders(DeviceServicesCubit deviceService) async {
+    List<NetFolder>? folders = await GetFolders(
+        deviceService.state.currentUser!.email, deviceService.state.id);
+
+    final List<String> allFolders = GetChildrenFolders(folders);
+    return allFolders;
+  }
+
+  Widget ItemsView(BuildContext context) {
+    final DeviceServicesCubit deviceService =
+        context.read<DeviceServicesCubit>();
+    deviceService.state.lastErrorMessage = null;
+
+    if (!deviceService.isAuthenticated()) {
+      context.push("/login");
+      return Container();
+    }
+
+    return Container(
+        margin: const EdgeInsets.only(
+            left: 10.0, right: 10.0, top: 30.0, bottom: 30.0),
+        child: FutureBuilder<List<String>>(
+          future: GetAllFolders(deviceService),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const CircularProgressIndicator();
+            } else if (snapshot.hasData) {
+              final folders = snapshot.data!;
+              return ListView(children: PhotoWidgets(folders, deviceService));
+
+              //buildPhotos(folders, context);
+            } else {
+              // if no data, show simple Text
+              return const Text("No data available");
+            }
+          },
+        ));
+  }
+
+  List<Widget> PhotoWidgets(
+      List<String> folders, DeviceServicesCubit deviceService) {
+    List<Widget> result = [];
+    for (var folder in folders) {
+      result.add(Card(
+          child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Text(folder,
+                  style: const TextStyle(fontWeight: FontWeight.bold)))));
+      result.add(FutureBuilder<List<String>>(
+        future: GetFiles(deviceService.state.currentUser!.email,
+            deviceService.state.id, folder),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const CircularProgressIndicator();
           } else if (snapshot.hasData) {
-            final folders = snapshot.data!;
-            return buildFolders(folders);
+            final files = snapshot.data!;
+            return GridView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 5,
+                crossAxisSpacing: 5.0,
+                mainAxisSpacing: 5.0,
+              ),
+              itemCount: files.length,
+              itemBuilder: (context, index) {
+                return GridTile(
+                    header: GridTileBar(
+                      title: Text('$index',
+                          style: const TextStyle(color: Colors.black)),
+                    ),
+                    child: Container(
+                        margin: const EdgeInsets.all(12.0),
+                        decoration: ShapeDecoration(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          gradient: const RadialGradient(
+                            colors: <Color>[
+                              Color(0x0F88EEFF),
+                              Color(0x2F0099BB)
+                            ],
+                          ),
+                        ),
+                        child: Image.network(
+                            "http://localhost:3000/Desi/AFA33F68-3E48-5459-B564-20D03E3F6035/${files[index]}")));
+              },
+            );
+
+            //buildPhotos(folders, context);
           } else {
             // if no data, show simple Text
             return const Text("No data available");
           }
         },
       ));
-}
-
-Widget buildFolder(NetFolder folder) {
-  return Column(children: [
-    Padding(
-        padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 4),
-        child: Card(
-          child: Text(folder.name),
-        )),
-    folder.subFolders == null
-        ? Container()
-        : ListView.builder(
-            itemCount: folder.subFolders!.length,
-            itemBuilder: (context, index) => Card(
-                  child: Text(folder.subFolders![index].name),
-                ))
-    //buildFolders(folder.subFolders),
-  ]);
-}
-
-Widget buildFolders(List<NetFolder>? folders) {
-  return (folders == null)
-      ? Container()
-      : ListView.builder(
-          itemCount: folders.length,
-          itemBuilder: (context, index) => buildFolder(folders[index]));
-}
-
-Widget buildPhotos(List<NetPhoto>? posts) {
-  return Card(
-    elevation: 8.0,
-    child: GridView.builder(
-      padding: const EdgeInsets.all(12.0),
-      gridDelegate: CustomGridDelegate(dimension: 140.0),
-      // Try uncommenting some of these properties to see the effect on the grid:
-      // itemCount: 20, // The default is that the number of grid tiles is infinite.
-      // scrollDirection: Axis.horizontal, // The default is vertical.
-      // reverse: true, // The default is false, going down (or left to right).
-      itemBuilder: (BuildContext context, int index) {
-        return GridTile(
-          header: GridTileBar(
-            title: Text('$index', style: const TextStyle(color: Colors.black)),
-          ),
-          child: Container(
-            margin: const EdgeInsets.all(12.0),
-            decoration: ShapeDecoration(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.0),
-              ),
-              gradient: const RadialGradient(
-                colors: <Color>[Color(0x0F88EEFF), Color(0x2F0099BB)],
-              ),
-            ),
-            child: Image.network(
-                "http://mobisyncserver.c4buf4a2b9czf0hc.italynorth.azurecontainer.io:3000/Desi/Mac15,6AFA33F68-3E48/2024/7/Scan%207.jpeg"),
-          ),
-        );
-      },
-    ),
-  );
+    }
+    return result;
+  }
 }

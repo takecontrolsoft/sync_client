@@ -50,3 +50,32 @@ Future<List<NetFolder>?> GetFolders(String userName, String deviceId) async {
   }
   return null;
 }
+
+Future<List<String>> GetFiles(
+    String userName, String deviceId, String folder) async {
+  var request = Request('POST', getUrl("files"));
+  request.headers.addAll(
+      <String, String>{'Content-Type': 'application/json; charset=UTF-8'});
+
+  request.body = jsonEncode(<String, dynamic>{
+    'UserData': <String, dynamic>{
+      'User': userName,
+      'DeviceId': deviceId,
+      // Add any other data you want to send in the body
+    },
+    "Folder": folder
+  });
+  try {
+    var streamedResponse = await request.send();
+    var response = await Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 200) {
+      final List<dynamic> result = json.decode(response.body);
+      final List<String> files = result.map((item) => item.toString()).toList();
+      return files;
+    }
+  } catch (err) {
+    throw GetFoldersError();
+  }
+  return [];
+}
