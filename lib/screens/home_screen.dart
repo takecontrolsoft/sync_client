@@ -125,13 +125,12 @@ class HomeScreenState extends State<HomeScreen> {
           } else if (snapshot.hasData) {
             final files = snapshot.data!;
             return GridView.builder(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 4.0, horizontal: 2.0),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3),
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 5,
-                crossAxisSpacing: 5.0,
-                mainAxisSpacing: 5.0,
-              ),
               itemCount: files.length,
               itemBuilder: (context, index) {
                 return GridTile(
@@ -153,7 +152,7 @@ class HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         child: Image.network(
-                            "http://localhost:3000/Desi/AFA33F68-3E48-5459-B564-20D03E3F6035/${files[index]}")));
+                            "http://37.157.162.79:63391/Desi/AFA33F68-3E48-5459-B564-20D03E3F6035/${files[index]}")));
               },
             );
 
