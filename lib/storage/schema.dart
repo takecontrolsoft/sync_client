@@ -25,6 +25,7 @@ class DeviceSettings {
   User? currentUser;
   Set<String> mediaDirectories = {};
   String? lastErrorMessage;
+  String? successMessage;
   DateTime? lastSyncDateTime;
 
   factory DeviceSettings.fromJson(Map<String, dynamic> json) =>

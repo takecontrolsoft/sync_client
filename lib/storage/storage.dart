@@ -67,3 +67,10 @@ Future<void> saveDeviceSettings(DeviceSettings deviceSettings) async {
   File jsonFile = File("${appDocDir.path}/$dataFilename");
   jsonFile.writeAsStringSync(jsonEncode(deviceSettings.toJson()));
 }
+
+Future<void> deleteDeviceSettings() async {
+  Directory appDocDir = await getApplicationDocumentsDirectory();
+  File jsonFile = File("${appDocDir.path}/$dataFilename");
+  jsonFile.deleteSync();
+  await loadDeviceSettings();
+}

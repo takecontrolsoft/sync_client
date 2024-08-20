@@ -151,8 +151,7 @@ class HomeScreenState extends State<HomeScreen> {
                             ],
                           ),
                         ),
-                        child: Image.network(
-                            "http://37.157.162.79:63391/Desi/AFA33F68-3E48-5459-B564-20D03E3F6035/${files[index]}")));
+                        child: Text("${files[index]}")));
               },
             );
 

@@ -99,6 +99,12 @@ TextStyle infoTextStyle(BuildContext context, {bool bold = false}) {
       fontWeight: bold ? FontWeight.bold : FontWeight.normal);
 }
 
+TextStyle successTextStyle(BuildContext context, {bool bold = false}) {
+  return TextStyle(
+      color: Colors.green,
+      fontWeight: bold ? FontWeight.bold : FontWeight.normal);
+}
+
 TextStyle boldTextStyle() {
   return const TextStyle(color: Colors.black, fontWeight: FontWeight.bold);
 }

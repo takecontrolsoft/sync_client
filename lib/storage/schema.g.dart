@@ -31,6 +31,7 @@ DeviceSettings _$DeviceSettingsFromJson(Map<String, dynamic> json) =>
           .map((e) => e as String)
           .toSet()
       ..lastErrorMessage = json['lastErrorMessage'] as String?
+      ..successMessage = json['successMessage'] as String?
       ..lastSyncDateTime = json['lastSyncDateTime'] == null
           ? null
           : DateTime.parse(json['lastSyncDateTime'] as String);
@@ -43,6 +44,7 @@ Map<String, dynamic> _$DeviceSettingsToJson(DeviceSettings instance) =>
       'currentUser': instance.currentUser,
       'mediaDirectories': instance.mediaDirectories.toList(),
       'lastErrorMessage': instance.lastErrorMessage,
+      'successMessage': instance.successMessage,
       'lastSyncDateTime': instance.lastSyncDateTime?.toIso8601String(),
     };
 

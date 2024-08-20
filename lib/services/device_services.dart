@@ -65,4 +65,11 @@ class DeviceServicesCubit extends Cubit<DeviceSettings> {
 
     return result;
   }
+
+  Future<void> clearDeviceSettings() async {
+    state.currentUser = null;
+    await deleteDeviceSettings();
+    DeviceSettings newState = currentDeviceSettings;
+    emit(newState);
+  }
 }

@@ -29,7 +29,6 @@ Future<List<NetFolder>?> GetFolders(String userName, String deviceId) async {
   request.body = jsonEncode(<String, dynamic>{
     'User': userName,
     'DeviceId': deviceId,
-    // Add any other data you want to send in the body
   });
   try {
     var streamedResponse = await request.send();
@@ -61,7 +60,6 @@ Future<List<String>> GetFiles(
     'UserData': <String, dynamic>{
       'User': userName,
       'DeviceId': deviceId,
-      // Add any other data you want to send in the body
     },
     "Folder": folder
   });
@@ -78,4 +76,24 @@ Future<List<String>> GetFiles(
     throw GetFoldersError();
   }
   return [];
+}
+
+Future<bool> DeleteAllFiles(String userName, String deviceId) async {
+  var request = Request('POST', getUrl("delete-all"));
+  request.headers.addAll(
+      <String, String>{'Content-Type': 'application/json; charset=UTF-8'});
+
+  request.body = jsonEncode(<String, dynamic>{
+    'User': userName,
+    'DeviceId': deviceId,
+  });
+  try {
+    var response = await request.send();
+    if (response.statusCode == 200) {
+      return true;
+    }
+  } catch (err) {
+    throw GetFoldersError();
+  }
+  return false;
 }

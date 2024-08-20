@@ -37,6 +37,7 @@ class MainAppBar {
           if (context.canPop()) {
             context.pop();
           }
+          context.push("/");
         case AppMenuOption.sync:
           if (context.canPop()) {
             context.pop();

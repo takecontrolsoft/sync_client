@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart';
@@ -29,7 +30,10 @@ class Transfers {
   Future<bool> sendFile(StreamController<ProcessedFile> processedFileController,
       String filename, String userName, String dateClassifier) async {
     var request = MultipartRequest('POST', getUrl("upload"));
-    final hdr = <String, String>{"user": userName, "date": dateClassifier};
+    final hdr = <String, String>{
+      "user": utf8.encode(userName).toString(),
+      "date": dateClassifier
+    };
     request.headers.addEntries(hdr.entries);
 
     final file = File(filename);
