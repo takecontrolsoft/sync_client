@@ -19,8 +19,7 @@ class CustomGridDelegate extends SliverGridDelegate {
     final double squareDimension = constraints.crossAxisExtent / count;
     return CustomGridLayout(
       crossAxisCount: count,
-      fullRowPeriod:
-          3, // Number of rows per block (one of which is the full row).
+      fullRowPeriod: 10000000000000,
       dimension: squareDimension,
     );
   }

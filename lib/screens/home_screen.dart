@@ -15,11 +15,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/core/core.dart';
+import 'package:sync_client/screens/components/components.dart';
 import 'package:sync_client/services/services.dart';
 import 'package:sync_client/storage/storage.dart';
 
@@ -95,7 +98,8 @@ class HomeScreenState extends State<HomeScreen> {
               return const CircularProgressIndicator();
             } else if (snapshot.hasData) {
               final folders = snapshot.data!;
-              return ListView(children: photoWidgets(folders, deviceService));
+              return ListView(
+                  children: photoGridWidgets(folders, deviceService));
 
               //buildPhotos(folders, context);
             } else {
@@ -106,7 +110,7 @@ class HomeScreenState extends State<HomeScreen> {
         ));
   }
 
-  List<Widget> photoWidgets(
+  List<Widget> photoGridWidgets(
       List<String> folders, DeviceServicesCubit deviceService) {
     List<Widget> result = [];
     for (var folder in folders) {
@@ -124,46 +128,56 @@ class HomeScreenState extends State<HomeScreen> {
           } else if (snapshot.hasData) {
             final files = snapshot.data!;
             return GridView.builder(
-              padding:
-                  const EdgeInsets.symmetric(vertical: 4.0, horizontal: 2.0),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3),
-              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(1.0),
+              gridDelegate: CustomGridDelegate(dimension: 100.0),
               shrinkWrap: true,
               itemCount: files.length,
               itemBuilder: (context, index) {
                 return GridTile(
-                    header: GridTileBar(
-                      title: Text('$index',
-                          style: const TextStyle(color: Colors.black)),
-                    ),
+                    // header: GridTileBar(
+                    //   title: Text('$index',
+                    //       style: const TextStyle(color: Colors.black)),
+                    // ),
                     child: Container(
-                      margin: const EdgeInsets.all(12.0),
-                      decoration: ShapeDecoration(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        gradient: const RadialGradient(
-                          colors: <Color>[Color(0x0F88EEFF), Color(0x2F0099BB)],
-                        ),
-                      ),
-                      child: const Text(""),
-                      // child: Image.memory(await getImageBytes(
-                      //     deviceService.state.currentUser!.email,
-                      //     deviceService.state.id,
-                      //     files[index]))
-                    ));
+                  margin: const EdgeInsets.all(12.0),
+                  decoration: ShapeDecoration(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    gradient: const RadialGradient(
+                      colors: <Color>[Color(0x0F88EEFF), Color(0x2F0099BB)],
+                    ),
+                  ),
+                  child: photoWidget(files[index], deviceService),
+                ));
               },
             );
-
-            //buildPhotos(folders, context);
           } else {
             // if no data, show simple Text
-            return const Text("No data available");
+            return const Text(
+              "No data available",
+              style: TextStyle(fontSize: 10),
+            );
           }
         },
       ));
     }
     return result;
+  }
+
+  Widget photoWidget(String file, DeviceServicesCubit deviceService) {
+    return FutureBuilder<Uint8List?>(
+        future: apiGetImageBytes(deviceService.state.currentUser!.email,
+            deviceService.state.id, file),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CircularProgressIndicator();
+          } else if (snapshot.hasData) {
+            final fileData = snapshot.data!;
+            return Image.memory(fileData);
+          } else {
+            return Text(file);
+          }
+        });
   }
 }
