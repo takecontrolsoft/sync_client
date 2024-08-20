@@ -111,7 +111,7 @@ class AccountScreenView extends StatelessWidget {
       errorText = "Please select server address.";
     }
     if (errorText.isEmpty) {
-      bool deleted = await DeleteAllFiles(
+      bool deleted = await apiDeleteAllFiles(
           deviceService.state.currentUser!.email, deviceService.state.id);
       if (!deleted) {
         errorText =

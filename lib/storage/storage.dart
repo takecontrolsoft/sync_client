@@ -35,7 +35,7 @@ Future<DeviceSettings> updateCurrentDevice(
   String? deviceId = deviceInfo.data["deviceId"];
   deviceId ??= deviceInfo.data["id"];
   deviceId ??= deviceInfo.data["systemGUID"];
-  deviceId ??= Uuid().v4();
+  deviceId ??= const Uuid().v4();
   deviceSettings.id = deviceId;
   deviceSettings.model = deviceInfo.data["model"];
   return deviceSettings;

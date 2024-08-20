@@ -22,7 +22,6 @@ import 'package:sync_client/config/config.dart';
 import 'package:sync_client/core/core.dart';
 import 'package:sync_client/services/services.dart';
 import 'package:sync_client/storage/storage.dart';
-import 'components/components.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -46,7 +45,7 @@ class HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MainAppBar.appBar(context),
-      body: ItemsView(context),
+      body: itemsView(context),
       floatingActionButton: FloatingActionButton(
         onPressed: () => setState(() {}),
         tooltip: 'Refresh',
@@ -55,28 +54,28 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  List<String> GetChildrenFolders(List<NetFolder>? folders) {
+  List<String> getChildrenFolders(List<NetFolder>? folders) {
     final List<String> allSubFolders = [];
     if (folders != null) {
-      folders.forEach((f) {
+      for (var f in folders) {
         allSubFolders.add(f.name);
         if (f.subFolders != null) {
-          allSubFolders.addAll(GetChildrenFolders(f.subFolders));
+          allSubFolders.addAll(getChildrenFolders(f.subFolders));
         }
-      });
+      }
     }
     return allSubFolders;
   }
 
-  Future<List<String>> GetAllFolders(DeviceServicesCubit deviceService) async {
-    List<NetFolder>? folders = await GetFolders(
+  Future<List<String>> getAllFolders(DeviceServicesCubit deviceService) async {
+    List<NetFolder>? folders = await apiGetFolders(
         deviceService.state.currentUser!.email, deviceService.state.id);
 
-    final List<String> allFolders = GetChildrenFolders(folders);
+    final List<String> allFolders = getChildrenFolders(folders);
     return allFolders;
   }
 
-  Widget ItemsView(BuildContext context) {
+  Widget itemsView(BuildContext context) {
     final DeviceServicesCubit deviceService =
         context.read<DeviceServicesCubit>();
     deviceService.state.lastErrorMessage = null;
@@ -90,13 +89,13 @@ class HomeScreenState extends State<HomeScreen> {
         margin: const EdgeInsets.only(
             left: 10.0, right: 10.0, top: 30.0, bottom: 30.0),
         child: FutureBuilder<List<String>>(
-          future: GetAllFolders(deviceService),
+          future: getAllFolders(deviceService),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const CircularProgressIndicator();
             } else if (snapshot.hasData) {
               final folders = snapshot.data!;
-              return ListView(children: PhotoWidgets(folders, deviceService));
+              return ListView(children: photoWidgets(folders, deviceService));
 
               //buildPhotos(folders, context);
             } else {
@@ -107,7 +106,7 @@ class HomeScreenState extends State<HomeScreen> {
         ));
   }
 
-  List<Widget> PhotoWidgets(
+  List<Widget> photoWidgets(
       List<String> folders, DeviceServicesCubit deviceService) {
     List<Widget> result = [];
     for (var folder in folders) {
@@ -117,7 +116,7 @@ class HomeScreenState extends State<HomeScreen> {
               child: Text(folder,
                   style: const TextStyle(fontWeight: FontWeight.bold)))));
       result.add(FutureBuilder<List<String>>(
-        future: GetFiles(deviceService.state.currentUser!.email,
+        future: apiGetFiles(deviceService.state.currentUser!.email,
             deviceService.state.id, folder),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -139,19 +138,21 @@ class HomeScreenState extends State<HomeScreen> {
                           style: const TextStyle(color: Colors.black)),
                     ),
                     child: Container(
-                        margin: const EdgeInsets.all(12.0),
-                        decoration: ShapeDecoration(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                          gradient: const RadialGradient(
-                            colors: <Color>[
-                              Color(0x0F88EEFF),
-                              Color(0x2F0099BB)
-                            ],
-                          ),
+                      margin: const EdgeInsets.all(12.0),
+                      decoration: ShapeDecoration(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
                         ),
-                        child: Text("${files[index]}")));
+                        gradient: const RadialGradient(
+                          colors: <Color>[Color(0x0F88EEFF), Color(0x2F0099BB)],
+                        ),
+                      ),
+                      child: const Text(""),
+                      // child: Image.memory(await getImageBytes(
+                      //     deviceService.state.currentUser!.email,
+                      //     deviceService.state.id,
+                      //     files[index]))
+                    ));
               },
             );
 

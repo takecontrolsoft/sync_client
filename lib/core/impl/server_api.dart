@@ -15,13 +15,14 @@ limitations under the License.
 */
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart';
 import 'package:sync_client/core/core.dart';
 import 'package:sync_client/storage/storage.dart';
 
 import 'request_utils.dart';
 
-Future<List<NetFolder>?> GetFolders(String userName, String deviceId) async {
+Future<List<NetFolder>?> apiGetFolders(String userName, String deviceId) async {
   var request = Request('POST', getUrl("folders"));
   request.headers.addAll(
       <String, String>{'Content-Type': 'application/json; charset=UTF-8'});
@@ -50,7 +51,7 @@ Future<List<NetFolder>?> GetFolders(String userName, String deviceId) async {
   return null;
 }
 
-Future<List<String>> GetFiles(
+Future<List<String>> apiGetFiles(
     String userName, String deviceId, String folder) async {
   var request = Request('POST', getUrl("files"));
   request.headers.addAll(
@@ -78,7 +79,7 @@ Future<List<String>> GetFiles(
   return [];
 }
 
-Future<bool> DeleteAllFiles(String userName, String deviceId) async {
+Future<bool> apiDeleteAllFiles(String userName, String deviceId) async {
   var request = Request('POST', getUrl("delete-all"));
   request.headers.addAll(
       <String, String>{'Content-Type': 'application/json; charset=UTF-8'});
@@ -96,4 +97,30 @@ Future<bool> DeleteAllFiles(String userName, String deviceId) async {
     throw GetFoldersError();
   }
   return false;
+}
+
+Future<Uint8List?> apiGetImageBytes(
+    String userName, String deviceId, String file) async {
+  var request = Request('POST', getUrl("img"));
+  request.headers.addAll(
+      <String, String>{'Content-Type': 'application/json; charset=UTF-8'});
+
+  request.body = jsonEncode(<String, dynamic>{
+    'UserData': <String, dynamic>{
+      'User': userName,
+      'DeviceId': deviceId,
+    },
+    "File": file
+  });
+
+  try {
+    var streamResponse = await request.send();
+    final response = await Response.fromStream(streamResponse);
+    if (response.statusCode == 200) {
+      return response.bodyBytes;
+    }
+  } catch (err) {
+    throw GetFoldersError();
+  }
+  return null;
 }
