@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:sync_client/config/config.dart';
@@ -69,11 +68,11 @@ List<Widget> _infoProgress(
     Padding(
         padding: const EdgeInsets.only(top: 2),
         child: Text('\$${snapshot.data?.filename}')),
-    okButton(context, "Stop", onPressed: () async {
+    okButton(context, "Stop", onPressed: () {
       syncedFileController.addError(SyncCanceledError());
       syncedFileController.close();
-      await Future<void>.delayed(Duration(seconds: 1));
-      Navigator.pop(context);
+      Future<void>.delayed(const Duration(seconds: 1))
+          .whenComplete(() => Navigator.pop(context));
     }),
   ];
 }

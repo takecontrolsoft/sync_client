@@ -99,28 +99,27 @@ class _DeletingEnabledScreenView extends StatelessWidget {
                       spacing: 20,
                       runSpacing: 20,
                       children: <Widget>[
-                        const Text(
+                        Text(
                           'WARNING: Switching this option to ON will cause DELETING synced files from this device.',
                           textAlign: TextAlign.center,
                         ),
-                        const Text(
+                        Text(
                           'The files are deleted only if they are successfully send to the server.',
                           textAlign: TextAlign.center,
                         ),
-                        const Text(
+                        Text(
                           'If you confirm the files will be deleted from the device after the next sync operation.',
                           textAlign: TextAlign.center,
                         ),
                       ]),
                   actions: [
-                    okButton(context, "Confirm", onPressed: () async {
-                      await deviceService.edit((state) {
+                    okButton(context, "Confirm", onPressed: () {
+                      deviceService.edit((state) {
                         state.deleteLocalFilesEnabled =
                             !(state.deleteLocalFilesEnabled ?? false);
                         state.syncedFiles.clear();
                         state.lastErrorMessage = null;
-                      });
-                      Navigator.pop(context);
+                      }).whenComplete(() => Navigator.pop(context));
                     }),
                     cancelButton(context)
                   ],

@@ -137,29 +137,31 @@ class SyncScreenView extends StatelessWidget {
 
   void _sync(BuildContext context, DeviceServicesCubit deviceService) async {
     if (!(deviceService.state.deleteLocalFilesEnabled ?? false)) {
-      _run(context, deviceService);
+      await _run(context, deviceService);
     } else {
-      if (await _validate(deviceService)) {
+      await _validate(deviceService).then((value) {
         showDialog<String>(
             context: context,
             builder: (BuildContext context) => AlertDialog(
                   title: const Text('Synced files will be deleted'),
-                  content: const Center(
-                      child:
-                          Wrap(spacing: 20, runSpacing: 20, children: <Widget>[
-                    Text(
-                      'WARNING: Option Deleting=ON.',
-                      textAlign: TextAlign.center,
-                    ),
-                    Text(
-                      'All the synced files will be deleted from this device.',
-                      textAlign: TextAlign.center,
-                    ),
-                    Text(
-                      'Would you like to continue?',
-                      textAlign: TextAlign.center,
-                    ),
-                  ])),
+                  content: const Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 20,
+                      runSpacing: 20,
+                      children: <Widget>[
+                        Text(
+                          'WARNING: Option Deleting=ON.',
+                          textAlign: TextAlign.center,
+                        ),
+                        Text(
+                          'All the synced files will be deleted from this device.',
+                          textAlign: TextAlign.center,
+                        ),
+                        Text(
+                          'Would you like to continue?',
+                          textAlign: TextAlign.center,
+                        ),
+                      ]),
                   actions: [
                     okButton(context, "Confirm", onPressed: () async {
                       Navigator.pop(context);
@@ -168,48 +170,50 @@ class SyncScreenView extends StatelessWidget {
                     cancelButton(context)
                   ],
                 ));
-      }
+      });
     }
   }
 
-  void _run(BuildContext context, DeviceServicesCubit deviceService) async {
-    if (await _validate(deviceService)) {
-      showDialog<String>(
-        context: context,
-        builder: (BuildContext context) => Dialog.fullscreen(
-          child: Center(
-              child: Padding(
-                  padding: const EdgeInsets.only(left: 25, right: 25),
-                  child: Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 20,
-                      runSpacing: 20,
-                      children: [
-                        syncFilesStatusWidget(
-                            context, deviceService, syncedFileController)
-                      ]))),
-        ),
-      );
-      if (syncedFileController.isClosed) {
-        syncedFileController = StreamController<SyncedFile>();
-      }
-      await deviceService.edit((state) {
-        state.lastErrorMessage = null;
-      });
-      try {
-        await BackgroundAction().execute(
-            syncedFileController, deviceService.state.currentUser!.email);
-      } on Exception catch (e) {
-        Navigator.pop(context);
+  Future<void> _run(
+      BuildContext context, DeviceServicesCubit deviceService) async {
+    await _validate(deviceService).then((value) async {
+      if (value) {
+        showDialog<String>(
+          context: context,
+          builder: (BuildContext context) => Dialog.fullscreen(
+            child: Center(
+                child: Padding(
+                    padding: const EdgeInsets.only(left: 25, right: 25),
+                    child: Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 20,
+                        runSpacing: 20,
+                        children: [
+                          syncFilesStatusWidget(
+                              context, deviceService, syncedFileController)
+                        ]))),
+          ),
+        );
+        if (syncedFileController.isClosed) {
+          syncedFileController = StreamController<SyncedFile>();
+        }
         await deviceService.edit((state) {
-          state.lastErrorMessage = e.toString();
+          state.lastErrorMessage = null;
         });
+        try {
+          await BackgroundAction().execute(
+              syncedFileController, deviceService.state.currentUser!.email);
+        } on Exception catch (e) {
+          await deviceService.edit((state) {
+            state.lastErrorMessage = e.toString();
+          }).whenComplete(() => Navigator.pop(context));
+        }
+        await deviceService.edit((state) {
+          state.lastSyncDateTime = DateTime.now();
+        });
+        syncedFileController.close();
       }
-      await deviceService.edit((state) {
-        state.lastSyncDateTime = DateTime.now();
-      });
-      syncedFileController.close();
-    }
+    });
   }
 
   Future<bool> _validate(DeviceServicesCubit deviceService) async {
