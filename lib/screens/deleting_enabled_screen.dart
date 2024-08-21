@@ -88,48 +88,42 @@ class _DeletingEnabledScreenView extends StatelessWidget {
           state.deleteLocalFilesEnabled =
               !(state.deleteLocalFilesEnabled ?? false);
           state.syncedFiles.clear();
+          state.lastErrorMessage = null;
         });
       } else {
         showDialog<String>(
             context: context,
-            builder: (BuildContext context) => Dialog(
-                  child: Center(
-                      child: Container(
-                          margin: const EdgeInsets.only(
-                              left: 10.0, right: 10.0, top: 30.0, bottom: 30.0),
-                          child: Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: <Widget>[
-                                  const Text(
-                                      'WARNING: Switching this option to ON will cause DELETING synced files from this device.'),
-                                  const Text(
-                                      'The files are deleted only if they are successfully send to the server.'),
-                                  const Text(
-                                      'If you confirm the files will be deleted from the device after the next sync operation.'),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 15),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        okButton(context, "Confirm",
-                                            onPressed: () async {
-                                          await deviceService.edit((state) {
-                                            state.deleteLocalFilesEnabled =
-                                                !(state.deleteLocalFilesEnabled ??
-                                                    false);
-                                            state.syncedFiles.clear();
-                                          });
-                                          Navigator.pop(context);
-                                        }),
-                                        cancelButton(context)
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              )))),
+            builder: (BuildContext context) => AlertDialog(
+                  title: const Text('Local files deleting: ON'),
+                  content: const Wrap(
+                      spacing: 20,
+                      runSpacing: 20,
+                      children: <Widget>[
+                        const Text(
+                          'WARNING: Switching this option to ON will cause DELETING synced files from this device.',
+                          textAlign: TextAlign.center,
+                        ),
+                        const Text(
+                          'The files are deleted only if they are successfully send to the server.',
+                          textAlign: TextAlign.center,
+                        ),
+                        const Text(
+                          'If you confirm the files will be deleted from the device after the next sync operation.',
+                          textAlign: TextAlign.center,
+                        ),
+                      ]),
+                  actions: [
+                    okButton(context, "Confirm", onPressed: () async {
+                      await deviceService.edit((state) {
+                        state.deleteLocalFilesEnabled =
+                            !(state.deleteLocalFilesEnabled ?? false);
+                        state.syncedFiles.clear();
+                        state.lastErrorMessage = null;
+                      });
+                      Navigator.pop(context);
+                    }),
+                    cancelButton(context)
+                  ],
                 ));
       }
     }

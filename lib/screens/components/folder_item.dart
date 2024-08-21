@@ -46,6 +46,7 @@ class FolderItem extends StatelessWidget {
         state.mediaDirectories.remove(folder);
         state.syncedFiles.clear();
         state.lastSyncDateTime = null;
+        state.lastErrorMessage = null;
       });
     }
   }

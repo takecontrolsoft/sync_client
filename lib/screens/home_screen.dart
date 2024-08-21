@@ -102,13 +102,27 @@ class HomeScreenState extends State<HomeScreen> {
                   children: photoGridWidgets(folders, deviceService));
             } else {
               return const Center(
-                  child: Column(children: [
-                Text(
-                    "There is no synced photos/videos from this device and nickname."),
-                Text(
-                    "Please go the menu and select 'Sync' to setup configurations."),
-                Text("Go to MOBISYNC.EU for help.")
-              ]));
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                    Text(
+                      "There is no synced photos/videos from this device and nickname.",
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      "Please go the menu and select 'Sync' to setup configurations.",
+                      textAlign: TextAlign.center,
+                    ),
+                    Padding(
+                        padding: EdgeInsets.only(top: 10),
+                        child: Text(
+                          "Go to MOBISYNC.EU for help.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ))
+                  ]));
             }
           },
         ));

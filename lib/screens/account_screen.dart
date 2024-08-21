@@ -71,14 +71,70 @@ class AccountScreenView extends StatelessWidget {
             ],
           ),
           SizedBox(
-              width: double.maxFinite,
-              child: okButton(context, "Delete my server files",
-                  onPressed: () => deleteServerFiles(deviceService))),
+            width: double.maxFinite,
+            child: okButton(context, "Delete my server files",
+                onPressed: () => showDialog<String>(
+                    context: context,
+                    builder: (BuildContext context) => AlertDialog(
+                          title: const Text('Delete my server files'),
+                          content: const Wrap(
+                              spacing: 20,
+                              runSpacing: 20,
+                              children: <Widget>[
+                                Text(
+                                  'WARNING: This operation will cause deleting all the files synced by this device from the server.',
+                                  textAlign: TextAlign.center,
+                                ),
+                                Text(
+                                  'Make sure they still exist on your device. Check option Deleting:ON/OFF.',
+                                  textAlign: TextAlign.center,
+                                ),
+                                Text(
+                                  'If you confirm your files will be permanently removed from the server for you Nickname and device.',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ]),
+                          actions: [
+                            okButton(context, "Confirm", onPressed: () async {
+                              deleteServerFiles(deviceService);
+                              Navigator.pop(context);
+                            }),
+                            cancelButton(context)
+                          ],
+                        ))),
+          ),
           SizedBox(
               width: double.maxFinite,
               child: okButton(context, "Delete my local settings",
-                  onPressed: () =>
-                      deleteDeviceSettings(context, deviceService))),
+                  onPressed: () => showDialog<String>(
+                      context: context,
+                      builder: (BuildContext context) => AlertDialog(
+                            title: const Text('Delete my local settings'),
+                            content: const Wrap(
+                                spacing: 20,
+                                runSpacing: 20,
+                                children: <Widget>[
+                                  Text(
+                                    'WARNING: This operation will delete you settings for this application.',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  Text(
+                                    'After this operation your account will be removed, but your photos/videos will still exist on the server.',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  Text(
+                                    'Make sure next time you enter the application with the same Nickname if you want to access your synced files from the server.',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ]),
+                            actions: [
+                              okButton(context, "Confirm", onPressed: () async {
+                                deleteDeviceSettings(context, deviceService);
+                                Navigator.pop(context);
+                              }),
+                              cancelButton(context)
+                            ],
+                          )))),
           Padding(
               padding: const EdgeInsets.only(left: 25, right: 25),
               child: reactiveBuilder<DeviceServicesCubit, DeviceSettings>(

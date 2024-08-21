@@ -48,6 +48,7 @@ class FoldersListScreen extends StatelessWidget {
     await deviceService.edit((state) {
       state.mediaDirectories.add(selectedDirectory);
       state.syncedFiles.clear();
+      state.lastErrorMessage = null;
     });
   }
 }
