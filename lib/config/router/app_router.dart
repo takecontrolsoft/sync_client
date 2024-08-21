@@ -40,8 +40,8 @@ GoRouter getAppRouter(bool isAuthenticated) {
       builder: (context, state) => const FoldersListScreen(),
     ),
     GoRoute(
-      path: '/dates',
-      builder: (context, state) => const DateTimeScreen(),
+      path: '/deleteOption',
+      builder: (context, state) => const DeletingEnabledScreen(),
     ),
     GoRoute(
       path: '/login',

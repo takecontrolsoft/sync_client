@@ -128,6 +128,7 @@ class AccountScreenView extends StatelessWidget {
     await deviceService.edit((state) {
       state.lastErrorMessage = null;
       state.lastSyncDateTime = null;
+      state.syncedFiles.clear();
       state.successMessage = "Files deleted successfully from the server.";
     });
   }

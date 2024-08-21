@@ -20,8 +20,8 @@ import 'package:sync_client/core/core.dart';
 import 'package:sync_client/storage/storage.dart';
 
 abstract class IAction {
-  Future<Stream<ProcessedFile>> execute(
-      StreamController<ProcessedFile> processedFileController, String userName);
+  Future<Stream<SyncedFile>> execute(
+      StreamController<SyncedFile> syncFileController, String userName);
 }
 
 class BackgroundAction implements IAction {
@@ -30,30 +30,20 @@ class BackgroundAction implements IAction {
   BackgroundAction() : _transfers = Transfers();
 
   @override
-  Future<Stream<ProcessedFile>> execute(
-      StreamController<ProcessedFile> processedFileController,
-      String userName) async {
+  Future<Stream<SyncedFile>> execute(
+      StreamController<SyncedFile> syncFileController, String userName) async {
     final dirs = await _getSourceDirectories();
     if (dirs == null) {
-      return processedFileController.stream;
+      return syncFileController.stream;
     }
-    DateTime lastMaxSyncedFileDate =
-        currentDeviceSettings.lastSyncDateTime ?? DateTime(1800);
-    DateTime maxSyncedFileDate = lastMaxSyncedFileDate;
     for (var dir in dirs) {
       final files = await getFilesFromExternalStorage(dir);
-      if (processedFileController.isClosed) {
-        return processedFileController.stream;
+      if (syncFileController.isClosed) {
+        return syncFileController.stream;
       }
-      DateTime lastFileDate = await _uploadFiles(
-          processedFileController, files, userName, lastMaxSyncedFileDate);
-      if (lastFileDate.isAfter(maxSyncedFileDate)) {
-        maxSyncedFileDate = lastFileDate;
-      }
+      await _uploadFiles(syncFileController, files, userName);
     }
-    currentDeviceSettings.lastSyncDateTime =
-        maxSyncedFileDate == DateTime(1800) ? null : maxSyncedFileDate;
-    return processedFileController.stream;
+    return syncFileController.stream;
   }
 
   Future<Iterable<Directory>?> _getSourceDirectories() async {
@@ -63,31 +53,41 @@ class BackgroundAction implements IAction {
     return currentDeviceSettings.mediaDirectories.map((e) => Directory(e));
   }
 
-  Future<DateTime> _uploadFiles(
-      StreamController<ProcessedFile> processedFileController,
-      List<FileSystemEntity> files,
-      String userName,
-      DateTime lastMaxSyncedFileDate) async {
-    DateTime maxSyncedFileDate = lastMaxSyncedFileDate;
+  Future<void> _uploadFiles(StreamController<SyncedFile> syncFileController,
+      List<FileSystemEntity> files, String userName) async {
     for (var file in files) {
       if (!FileSystemEntity.isDirectorySync(file.path)) {
         DateTime lastFileDate = await File(file.path).lastModified();
         String dateClassifier = "${lastFileDate.year}-${lastFileDate.month}";
 
-        if (lastFileDate.isAfter(lastMaxSyncedFileDate)) {
-          if (processedFileController.isClosed) {
-            return maxSyncedFileDate;
-          }
-          if (await _transfers.sendFile(
-              processedFileController, file.path, userName, dateClassifier)) {
-            if (lastFileDate.isAfter(maxSyncedFileDate)) {
-              maxSyncedFileDate = lastFileDate;
+        final fileHadBeenSynced = currentDeviceSettings.syncedFiles.any((f) =>
+            f.filename.toLowerCase() == file.path.toLowerCase() &&
+            (f.errorMessage ?? "").trim() == "");
+        if (!fileHadBeenSynced) {
+          var syncedFile = await _transfers.sendFile(
+              syncFileController, file.path, userName, dateClassifier);
+
+          if (syncedFile != null) {
+            if ((currentDeviceSettings.deleteLocalFilesEnabled ?? false) &&
+                syncedFile.errorMessage == null) {
+              await File(syncedFile.filename).delete();
+              currentDeviceSettings.syncedFiles.remove(syncedFile);
+            } else {
+              SyncedFile? fileFromList = currentDeviceSettings.syncedFiles
+                  .firstWhere(
+                      (f) =>
+                          f.filename.toLowerCase() == file.path.toLowerCase(),
+                      orElse: () {
+                currentDeviceSettings.syncedFiles.add(syncedFile);
+                return syncedFile;
+              });
+              fileFromList.errorMessage = syncedFile.errorMessage;
             }
           }
         }
       }
     }
-    return maxSyncedFileDate;
+    currentDeviceSettings.lastErrorMessage = null;
   }
 
   Future<List<FileSystemEntity>> getFilesFromExternalStorage(

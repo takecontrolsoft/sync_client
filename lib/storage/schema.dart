@@ -27,6 +27,8 @@ class DeviceSettings {
   String? lastErrorMessage;
   String? successMessage;
   DateTime? lastSyncDateTime;
+  bool? deleteLocalFilesEnabled;
+  List<SyncedFile> syncedFiles = [];
 
   factory DeviceSettings.fromJson(Map<String, dynamic> json) =>
       _$DeviceSettingsFromJson(json);
@@ -46,10 +48,15 @@ class DeviceSettings {
   int get hashCode => super.hashCode + 1;
 }
 
-class ProcessedFile {
-  ProcessedFile(this.filename, {this.errorMessage});
-  final String? errorMessage;
+@JsonSerializable()
+class SyncedFile {
+  SyncedFile(this.filename, {this.errorMessage});
+  String? errorMessage;
   final String filename;
+  factory SyncedFile.fromJson(Map<String, dynamic> json) =>
+      _$SyncedFileFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SyncedFileToJson(this);
 }
 
 @JsonSerializable()

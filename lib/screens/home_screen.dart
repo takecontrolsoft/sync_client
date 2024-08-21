@@ -100,11 +100,15 @@ class HomeScreenState extends State<HomeScreen> {
               final folders = snapshot.data!;
               return ListView(
                   children: photoGridWidgets(folders, deviceService));
-
-              //buildPhotos(folders, context);
             } else {
-              // if no data, show simple Text
-              return const Text("No data available");
+              return const Center(
+                  child: Column(children: [
+                Text(
+                    "There is no synced photos/videos from this device and nickname."),
+                Text(
+                    "Please go the menu and select 'Sync' to setup configurations."),
+                Text("Go to MOBISYNC.EU for help.")
+              ]));
             }
           },
         ));
@@ -134,18 +138,17 @@ class HomeScreenState extends State<HomeScreen> {
               itemCount: files.length,
               itemBuilder: (context, index) {
                 return GridTile(
-                    // header: GridTileBar(
-                    //   title: Text('$index',
-                    //       style: const TextStyle(color: Colors.black)),
-                    // ),
                     child: Container(
-                  margin: const EdgeInsets.all(12.0),
+                  margin: const EdgeInsets.all(2.0),
                   decoration: ShapeDecoration(
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
+                      borderRadius: BorderRadius.circular(6.0),
                     ),
                     gradient: const RadialGradient(
-                      colors: <Color>[Color(0x0F88EEFF), Color(0x2F0099BB)],
+                      colors: <Color>[
+                        Color.fromARGB(15, 249, 250, 251),
+                        Color.fromARGB(44, 120, 121, 122)
+                      ],
                     ),
                   ),
                   child: photoWidget(files[index], deviceService),
@@ -153,9 +156,8 @@ class HomeScreenState extends State<HomeScreen> {
               },
             );
           } else {
-            // if no data, show simple Text
             return const Text(
-              "No data available",
+              "No photos loaded",
               style: TextStyle(fontSize: 10),
             );
           }
@@ -176,7 +178,13 @@ class HomeScreenState extends State<HomeScreen> {
             final fileData = snapshot.data!;
             return Image.memory(fileData);
           } else {
-            return Text(file);
+            return Center(
+                child: Padding(
+                    padding: const EdgeInsets.all(5),
+                    child: Text(
+                      file.split("/").last,
+                      style: const TextStyle(fontSize: 9),
+                    )));
           }
         });
   }

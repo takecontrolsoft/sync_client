@@ -34,7 +34,11 @@ DeviceSettings _$DeviceSettingsFromJson(Map<String, dynamic> json) =>
       ..successMessage = json['successMessage'] as String?
       ..lastSyncDateTime = json['lastSyncDateTime'] == null
           ? null
-          : DateTime.parse(json['lastSyncDateTime'] as String);
+          : DateTime.parse(json['lastSyncDateTime'] as String)
+      ..deleteLocalFilesEnabled = json['deleteLocalFilesEnabled'] as bool?
+      ..syncedFiles = (json['syncedFiles'] as List<dynamic>)
+          .map((e) => SyncedFile.fromJson(e as Map<String, dynamic>))
+          .toList();
 
 Map<String, dynamic> _$DeviceSettingsToJson(DeviceSettings instance) =>
     <String, dynamic>{
@@ -46,6 +50,19 @@ Map<String, dynamic> _$DeviceSettingsToJson(DeviceSettings instance) =>
       'lastErrorMessage': instance.lastErrorMessage,
       'successMessage': instance.successMessage,
       'lastSyncDateTime': instance.lastSyncDateTime?.toIso8601String(),
+      'deleteLocalFilesEnabled': instance.deleteLocalFilesEnabled,
+      'syncedFiles': instance.syncedFiles,
+    };
+
+SyncedFile _$SyncedFileFromJson(Map<String, dynamic> json) => SyncedFile(
+      json['filename'] as String,
+      errorMessage: json['errorMessage'] as String?,
+    );
+
+Map<String, dynamic> _$SyncedFileToJson(SyncedFile instance) =>
+    <String, dynamic>{
+      'errorMessage': instance.errorMessage,
+      'filename': instance.filename,
     };
 
 NetFolder _$NetFolderFromJson(Map<String, dynamic> json) => NetFolder(

@@ -19,28 +19,22 @@ import 'package:sync_client/config/config.dart';
 import 'package:sync_client/screens/components/components.dart';
 import 'package:sync_client/services/services.dart';
 import 'package:sync_client/storage/storage.dart';
-import 'package:intl/intl.dart';
 
-enum DateTimeMenuOption { reset }
+enum DeletingEnabledMenuOption { enableDeleting }
 
-class DateTimeScreen extends StatelessWidget {
-  const DateTimeScreen({super.key});
+class DeletingEnabledScreen extends StatelessWidget {
+  const DeletingEnabledScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: MainAppBar.appBar(context), body: const _DateTimeScreenView());
+        appBar: MainAppBar.appBar(context),
+        body: const _DeletingEnabledScreenView());
   }
 }
 
-class _DateTimeScreenView extends StatelessWidget {
-  const _DateTimeScreenView();
-
-  void resetDateTime(DeviceServicesCubit deviceService) async {
-    await deviceService.edit((state) {
-      state.lastSyncDateTime = null;
-    });
-  }
+class _DeletingEnabledScreenView extends StatelessWidget {
+  const _DeletingEnabledScreenView();
 
   @override
   Widget build(BuildContext context) {
@@ -52,29 +46,30 @@ class _DateTimeScreenView extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
           const Text(
-            'The date time of the last synced file:',
+            'Delete synced files from this device?',
           ),
           ListTile(
-              leading: const Icon(Icons.calendar_today),
+              leading: const Icon(Icons.clear),
               title: reactiveBuilder<DeviceServicesCubit, DeviceSettings>(
                   buildWhen: (previous, current) =>
-                      previous.lastSyncDateTime != current.lastSyncDateTime,
+                      previous.deleteLocalFilesEnabled !=
+                      current.deleteLocalFilesEnabled,
                   child: (context, state) {
-                    final DateFormat formatter = DateFormat('yyyy-MM-dd hh:ss');
                     return Text(
-                        'Date time: ${state.lastSyncDateTime == null ? "" : formatter.format(state.lastSyncDateTime!)}');
+                        'Deleting: ${state.deleteLocalFilesEnabled ?? false ? "ON" : "OFF"}');
                   }),
               trailing: SizedBox(
                 width: 25,
-                child: PopupMenuButton<DateTimeMenuOption>(
+                child: PopupMenuButton<DeletingEnabledMenuOption>(
                   onSelected: (menuItem) =>
                       handleMenuClick(context, deviceService, menuItem),
                   itemBuilder: (context) => [
-                    const PopupMenuItem<DateTimeMenuOption>(
-                      value: DateTimeMenuOption.reset,
+                    PopupMenuItem<DeletingEnabledMenuOption>(
+                      value: DeletingEnabledMenuOption.enableDeleting,
                       child: ListTile(
-                          leading: Icon(Icons.reset_tv),
-                          title: Text("Reset date")),
+                          leading: const Icon(Icons.reset_tv),
+                          title: Text(
+                              'Switched: ${deviceService.state.deleteLocalFilesEnabled ?? false ? "OFF" : "ON"}')),
                     ),
                   ],
                 ),
@@ -86,9 +81,13 @@ class _DateTimeScreenView extends StatelessWidget {
   }
 
   void handleMenuClick(BuildContext context, DeviceServicesCubit deviceService,
-      DateTimeMenuOption menuItem) {
-    if (menuItem == DateTimeMenuOption.reset) {
-      resetDateTime(deviceService);
+      DeletingEnabledMenuOption menuItem) async {
+    if (menuItem == DeletingEnabledMenuOption.enableDeleting) {
+      await deviceService.edit((state) {
+        state.deleteLocalFilesEnabled =
+            !(state.deleteLocalFilesEnabled ?? false);
+        state.syncedFiles.clear();
+      });
     }
   }
 }

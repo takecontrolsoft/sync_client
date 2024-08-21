@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:sync_client/config/config.dart';
@@ -10,27 +11,26 @@ import 'package:sync_client/storage/storage.dart';
 Widget syncFilesStatusWidget(
   BuildContext context,
   DeviceServicesCubit deviceService,
-  StreamController<ProcessedFile> processedFileController,
+  StreamController<SyncedFile> syncedFileController,
 ) {
   if (deviceService.state.lastErrorMessage != null) {
     return Text(deviceService.state.lastErrorMessage ?? "",
         style: errorTextStyle(context), textAlign: TextAlign.center);
   } else {
-    return StreamBuilder<ProcessedFile>(
-        stream: processedFileController.stream,
-        builder:
-            (BuildContext context, AsyncSnapshot<ProcessedFile> snapshot) =>
-                Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: getStateWidgets(
-                        context, processedFileController, snapshot)));
+    return StreamBuilder<SyncedFile>(
+        stream: syncedFileController.stream,
+        builder: (BuildContext context, AsyncSnapshot<SyncedFile> snapshot) =>
+            Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children:
+                    getStateWidgets(context, syncedFileController, snapshot)));
   }
 }
 
 List<Widget> getStateWidgets(
     BuildContext context,
-    StreamController<ProcessedFile> processedFileController,
-    AsyncSnapshot<ProcessedFile> snapshot) {
+    StreamController<SyncedFile> syncedFileController,
+    AsyncSnapshot<SyncedFile> snapshot) {
   List<Widget> children;
 
   if (snapshot.hasError) {
@@ -41,7 +41,7 @@ List<Widget> getStateWidgets(
       case ConnectionState.waiting:
         children = const <Widget>[];
       case ConnectionState.active:
-        children = _errorProgress(context, processedFileController, snapshot);
+        children = _infoProgress(context, syncedFileController, snapshot);
       case ConnectionState.done:
         children = _doneState();
     }
@@ -59,18 +59,18 @@ List<Widget> _errorState(CustomError error) {
   ];
 }
 
-List<Widget> _errorProgress(
+List<Widget> _infoProgress(
     BuildContext context,
-    StreamController<ProcessedFile> processedFileController,
-    AsyncSnapshot<ProcessedFile> snapshot) {
+    StreamController<SyncedFile> syncedFileController,
+    AsyncSnapshot<SyncedFile> snapshot) {
   return <Widget>[
     const SizedBox(width: 20, height: 20, child: CircularProgressIndicator()),
     Padding(
         padding: const EdgeInsets.only(top: 2),
         child: Text('\$${snapshot.data?.filename}')),
     okButton(context, "Stop", onPressed: () {
-      processedFileController.addError(SyncCanceledError());
-      processedFileController.close();
+      syncedFileController.addError(SyncCanceledError());
+      syncedFileController.close();
     }),
   ];
 }

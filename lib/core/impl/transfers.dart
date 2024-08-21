@@ -27,8 +27,9 @@ import 'request_utils.dart';
 class Transfers {
   Transfers();
 
-  Future<bool> sendFile(StreamController<ProcessedFile> processedFileController,
+  Future<SyncedFile?> sendFile(StreamController<SyncedFile> syncFileController,
       String filename, String userName, String dateClassifier) async {
+    SyncedFile? result;
     var request = MultipartRequest('POST', getUrl("upload"));
     final hdr = <String, String>{
       "user": utf8.encode(userName).toString(),
@@ -45,24 +46,29 @@ class Transfers {
           filename: name, contentType: getMediaType(filename)));
       var streamedResponse = await request.send();
       var response = await Response.fromStream(streamedResponse);
-      if (processedFileController.isClosed) {
-        return false;
-      } else {
-        processedFileController.add(ProcessedFile(filename));
+      if (response.statusCode == 200) {
+        result = SyncedFile(filename);
+        if (!syncFileController.isClosed) {
+          syncFileController.add(result);
+        }
         print("SENT: $filename");
-        return response.statusCode == 200;
+        return result;
+      } else {
+        currentDeviceSettings.lastErrorMessage =
+            "ERROR: $filename response statusCode: ${response.statusCode} ${response.body}";
+        return SyncedFile(filename,
+            errorMessage: currentDeviceSettings.lastErrorMessage!);
       }
     } catch (err) {
       currentDeviceSettings.lastErrorMessage =
           "ERROR: $filename [${err.toString()}]";
-      if (processedFileController.isClosed) {
-        return false;
+      if (!syncFileController.isClosed) {
+        syncFileController
+            .addError(SyncError(currentDeviceSettings.lastErrorMessage!));
       }
-      processedFileController
-          .addError(SyncError(currentDeviceSettings.lastErrorMessage!));
-
       print(currentDeviceSettings.lastErrorMessage);
-      return false;
+      return SyncedFile(filename,
+          errorMessage: currentDeviceSettings.lastErrorMessage!);
     }
   }
 }

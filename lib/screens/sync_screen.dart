@@ -16,6 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,7 +26,6 @@ import 'package:sync_client/core/core.dart';
 import 'package:sync_client/screens/components/components.dart';
 import 'package:sync_client/services/services.dart';
 import 'package:sync_client/storage/storage.dart';
-import 'package:intl/intl.dart';
 
 class SyncScreen extends StatelessWidget {
   const SyncScreen({super.key});
@@ -41,8 +41,8 @@ class SyncScreen extends StatelessWidget {
 
 class SyncScreenView extends StatelessWidget {
   SyncScreenView({super.key});
-  StreamController<ProcessedFile> processedFileController =
-      StreamController<ProcessedFile>();
+  StreamController<SyncedFile> syncedFileController =
+      StreamController<SyncedFile>();
 
   @override
   Widget build(BuildContext context) {
@@ -100,16 +100,15 @@ class SyncScreenView extends StatelessWidget {
               )),
               Card(
                   child: ListTile(
-                leading: const Icon(Icons.calendar_today),
-                title: const Text("Last synced file date"),
+                leading: const Icon(Icons.clear),
+                title: const Text("Delete synced files from this device?"),
                 subtitle: reactiveBuilder<DeviceServicesCubit, DeviceSettings>(
                     child: (context, state) {
-                  final DateFormat formatter = DateFormat('yyyy-MM-dd hh:ss');
                   return Text(
-                      'Date time: ${state.lastSyncDateTime == null ? "" : formatter.format(state.lastSyncDateTime!)}');
+                      'Deleting: ${state.deleteLocalFilesEnabled ?? false ? "ON" : "OFF"}');
                 }),
                 onTap: () {
-                  context.push("/dates");
+                  context.push("/deleteOption");
                 },
               ))
             ],
@@ -123,12 +122,13 @@ class SyncScreenView extends StatelessWidget {
               padding: const EdgeInsets.only(left: 25, right: 25),
               child: reactiveBuilder<DeviceServicesCubit, DeviceSettings>(
                 buildWhen: (previous, current) =>
+                    previous.syncedFiles.length != current.syncedFiles.length ||
                     current.lastErrorMessage == null ||
                     previous.lastErrorMessage != current.lastErrorMessage,
                 child: (context, state) => syncFilesStatusWidget(
                   context,
                   deviceService,
-                  processedFileController,
+                  syncedFileController,
                 ),
               ))
         ]),
@@ -158,18 +158,19 @@ class SyncScreenView extends StatelessWidget {
       return;
     }
 
-    if (processedFileController.isClosed) {
-      processedFileController = StreamController<ProcessedFile>();
+    if (syncedFileController.isClosed) {
+      syncedFileController = StreamController<SyncedFile>();
     }
     await deviceService.edit((state) {
       state.lastErrorMessage = null;
     });
-    await BackgroundAction().execute(
-        processedFileController, deviceService.state.currentUser!.email);
+
+    await BackgroundAction()
+        .execute(syncedFileController, deviceService.state.currentUser!.email);
 
     await deviceService.edit((state) {
-      state.lastSyncDateTime = currentDeviceSettings.lastSyncDateTime;
+      state.lastSyncDateTime = DateTime.now();
     });
-    processedFileController.close();
+    syncedFileController.close();
   }
 }
