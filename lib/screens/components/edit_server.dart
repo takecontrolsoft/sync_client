@@ -48,7 +48,7 @@ class EditServerFormState extends State<EditServerForm> {
                 Padding(
                   padding: const EdgeInsets.only(top: 15),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       cancelButton(context),
                       okButton(context, "Update",
