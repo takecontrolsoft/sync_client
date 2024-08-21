@@ -37,7 +37,7 @@ class NicknameScreenState extends State<NicknameScreen> {
 
   @override
   void initState() {
-    _nicknameController = TextEditingController()..addListener(clearError);
+    _nicknameController = TextEditingController();
     super.initState();
   }
 
@@ -109,7 +109,6 @@ class NicknameScreenState extends State<NicknameScreen> {
   void clearError() {
     if (_errorMessage != null) {
       setState(() {
-        // Reset error message when user starts typing
         _errorMessage = null;
       });
     }

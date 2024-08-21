@@ -82,7 +82,6 @@ class HomeScreenState extends State<HomeScreen> {
     final DeviceServicesCubit deviceService =
         context.read<DeviceServicesCubit>();
     deviceService.state.lastErrorMessage = null;
-
     if (!deviceService.isAuthenticated()) {
       context.push("/login");
       return Container();
@@ -94,38 +93,52 @@ class HomeScreenState extends State<HomeScreen> {
         child: FutureBuilder<List<String>>(
           future: getAllFolders(deviceService),
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircularProgressIndicator();
-            } else if (snapshot.hasData) {
-              final folders = snapshot.data!;
-              return ListView(
-                  children: photoGridWidgets(folders, deviceService));
-            } else {
+            if (snapshot.hasError) {
               Future<void>.delayed(const Duration(seconds: 2)).whenComplete(() {
-                context.push('/sync');
+                context.push("/sync");
               });
-              return const Center(
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                    Text(
-                      "There is no synced photos/videos from this device and nickname.",
-                      textAlign: TextAlign.center,
-                    ),
-                    Text(
-                      "Please go the menu and select 'Sync' to setup configurations.",
-                      textAlign: TextAlign.center,
-                    ),
-                    Padding(
-                        padding: EdgeInsets.only(top: 10),
-                        child: Text(
-                          "Go to MOBISYNC.EU for help.",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
-                        ))
-                  ]));
+              return Text((snapshot.error as CustomError).message);
+            } else {
+              switch (snapshot.connectionState) {
+                case ConnectionState.none:
+                case ConnectionState.waiting:
+                  return const CircularProgressIndicator();
+                case ConnectionState.active:
+                case ConnectionState.done:
+                  if (snapshot.hasData) {
+                    final folders = snapshot.data!;
+                    return ListView(
+                        physics: const PageScrollPhysics(),
+                        children: photoGridWidgets(folders, deviceService));
+                  } else {
+                    Future<void>.delayed(const Duration(seconds: 2))
+                        .whenComplete(() {
+                      context.push("/sync");
+                    });
+                    return const Center(
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                          Text(
+                            "There is no synced photos/videos from this device and nickname.",
+                            textAlign: TextAlign.center,
+                          ),
+                          Text(
+                            "Please go the menu and select 'Sync' to setup configurations.",
+                            textAlign: TextAlign.center,
+                          ),
+                          Padding(
+                              padding: EdgeInsets.only(top: 10),
+                              child: Text(
+                                "Go to MOBISYNC.EU for help.",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
+                              ))
+                        ]));
+                  }
+              }
             }
           },
         ));
@@ -153,6 +166,7 @@ class HomeScreenState extends State<HomeScreen> {
               gridDelegate: CustomGridDelegate(dimension: 100.0),
               shrinkWrap: true,
               itemCount: files.length,
+              physics: const PageScrollPhysics(),
               itemBuilder: (context, index) {
                 return GridTile(
                     child: Container(
