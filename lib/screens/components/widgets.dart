@@ -88,6 +88,14 @@ Widget cancelButton(BuildContext context) {
   );
 }
 
+Widget closeButton(BuildContext context) {
+  return templateButton(
+    context,
+    text: "Close",
+    onPressed: () => Navigator.pop(context),
+  );
+}
+
 Widget okButton(BuildContext context, String text,
     {void Function()? onPressed}) {
   return templateButton(

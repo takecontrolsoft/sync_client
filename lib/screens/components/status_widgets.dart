@@ -33,7 +33,7 @@ List<Widget> getStateWidgets(
   List<Widget> children;
 
   if (snapshot.hasError) {
-    children = _errorState(snapshot.error as CustomError);
+    children = _errorState(context, snapshot.error as CustomError);
   } else {
     switch (snapshot.connectionState) {
       case ConnectionState.none:
@@ -42,13 +42,13 @@ List<Widget> getStateWidgets(
       case ConnectionState.active:
         children = _infoProgress(context, syncedFileController, snapshot);
       case ConnectionState.done:
-        children = _doneState();
+        children = _doneState(context);
     }
   }
   return children;
 }
 
-List<Widget> _errorState(CustomError error) {
+List<Widget> _errorState(BuildContext context, CustomError error) {
   return <Widget>[
     const Icon(Icons.error_outline, color: Colors.red, size: 30),
     Padding(
@@ -56,6 +56,7 @@ List<Widget> _errorState(CustomError error) {
       child: Text(
           '${error is SyncCanceledError ? "" : "Error: "}${error.message}'),
     ),
+    closeButton(context),
   ];
 }
 
@@ -77,9 +78,10 @@ List<Widget> _infoProgress(
   ];
 }
 
-List<Widget> _doneState() {
+List<Widget> _doneState(BuildContext context) {
   return <Widget>[
     const Icon(Icons.check_circle_outline, color: Colors.green, size: 30),
     const Padding(padding: EdgeInsets.only(top: 2), child: Text('Completed')),
+    closeButton(context),
   ];
 }

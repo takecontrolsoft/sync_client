@@ -13,16 +13,45 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/services/services.dart';
 import 'package:sync_client/storage/storage.dart';
+import 'package:media_store_plus/media_store_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (Platform.isAndroid) {
+    final mediaStorePlugin = MediaStore();
+    await mediaStorePlugin.getPlatformSDKInt();
+    await MediaStore.ensureInitialized();
+    MediaStore.appFolder = "MediaStorePlugin";
+    await requestPermissions();
+  }
+
   await loadDeviceSettings();
   runApp(const BlocProviders());
+}
+
+Future<void> requestPermissions() async {
+  List<Permission> permissions = [
+    Permission.storage,
+  ];
+  permissions.add(Permission.storage);
+  permissions.add(Permission.photos);
+  permissions.add(Permission.audio);
+  permissions.add(Permission.videos);
+
+  final mapPermissions = await permissions.request();
+  for (var i = 0; i < permissions.length; i++) {
+    if (mapPermissions[permissions[i]]!.isPermanentlyDenied) {
+      await openAppSettings();
+    }
+  }
 }
 
 class BlocProviders extends StatelessWidget {

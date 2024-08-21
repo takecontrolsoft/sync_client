@@ -101,6 +101,9 @@ class HomeScreenState extends State<HomeScreen> {
               return ListView(
                   children: photoGridWidgets(folders, deviceService));
             } else {
+              Future<void>.delayed(const Duration(seconds: 2)).whenComplete(() {
+                context.push('/sync');
+              });
               return const Center(
                   child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
