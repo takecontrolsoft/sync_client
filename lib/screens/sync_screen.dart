@@ -115,22 +115,32 @@ class SyncScreenView extends StatelessWidget {
           ),
           SizedBox(
               width: double.maxFinite,
-              child: syncButton(context,
-                  child: const Text("Send to server"),
-                  onPressed: () => _run(deviceService))),
-          Padding(
-              padding: const EdgeInsets.only(left: 25, right: 25),
-              child: reactiveBuilder<DeviceServicesCubit, DeviceSettings>(
-                buildWhen: (previous, current) =>
-                    previous.syncedFiles.length != current.syncedFiles.length ||
-                    current.lastErrorMessage == null ||
-                    previous.lastErrorMessage != current.lastErrorMessage,
-                child: (context, state) => syncFilesStatusWidget(
-                  context,
-                  deviceService,
-                  syncedFileController,
-                ),
-              ))
+              child: syncButton(context, child: const Text("Send to server"),
+                  onPressed: () {
+                showDialog<String>(
+                  context: context,
+                  builder: (BuildContext context) => Dialog.fullscreen(
+                    child: Center(
+                        child: Padding(
+                            padding: const EdgeInsets.only(left: 25, right: 25),
+                            child: reactiveBuilder<DeviceServicesCubit,
+                                DeviceSettings>(
+                              buildWhen: (previous, current) =>
+                                  previous.syncedFiles.length !=
+                                      current.syncedFiles.length ||
+                                  current.lastErrorMessage == null ||
+                                  previous.lastErrorMessage !=
+                                      current.lastErrorMessage,
+                              child: (context, state) => syncFilesStatusWidget(
+                                context,
+                                deviceService,
+                                syncedFileController,
+                              ),
+                            ))),
+                  ),
+                );
+                _run(deviceService);
+              })),
         ]),
       ),
     );

@@ -56,6 +56,9 @@ class BackgroundAction implements IAction {
   Future<void> _uploadFiles(StreamController<SyncedFile> syncFileController,
       List<FileSystemEntity> files, String userName) async {
     for (var file in files) {
+      if (syncFileController.isClosed) {
+        return;
+      }
       if (!FileSystemEntity.isDirectorySync(file.path)) {
         DateTime lastFileDate = await File(file.path).lastModified();
         String dateClassifier = "${lastFileDate.year}-${lastFileDate.month}";

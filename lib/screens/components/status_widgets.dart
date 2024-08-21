@@ -54,7 +54,8 @@ List<Widget> _errorState(CustomError error) {
     const Icon(Icons.error_outline, color: Colors.red, size: 30),
     Padding(
       padding: const EdgeInsets.only(top: 2),
-      child: Text('Error: ${error.message}'),
+      child: Text(
+          '${error is SyncCanceledError ? "" : "Error: "}${error.message}'),
     ),
   ];
 }
@@ -68,9 +69,11 @@ List<Widget> _infoProgress(
     Padding(
         padding: const EdgeInsets.only(top: 2),
         child: Text('\$${snapshot.data?.filename}')),
-    okButton(context, "Stop", onPressed: () {
+    okButton(context, "Stop", onPressed: () async {
       syncedFileController.addError(SyncCanceledError());
       syncedFileController.close();
+      await Future<void>.delayed(Duration(seconds: 1));
+      Navigator.pop(context);
     }),
   ];
 }
