@@ -162,7 +162,9 @@ extension ShowSnack on SnackBar {
   void show(BuildContext context, {int durationInSeconds = 15}) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(this);
+
     Future<void>.delayed(Duration(seconds: durationInSeconds)).then((value) {
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
     });
   }

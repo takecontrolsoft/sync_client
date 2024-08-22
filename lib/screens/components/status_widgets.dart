@@ -69,11 +69,12 @@ List<Widget> _infoProgress(
     Padding(
         padding: const EdgeInsets.only(top: 2),
         child: Text('\$${snapshot.data?.filename}')),
-    okButton(context, "Stop", onPressed: () {
+    okButton(context, "Stop", onPressed: () async {
       syncedFileController.addError(SyncCanceledError());
       syncedFileController.close();
-      Future<void>.delayed(const Duration(seconds: 1))
-          .whenComplete(() => Navigator.pop(context));
+      await Future<void>.delayed(const Duration(seconds: 1));
+      if (!context.mounted) return;
+      Navigator.of(context).pop();
     }),
   ];
 }

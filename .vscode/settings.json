@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "/Users/desistefanova/TakeControl/repos/sync_client/windows/runner"
+    "cmake.sourceDirectory": "/Users/desistefanova/TakeControl/repos/sync_client/windows/runner",
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

@@ -113,13 +113,15 @@ class _DeletingEnabledScreenView extends StatelessWidget {
                         ),
                       ]),
                   actions: [
-                    okButton(context, "Confirm", onPressed: () {
-                      deviceService.edit((state) {
+                    okButton(context, "Confirm", onPressed: () async {
+                      await deviceService.edit((state) {
                         state.deleteLocalFilesEnabled =
                             !(state.deleteLocalFilesEnabled ?? false);
                         state.syncedFiles.clear();
                         state.lastErrorMessage = null;
-                      }).whenComplete(() => Navigator.pop(context));
+                      });
+                      if (!context.mounted) return;
+                      Navigator.of(context).pop();
                     }),
                     cancelButton(context)
                   ],

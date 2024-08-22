@@ -95,6 +95,7 @@ class HomeScreenState extends State<HomeScreen> {
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               Future<void>.delayed(const Duration(seconds: 2)).whenComplete(() {
+                if (!context.mounted) return;
                 context.push("/sync");
               });
               return Text((snapshot.error as CustomError).message);
@@ -113,6 +114,7 @@ class HomeScreenState extends State<HomeScreen> {
                   } else {
                     Future<void>.delayed(const Duration(seconds: 2))
                         .whenComplete(() {
+                      if (!context.mounted) return;
                       context.push("/sync");
                     });
                     return const Center(
@@ -158,7 +160,7 @@ class HomeScreenState extends State<HomeScreen> {
             deviceService.state.id, folder),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const CircularProgressIndicator();
+            return Container();
           } else if (snapshot.hasData) {
             final files = snapshot.data!;
             return GridView.builder(
@@ -204,7 +206,7 @@ class HomeScreenState extends State<HomeScreen> {
             deviceService.state.id, file),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const CircularProgressIndicator();
+            return Container();
           } else if (snapshot.hasData) {
             final fileData = snapshot.data!;
             return Image.memory(fileData);

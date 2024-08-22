@@ -140,6 +140,7 @@ class SyncScreenView extends StatelessWidget {
       await _run(context, deviceService);
     } else {
       await _validate(deviceService).then((value) {
+        if (!context.mounted) return;
         showDialog<String>(
             context: context,
             builder: (BuildContext context) => AlertDialog(
@@ -178,6 +179,7 @@ class SyncScreenView extends StatelessWidget {
       BuildContext context, DeviceServicesCubit deviceService) async {
     await _validate(deviceService).then((value) async {
       if (value) {
+        if (!context.mounted) return;
         showDialog<String>(
           context: context,
           builder: (BuildContext context) => Dialog.fullscreen(
@@ -206,7 +208,9 @@ class SyncScreenView extends StatelessWidget {
         } on Exception catch (e) {
           await deviceService.edit((state) {
             state.lastErrorMessage = e.toString();
-          }).whenComplete(() => Navigator.pop(context));
+          });
+          if (!context.mounted) return;
+          Navigator.pop(context);
         }
         await deviceService.edit((state) {
           state.lastSyncDateTime = DateTime.now();
