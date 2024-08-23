@@ -44,6 +44,7 @@ class Transfers {
       request.files.add(MultipartFile(
           currentDeviceSettings.id, file.openRead(), len,
           filename: name, contentType: getMediaType(filename)));
+
       var streamedResponse = await request.send();
       var response = await Response.fromStream(streamedResponse);
       if (response.statusCode == 200) {
@@ -56,17 +57,22 @@ class Transfers {
       } else {
         currentDeviceSettings.lastErrorMessage =
             "ERROR: $filename response statusCode: ${response.statusCode} ${response.body}";
+
+        if (!syncFileController.isClosed) {
+          syncFileController
+              .addError(SyncError(currentDeviceSettings.lastErrorMessage!));
+        }
         return SyncedFile(filename,
             errorMessage: currentDeviceSettings.lastErrorMessage!);
       }
-    } catch (err) {
+    } on Exception catch (ex) {
       currentDeviceSettings.lastErrorMessage =
-          "ERROR: $filename [${err.toString()}]";
+          "ERROR: $filename [${ex.toString()}]";
       if (!syncFileController.isClosed) {
         syncFileController
             .addError(SyncError(currentDeviceSettings.lastErrorMessage!));
       }
-      print(currentDeviceSettings.lastErrorMessage);
+
       return SyncedFile(filename,
           errorMessage: currentDeviceSettings.lastErrorMessage!);
     }

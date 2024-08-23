@@ -47,14 +47,15 @@ Widget loginButton(BuildContext context,
 }
 
 Widget syncButton(BuildContext context,
-    {void Function()? onPressed, Widget? child}) {
+    {void Function()? onPressed, Widget? child, bool? disabled}) {
   return Container(
     height: 50,
     width: 250,
     margin: const EdgeInsets.symmetric(vertical: 25, horizontal: 50),
     child: ElevatedButton(
       style: ButtonStyle(
-          backgroundColor: WidgetStateProperty.all(objectColor),
+          backgroundColor: WidgetStateProperty.all(
+              (disabled ?? false) ? mistColor : objectColor),
           textStyle: WidgetStateProperty.all<TextStyle>(
               const TextStyle(color: Colors.white, fontSize: 20)),
           shape: WidgetStateProperty.all<RoundedRectangleBorder>(

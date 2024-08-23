@@ -125,6 +125,9 @@ class NicknameScreenState extends State<NicknameScreen> {
       await deviceServices.registerUserEmailPassword(email, password);
       setState(() {
         context.push("/");
+        if ((deviceServices.state.serverUrl ?? "").trim() == "") {
+          context.push("/sync");
+        }
       });
     } catch (err) {
       setState(() {

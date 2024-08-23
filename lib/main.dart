@@ -62,6 +62,7 @@ class BlocProviders extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context) => DeviceServicesCubit()),
+        BlocProvider(create: (context) => SyncServicesCubit()),
         BlocProvider(create: (context) => ThemeCubit()),
       ],
       child: const MyApp(),

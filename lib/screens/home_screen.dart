@@ -94,10 +94,6 @@ class HomeScreenState extends State<HomeScreen> {
           future: getAllFolders(deviceService),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              Future<void>.delayed(const Duration(seconds: 2)).whenComplete(() {
-                if (!context.mounted) return;
-                context.push("/sync");
-              });
               return Text((snapshot.error as CustomError).message);
             } else {
               switch (snapshot.connectionState) {
@@ -112,11 +108,6 @@ class HomeScreenState extends State<HomeScreen> {
                         physics: const PageScrollPhysics(),
                         children: photoGridWidgets(folders, deviceService));
                   } else {
-                    Future<void>.delayed(const Duration(seconds: 2))
-                        .whenComplete(() {
-                      if (!context.mounted) return;
-                      context.push("/sync");
-                    });
                     return const Center(
                         child: Column(
                             mainAxisAlignment: MainAxisAlignment.start,

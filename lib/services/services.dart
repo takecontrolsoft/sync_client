@@ -15,3 +15,4 @@ limitations under the License.
 */
 
 export 'device_services.dart';
+export 'sync_services.dart';

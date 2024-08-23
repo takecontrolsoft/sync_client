@@ -33,16 +33,20 @@ class BackgroundAction implements IAction {
   Future<Stream<SyncedFile>> execute(
       StreamController<SyncedFile> syncFileController, String userName) async {
     final dirs = await _getSourceDirectories();
-    if (dirs == null) {
+    if (dirs == null || dirs.isEmpty) {
       return syncFileController.stream;
     }
     for (var dir in dirs) {
       final files = await getFilesFromExternalStorage(dir);
+      if (files.isEmpty) {
+        return syncFileController.stream;
+      }
       if (syncFileController.isClosed) {
         return syncFileController.stream;
       }
       await _uploadFiles(syncFileController, files, userName);
     }
+
     return syncFileController.stream;
   }
 
@@ -56,16 +60,14 @@ class BackgroundAction implements IAction {
   Future<void> _uploadFiles(StreamController<SyncedFile> syncFileController,
       List<FileSystemEntity> files, String userName) async {
     for (var file in files) {
-      if (syncFileController.isClosed) {
-        return;
-      }
       if (!FileSystemEntity.isDirectorySync(file.path)) {
         DateTime lastFileDate = await File(file.path).lastModified();
         String dateClassifier = "${lastFileDate.year}-${lastFileDate.month}";
 
         final fileHadBeenSynced = currentDeviceSettings.syncedFiles.any((f) =>
             f.filename.toLowerCase() == file.path.toLowerCase() &&
-            (f.errorMessage ?? "").trim() == "");
+                (f.errorMessage ?? "").trim() == "" ||
+            f.failedAttempts > 3);
         if (!fileHadBeenSynced) {
           var syncedFile = await _transfers.sendFile(
               syncFileController, file.path, userName, dateClassifier);
@@ -85,6 +87,7 @@ class BackgroundAction implements IAction {
                 return syncedFile;
               });
               fileFromList.errorMessage = syncedFile.errorMessage;
+              fileFromList.failedAttempts = fileFromList.failedAttempts + 1;
             }
           }
         }

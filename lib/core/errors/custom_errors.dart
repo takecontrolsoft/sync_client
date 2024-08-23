@@ -12,7 +12,7 @@ final class RequiredNicknameError extends CustomError {
 }
 
 final class SyncCanceledError extends CustomError {
-  SyncCanceledError() : super("Canceled operation.");
+  SyncCanceledError() : super("Sync operation canceled.");
 }
 
 final class SyncError extends CustomError {

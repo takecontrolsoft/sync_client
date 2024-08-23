@@ -16,7 +16,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -33,21 +32,22 @@ class SyncScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MainAppBar.appBar(context),
-      body: SyncScreenView(),
+      body: const SyncScreenView(),
     );
   }
 }
 
 class SyncScreenView extends StatelessWidget {
-  SyncScreenView({super.key});
-  StreamController<SyncedFile> syncedFileController =
-      StreamController<SyncedFile>();
+  const SyncScreenView({super.key});
 
   @override
   Widget build(BuildContext context) {
     final DeviceServicesCubit deviceService =
         context.read<DeviceServicesCubit>();
+    final SyncServicesCubit syncService = context.read<SyncServicesCubit>();
+
     deviceService.state.lastErrorMessage = null;
+    deviceService.state.isSyncing = false;
 
     if (!deviceService.isAuthenticated()) {
       context.push("/login");
@@ -114,9 +114,17 @@ class SyncScreenView extends StatelessWidget {
           ),
           SizedBox(
               width: double.maxFinite,
-              child: syncButton(context,
-                  child: const Text("Send to server"),
-                  onPressed: () => _sync(context, deviceService))),
+              child: reactiveBuilder<DeviceServicesCubit, DeviceSettings>(
+                  buildWhen: (previous, current) =>
+                      previous.isSyncing != current.isSyncing,
+                  child: (context, state) => syncButton(context,
+                      child: Text((deviceService.state.isSyncing ?? false)
+                          ? "Syncing ..."
+                          : "Send to server"),
+                      onPressed: () async => (deviceService.state.isSyncing ??
+                              false)
+                          ? null
+                          : await _sync(context, deviceService, syncService)))),
           Center(
               child: Padding(
                   padding: const EdgeInsets.only(left: 25, right: 25),
@@ -130,17 +138,33 @@ class SyncScreenView extends StatelessWidget {
                           deviceService.state.lastErrorMessage ?? "",
                           style: errorTextStyle(context),
                           textAlign: TextAlign.center)))),
+          Center(
+              child: Padding(
+                  padding: const EdgeInsets.only(left: 25, right: 25),
+                  child: reactiveBuilder<DeviceServicesCubit, DeviceSettings>(
+                      buildWhen: (previous, current) =>
+                          previous.isSyncing != current.isSyncing ||
+                          previous.lastErrorMessage != current.lastErrorMessage,
+                      child: (context, state) => syncService.state == null
+                          ? Container()
+                          : syncFilesStatusWidget(
+                              context, deviceService, syncService.state!))))
         ]),
       ),
     );
   }
 
-  void _sync(BuildContext context, DeviceServicesCubit deviceService) async {
+  Future<void> _sync(BuildContext context, DeviceServicesCubit deviceService,
+      SyncServicesCubit syncService) async {
     if (!(deviceService.state.deleteLocalFilesEnabled ?? false)) {
-      await _run(context, deviceService);
+      await _run(context, deviceService, syncService);
     } else {
-      await _validate(deviceService).then((value) {
-        if (!context.mounted) return;
+      final errorMessage = _validate(deviceService);
+      if (errorMessage.isNotEmpty) {
+        await deviceService.edit((state) {
+          state.lastErrorMessage = errorMessage;
+        });
+      } else {
         showDialog<String>(
             context: context,
             builder: (BuildContext context) => AlertDialog(
@@ -164,63 +188,52 @@ class SyncScreenView extends StatelessWidget {
                         ),
                       ]),
                   actions: [
-                    okButton(context, "Confirm", onPressed: () async {
+                    okButton(context, "Confirm", onPressed: () {
                       Navigator.pop(context);
-                      _run(context, deviceService);
+                      _run(context, deviceService, syncService);
                     }),
                     cancelButton(context)
                   ],
                 ));
-      });
+      }
     }
   }
 
-  Future<void> _run(
-      BuildContext context, DeviceServicesCubit deviceService) async {
-    await _validate(deviceService).then((value) async {
-      if (value) {
-        if (!context.mounted) return;
-        showDialog<String>(
-          context: context,
-          builder: (BuildContext context) => Dialog.fullscreen(
-            child: Center(
-                child: Padding(
-                    padding: const EdgeInsets.only(left: 25, right: 25),
-                    child: Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 20,
-                        runSpacing: 20,
-                        children: [
-                          syncFilesStatusWidget(
-                              context, deviceService, syncedFileController)
-                        ]))),
-          ),
-        );
-        if (syncedFileController.isClosed) {
-          syncedFileController = StreamController<SyncedFile>();
-        }
-        await deviceService.edit((state) {
-          state.lastErrorMessage = null;
-        });
-        try {
-          await BackgroundAction().execute(
-              syncedFileController, deviceService.state.currentUser!.email);
-        } on Exception catch (e) {
-          await deviceService.edit((state) {
-            state.lastErrorMessage = e.toString();
-          });
-          if (!context.mounted) return;
-          Navigator.pop(context);
-        }
-        await deviceService.edit((state) {
-          state.lastSyncDateTime = DateTime.now();
-        });
-        syncedFileController.close();
-      }
+  Future<void> _run(BuildContext context, DeviceServicesCubit deviceService,
+      SyncServicesCubit syncService) async {
+    if (deviceService.state.isSyncing ?? false) return;
+    final errorMessage = _validate(deviceService);
+    if (errorMessage.isNotEmpty) {
+      await deviceService.edit((state) {
+        state.lastErrorMessage = errorMessage;
+      });
+      return;
+    }
+    syncService.reset();
+
+    await deviceService.edit((state) {
+      state.lastErrorMessage = null;
+      state.isSyncing = true;
     });
+
+    try {
+      await BackgroundAction()
+          .execute(syncService.state!, deviceService.state.currentUser!.email);
+      await deviceService.edit((state) {
+        state.lastSyncDateTime = DateTime.now();
+      });
+    } on Exception catch (e) {
+      await deviceService.edit((state) {
+        state.lastErrorMessage = e.toString();
+      });
+    }
+    await deviceService.edit((state) {
+      state.isSyncing = false;
+    });
+    syncService.state!.close();
   }
 
-  Future<bool> _validate(DeviceServicesCubit deviceService) async {
+  String _validate(DeviceServicesCubit deviceService) {
     String errorText = "";
     if (!deviceService.isAuthenticated()) {
       errorText = "No logged in user.";
@@ -235,12 +248,6 @@ class SyncScreenView extends StatelessWidget {
       errorText = "Please select server address.";
     }
 
-    if (errorText.isNotEmpty) {
-      await deviceService.edit((state) {
-        state.lastErrorMessage = errorText;
-      });
-      return false;
-    }
-    return true;
+    return errorText;
   }
 }

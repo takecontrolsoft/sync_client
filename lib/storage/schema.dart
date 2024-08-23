@@ -29,6 +29,7 @@ class DeviceSettings {
   DateTime? lastSyncDateTime;
   bool? deleteLocalFilesEnabled;
   List<SyncedFile> syncedFiles = [];
+  bool? isSyncing;
 
   factory DeviceSettings.fromJson(Map<String, dynamic> json) =>
       _$DeviceSettingsFromJson(json);
@@ -53,6 +54,7 @@ class SyncedFile {
   SyncedFile(this.filename, {this.errorMessage});
   String? errorMessage;
   final String filename;
+  int failedAttempts = 0;
   factory SyncedFile.fromJson(Map<String, dynamic> json) =>
       _$SyncedFileFromJson(json);
 
