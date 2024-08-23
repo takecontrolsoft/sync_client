@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/core/core.dart';
