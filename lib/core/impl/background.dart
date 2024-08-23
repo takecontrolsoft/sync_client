@@ -18,6 +18,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:sync_client/core/core.dart';
 import 'package:sync_client/storage/storage.dart';
+import 'package:path/path.dart' as p;
 
 abstract class IAction {
   Future<Stream<SyncedFile>> execute(
@@ -69,25 +70,27 @@ class BackgroundAction implements IAction {
                 (f.errorMessage ?? "").trim() == "" ||
             f.failedAttempts > 3);
         if (!fileHadBeenSynced) {
-          var syncedFile = await _transfers.sendFile(
-              syncFileController, file.path, userName, dateClassifier);
+          if (p.extension(file.path).isNotEmpty) {
+            var syncedFile = await _transfers.sendFile(
+                syncFileController, file.path, userName, dateClassifier);
 
-          if (syncedFile != null) {
-            if ((currentDeviceSettings.deleteLocalFilesEnabled ?? false) &&
-                syncedFile.errorMessage == null) {
-              await File(syncedFile.filename).delete();
-              currentDeviceSettings.syncedFiles.remove(syncedFile);
-            } else {
-              SyncedFile? fileFromList = currentDeviceSettings.syncedFiles
-                  .firstWhere(
-                      (f) =>
-                          f.filename.toLowerCase() == file.path.toLowerCase(),
-                      orElse: () {
-                currentDeviceSettings.syncedFiles.add(syncedFile);
-                return syncedFile;
-              });
-              fileFromList.errorMessage = syncedFile.errorMessage;
-              fileFromList.failedAttempts = fileFromList.failedAttempts + 1;
+            if (syncedFile != null) {
+              if ((currentDeviceSettings.deleteLocalFilesEnabled ?? false) &&
+                  syncedFile.errorMessage == null) {
+                await File(syncedFile.filename).delete();
+                currentDeviceSettings.syncedFiles.remove(syncedFile);
+              } else {
+                SyncedFile? fileFromList = currentDeviceSettings.syncedFiles
+                    .firstWhere(
+                        (f) =>
+                            f.filename.toLowerCase() == file.path.toLowerCase(),
+                        orElse: () {
+                  currentDeviceSettings.syncedFiles.add(syncedFile);
+                  return syncedFile;
+                });
+                fileFromList.errorMessage = syncedFile.errorMessage;
+                fileFromList.failedAttempts = fileFromList.failedAttempts + 1;
+              }
             }
           }
         }

@@ -148,7 +148,7 @@ class SyncScreenView extends StatelessWidget {
                       child: (context, state) => syncService.state == null
                           ? Container()
                           : syncFilesStatusWidget(
-                              context, deviceService, syncService.state!))))
+                              context, deviceService, syncService))))
         ]),
       ),
     );
@@ -217,6 +217,8 @@ class SyncScreenView extends StatelessWidget {
     });
 
     try {
+      syncService.state!.add(SyncedFile("Syncing ..."));
+      Future<void>.delayed(const Duration(microseconds: 10));
       await BackgroundAction()
           .execute(syncService.state!, deviceService.state.currentUser!.email);
       await deviceService.edit((state) {
