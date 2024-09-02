@@ -87,7 +87,6 @@ class _DeletingEnabledScreenView extends StatelessWidget {
         await deviceService.edit((state) {
           state.deleteLocalFilesEnabled =
               !(state.deleteLocalFilesEnabled ?? false);
-          state.syncedFiles.clear();
           state.lastErrorMessage = null;
         });
       } else {
@@ -117,7 +116,6 @@ class _DeletingEnabledScreenView extends StatelessWidget {
                       await deviceService.edit((state) {
                         state.deleteLocalFilesEnabled =
                             !(state.deleteLocalFilesEnabled ?? false);
-                        state.syncedFiles.clear();
                         state.lastErrorMessage = null;
                       });
                       if (!context.mounted) return;

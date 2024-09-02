@@ -65,8 +65,10 @@ class EditServerFormState extends State<EditServerForm> {
       String newServer) async {
     if (_formKey.currentState!.validate()) {
       await deviceService.edit((state) {
+        if (state.serverUrl != newServer) {
+          state.syncedFiles.clear();
+        }
         state.serverUrl = newServer;
-        state.syncedFiles.clear();
         state.lastErrorMessage = null;
         state.lastSyncDateTime = null;
         state.deleteLocalFilesEnabled = false;

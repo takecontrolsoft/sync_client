@@ -42,12 +42,10 @@ class FoldersListScreen extends StatelessWidget {
       BuildContext context, DeviceServicesCubit deviceService) async {
     String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
 
-    if (selectedDirectory == null) {
-      return;
-    }
     await deviceService.edit((state) {
-      state.mediaDirectories.add(selectedDirectory);
-      state.syncedFiles.clear();
+      if (selectedDirectory != null) {
+        state.mediaDirectories.add(selectedDirectory);
+      }
       state.lastErrorMessage = null;
     });
   }

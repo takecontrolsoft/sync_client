@@ -17,8 +17,8 @@ limitations under the License.
 import 'package:go_router/go_router.dart';
 import 'package:sync_client/screens/screens.dart';
 
-GoRouter getAppRouter(bool isAuthenticated) {
-  return GoRouter(initialLocation: isAuthenticated ? '/' : "/login", routes: [
+GoRouter getAppRouter() {
+  return GoRouter(initialLocation: '/', routes: [
     GoRoute(
       path: '/',
       builder: (context, state) => const HomeScreen(),

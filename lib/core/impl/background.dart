@@ -60,7 +60,8 @@ class BackgroundAction implements IAction {
 
   Future<void> _uploadFiles(StreamController<SyncedFile> syncFileController,
       List<FileSystemEntity> files, String userName) async {
-    for (var file in files) {
+    final reversedFiles = files.reversed;
+    for (FileSystemEntity file in reversedFiles) {
       if (!FileSystemEntity.isDirectorySync(file.path)) {
         DateTime lastFileDate = await File(file.path).lastModified();
         String dateClassifier = "${lastFileDate.year}-${lastFileDate.month}";
@@ -69,10 +70,20 @@ class BackgroundAction implements IAction {
             f.filename.toLowerCase() == file.path.toLowerCase() &&
                 (f.errorMessage ?? "").trim() == "" ||
             f.failedAttempts > 3);
-        if (!fileHadBeenSynced) {
-          if (p.extension(file.path).isNotEmpty) {
-            var syncedFile = await _transfers.sendFile(
-                syncFileController, file.path, userName, dateClassifier);
+        if (fileHadBeenSynced) {
+          if (!syncFileController.isClosed) {
+            syncFileController.add(SyncedFile(file.path));
+          }
+          if (currentDeviceSettings.deleteLocalFilesEnabled ?? false) {
+            await File(file.path).delete();
+            currentDeviceSettings.syncedFiles.removeWhere(
+                (f) => f.filename.toLowerCase() == file.path.toLowerCase());
+          }
+        } else {
+          if (file is File && p.extension(file.path).isNotEmpty) {
+            final fileLength = file.lengthSync();
+            var syncedFile = await _transfers.sendFile(syncFileController,
+                file.path, userName, dateClassifier, fileLength);
 
             if (syncedFile != null) {
               if ((currentDeviceSettings.deleteLocalFilesEnabled ?? false) &&

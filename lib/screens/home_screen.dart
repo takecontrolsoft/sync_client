@@ -71,11 +71,25 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<List<String>> getAllFolders(DeviceServicesCubit deviceService) async {
+    if ((deviceService.state.serverUrl ?? "") == "") {
+      return [];
+    }
     List<NetFolder>? folders = await apiGetFolders(
         deviceService.state.currentUser!.email, deviceService.state.id);
 
     final List<String> allFolders = getChildrenFolders(folders);
     return allFolders;
+  }
+
+  Future<List<String>> getAllFiles(
+      DeviceServicesCubit deviceService, String folder) async {
+    if ((deviceService.state.serverUrl ?? "") == "") {
+      return [];
+    }
+    List<String>? files = await apiGetFiles(
+        deviceService.state.currentUser!.email, deviceService.state.id, folder);
+
+    return files;
   }
 
   Widget itemsView(BuildContext context) {
@@ -90,51 +104,59 @@ class HomeScreenState extends State<HomeScreen> {
     return Container(
         margin: const EdgeInsets.only(
             left: 10.0, right: 10.0, top: 30.0, bottom: 30.0),
-        child: FutureBuilder<List<String>>(
-          future: getAllFolders(deviceService),
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return Text((snapshot.error as CustomError).message);
-            } else {
-              switch (snapshot.connectionState) {
-                case ConnectionState.none:
-                case ConnectionState.waiting:
-                  return const CircularProgressIndicator();
-                case ConnectionState.active:
-                case ConnectionState.done:
-                  if (snapshot.hasData) {
-                    final folders = snapshot.data!;
-                    return ListView(
-                        physics: const PageScrollPhysics(),
-                        children: photoGridWidgets(folders, deviceService));
+        child: ((deviceService.state.serverUrl ?? "") == "")
+            ? const Text(
+                "There is no files synced to the server or the server is not configured.")
+            : FutureBuilder<List<String>>(
+                future: getAllFolders(deviceService),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Text((snapshot.error as CustomError).message);
                   } else {
-                    return const Center(
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                          Text(
-                            "There is no synced photos/videos from this device and nickname.",
-                            textAlign: TextAlign.center,
-                          ),
-                          Text(
-                            "Please go the menu and select 'Sync' to setup configurations.",
-                            textAlign: TextAlign.center,
-                          ),
-                          Padding(
-                              padding: EdgeInsets.only(top: 10),
-                              child: Text(
-                                "Go to MOBISYNC.EU for help.",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
-                              ))
-                        ]));
+                    switch (snapshot.connectionState) {
+                      case ConnectionState.none:
+                      case ConnectionState.waiting:
+                        return const CircularProgressIndicator();
+                      case ConnectionState.active:
+                      case ConnectionState.done:
+                        if (snapshot.hasData) {
+                          final folders = snapshot.data!;
+                          return folders.isEmpty
+                              ? const Text(
+                                  "There is no files synced to the server or the server is not configured.")
+                              : ListView(
+                                  physics: const PageScrollPhysics(),
+                                  children:
+                                      photoGridWidgets(folders, deviceService));
+                        } else {
+                          return const Center(
+                              child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                Text(
+                                  "There is no synced photos/videos from this device and nickname.",
+                                  textAlign: TextAlign.center,
+                                ),
+                                Text(
+                                  "Please go the menu and select 'Sync' to setup configurations.",
+                                  textAlign: TextAlign.center,
+                                ),
+                                Padding(
+                                    padding: EdgeInsets.only(top: 10),
+                                    child: Text(
+                                      "Go to MOBISYNC.EU for help.",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                    ))
+                              ]));
+                        }
+                    }
                   }
-              }
-            }
-          },
-        ));
+                },
+              ));
   }
 
   List<Widget> photoGridWidgets(
@@ -147,8 +169,7 @@ class HomeScreenState extends State<HomeScreen> {
               child: Text(folder,
                   style: const TextStyle(fontWeight: FontWeight.bold)))));
       result.add(FutureBuilder<List<String>>(
-        future: apiGetFiles(deviceService.state.currentUser!.email,
-            deviceService.state.id, folder),
+        future: getAllFiles(deviceService, folder),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Container();

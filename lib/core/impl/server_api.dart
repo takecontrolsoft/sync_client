@@ -37,9 +37,10 @@ Future<List<NetFolder>?> apiGetFolders(String userName, String deviceId) async {
 
     if (response.statusCode == 200) {
       final List<dynamic> result = json.decode(response.body);
-      final List<NetFolder> folders = result
+      final List<NetFolder> folders = result.reversed
           .map((item) => NetFolder(item["Year"],
               subFolders: (List<String>.from(item["Months"])
+                  .reversed
                   .map((m) => NetFolder(m))
                   .toList())))
           .toList();
@@ -70,7 +71,8 @@ Future<List<String>> apiGetFiles(
 
     if (response.statusCode == 200) {
       final List<dynamic> result = json.decode(response.body);
-      final List<String> files = result.map((item) => item.toString()).toList();
+      final List<String> files =
+          result.reversed.map((item) => item.toString()).toList();
       return files;
     }
   } catch (err) {

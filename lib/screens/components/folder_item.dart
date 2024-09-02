@@ -44,7 +44,6 @@ class FolderItem extends StatelessWidget {
     if (menuItem == FolderMenuOption.delete) {
       await deviceService.edit((state) {
         state.mediaDirectories.remove(folder);
-        state.syncedFiles.clear();
         state.lastSyncDateTime = null;
         state.lastErrorMessage = null;
       });

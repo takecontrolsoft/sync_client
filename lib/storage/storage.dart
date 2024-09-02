@@ -17,7 +17,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:uuid/uuid.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sync_client/storage/schema.dart';
@@ -29,15 +28,7 @@ late DeviceSettings currentDeviceSettings;
 
 Future<DeviceSettings> updateCurrentDevice(
     DeviceSettings deviceSettings) async {
-  final deviceInfoPlugin = DeviceInfoPlugin();
-  final deviceInfo = await deviceInfoPlugin.deviceInfo;
-
-  String? deviceId = deviceInfo.data["deviceId"];
-  deviceId ??= deviceInfo.data["id"];
-  deviceId ??= deviceInfo.data["systemGUID"];
-  deviceId ??= const Uuid().v4();
-  deviceSettings.id = deviceId;
-  deviceSettings.model = deviceInfo.data["model"];
+  deviceSettings.id = const Uuid().v4();
   return deviceSettings;
 }
 

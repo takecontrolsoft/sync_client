@@ -29,7 +29,8 @@ List<Widget> getStateWidgets(
   List<Widget> children;
 
   if (snapshot.hasError) {
-    children = _errorState(context, syncService, snapshot.error as CustomError);
+    children = _errorState(
+        context, syncService, deviceService, snapshot.error as CustomError);
   } else {
     switch (snapshot.connectionState) {
       case ConnectionState.none:
@@ -45,15 +46,28 @@ List<Widget> getStateWidgets(
   return children;
 }
 
-List<Widget> _errorState(
-    BuildContext context, SyncServicesCubit syncService, CustomError error) {
+List<Widget> _errorState(BuildContext context, SyncServicesCubit syncService,
+    DeviceServicesCubit deviceService, CustomError error) {
   return <Widget>[
     const Icon(Icons.error_outline, color: Colors.red, size: 30),
-    Padding(
+    Center(
+        child: Padding(
       padding: const EdgeInsets.only(top: 2),
       child: Text(
           '${error is SyncCanceledError ? "" : "Error: "}${error.message}'),
-    ),
+    )),
+    okButton(context, "Stop", onPressed: () {
+      if (syncService.state != null) {
+        if (!syncService.state!.isClosed) {
+          syncService.state!.addError(SyncCanceledError());
+          syncService.state!.close();
+          syncService.reset();
+        }
+      }
+      deviceService.edit((state) {
+        state.isSyncing = false;
+      });
+    }),
   ];
 }
 

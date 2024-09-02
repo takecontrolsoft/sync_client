@@ -25,6 +25,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await loadDeviceSettings();
   if (Platform.isAndroid) {
     final mediaStorePlugin = MediaStore();
     await mediaStorePlugin.getPlatformSDKInt();
@@ -33,7 +34,6 @@ void main() async {
     await requestPermissions();
   }
 
-  await loadDeviceSettings();
   runApp(const BlocProviders());
 }
 
@@ -41,6 +41,8 @@ Future<void> requestPermissions() async {
   List<Permission> permissions = [
     Permission.storage,
   ];
+  permissions.add(Permission.manageExternalStorage);
+  permissions.add(Permission.accessMediaLocation);
   permissions.add(Permission.storage);
   permissions.add(Permission.photos);
   permissions.add(Permission.audio);
@@ -75,11 +77,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final deviceService = context.read<DeviceServicesCubit>();
     return MaterialApp.router(
         title: 'Mobi Sync Client',
         debugShowCheckedModeBanner: false,
-        routerConfig: getAppRouter(deviceService.isAuthenticated()),
+        routerConfig: getAppRouter(),
         theme: AppTheme.getTheme(context));
   }
 }
