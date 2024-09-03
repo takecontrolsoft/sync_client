@@ -80,9 +80,8 @@ class BackgroundAction implements IAction {
           }
         } else {
           if (file is File && p.extension(file.path).isNotEmpty) {
-            final fileLength = file.lengthSync();
-            var syncedFile = await _transfers.sendFile(syncFileController,
-                file.path, userName, dateClassifier, fileLength);
+            var syncedFile = await _transfers.sendFile(
+                syncFileController, file.path, userName, dateClassifier);
 
             if (syncedFile != null) {
               if ((currentDeviceSettings.deleteLocalFilesEnabled ?? false) &&

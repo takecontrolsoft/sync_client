@@ -27,18 +27,13 @@ import 'request_utils.dart';
 class Transfers {
   Transfers();
 
-  Future<SyncedFile?> sendFile(
-      StreamController<SyncedFile> syncFileController,
-      String filename,
-      String userName,
-      String dateClassifier,
-      int fileLength) async {
+  Future<SyncedFile?> sendFile(StreamController<SyncedFile> syncFileController,
+      String filename, String userName, String dateClassifier) async {
     SyncedFile? result;
     var request = MultipartRequest('POST', getUrl("upload"));
     final hdr = <String, String>{
       "user": utf8.encode(userName).toString(),
-      "date": dateClassifier,
-      "fileLength": fileLength.toString()
+      "date": dateClassifier
     };
     request.headers.addEntries(hdr.entries);
 
