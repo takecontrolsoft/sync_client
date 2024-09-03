@@ -114,9 +114,10 @@ class BackgroundAction implements IAction {
       Directory dir) async {
     List<FileSystemEntity> entities = await dir.list().toList();
     List<FileSystemEntity> finalEntities = [];
-    entities.removeWhere((entity) {
-      return entity.path == '/storage/emulated/0/Android';
-    });
+    entities
+        .removeWhere((entity) => entity.path == '/storage/emulated/0/Android');
+    entities.removeWhere((entity) =>
+        entity.path.startsWith('/storage/emulated/0/Pictures/.thumbnails'));
     for (var entity in entities) {
       if (entity is Directory) {
         try {
@@ -126,7 +127,9 @@ class BackgroundAction implements IAction {
           continue;
         }
       } else {
-        finalEntities.add(entity);
+        if (p.extension(entity.path) != '.db') {
+          finalEntities.add(entity);
+        }
       }
     }
     return finalEntities;
