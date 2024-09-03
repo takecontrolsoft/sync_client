@@ -39,13 +39,12 @@ class BackgroundAction implements IAction {
     }
     for (var dir in dirs) {
       final files = await getFilesFromExternalStorage(dir);
-      if (files.isEmpty) {
-        return syncFileController.stream;
+      if (files.isNotEmpty) {
+        if (syncFileController.isClosed) {
+          return syncFileController.stream;
+        }
+        await _uploadFiles(syncFileController, files, userName);
       }
-      if (syncFileController.isClosed) {
-        return syncFileController.stream;
-      }
-      await _uploadFiles(syncFileController, files, userName);
     }
 
     return syncFileController.stream;
