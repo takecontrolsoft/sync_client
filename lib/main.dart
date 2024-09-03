@@ -42,7 +42,6 @@ Future<void> requestPermissions() async {
     Permission.storage,
   ];
   permissions.add(Permission.manageExternalStorage);
-  permissions.add(Permission.accessMediaLocation);
   permissions.add(Permission.storage);
   permissions.add(Permission.photos);
   permissions.add(Permission.audio);

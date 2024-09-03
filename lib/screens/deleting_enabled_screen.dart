@@ -15,6 +15,7 @@ limitations under the License.
 */
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/screens/components/components.dart';
 import 'package:sync_client/services/services.dart';
@@ -113,6 +114,11 @@ class _DeletingEnabledScreenView extends StatelessWidget {
                       ]),
                   actions: [
                     okButton(context, "Confirm", onPressed: () async {
+                      final mapPermissions =
+                          await Permission.manageExternalStorage.request();
+                      if (mapPermissions.isPermanentlyDenied) {
+                        await openAppSettings();
+                      }
                       await deviceService.edit((state) {
                         state.deleteLocalFilesEnabled =
                             !(state.deleteLocalFilesEnabled ?? false);
