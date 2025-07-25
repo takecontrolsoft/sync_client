@@ -14,7 +14,7 @@ if (localPropertiesFile.exists()) {
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
-    flutterVersionCode = '109'
+    flutterVersionCode = '110'
 }
 
 def flutterVersionName = localProperties.getProperty('flutter.versionName')
@@ -77,6 +77,9 @@ android {
             proguardFiles getDefaultProguardFile(
                     'proguard-android-optimize.txt'),
                     'proguard-rules.pro'
+            packagingOptions {
+                exclude 'META-INF/integration_test_release.kotlin_module'
+            }
         }
     }
 }
