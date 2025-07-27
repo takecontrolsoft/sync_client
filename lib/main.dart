@@ -41,7 +41,6 @@ Future<void> requestPermissions() async {
   List<Permission> permissions = [
     Permission.storage,
   ];
-  permissions.add(Permission.manageExternalStorage);
   permissions.add(Permission.storage);
   permissions.add(Permission.photos);
   permissions.add(Permission.audio);

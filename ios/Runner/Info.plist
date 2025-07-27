@@ -38,6 +38,15 @@
 	<string>LaunchScreen.storyboard</string>
 	<key>UIRequiresFullScreen</key>
 	<true/>
+	<!-- Document Picker -->
+	<key>UISupportsDocumentBrowser</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+
+	<!-- File Sharing (if you want iTunes file sharing) -->
+	<key>UIFileSharingEnabled</key>
+	<true/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

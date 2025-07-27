@@ -17,8 +17,6 @@ export 'home_screen.dart';
 export 'servers_list_screen.dart';
 export 'folders_list_screen.dart';
 export 'login_screen.dart';
-export 'deleting_enabled_screen.dart';
-export 'components/components.dart';
 export 'nickname_screen.dart';
 export 'sync_screen.dart';
 export 'account_screen.dart';

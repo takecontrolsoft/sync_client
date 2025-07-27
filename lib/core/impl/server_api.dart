@@ -102,7 +102,11 @@ Future<bool> apiDeleteAllFiles(String userName, String deviceId) async {
 }
 
 Future<Uint8List?> apiGetImageBytes(
-    String userName, String deviceId, String file) async {
+  String userName,
+  String deviceId,
+  String file, {
+  bool fullQuality = false,
+}) async {
   var request = Request('POST', getUrl("img"));
   request.headers.addAll(
       <String, String>{'Content-Type': 'application/json; charset=UTF-8'});
@@ -112,7 +116,8 @@ Future<Uint8List?> apiGetImageBytes(
       'User': userName,
       'DeviceId': deviceId,
     },
-    "File": file
+    "File": file,
+    "Quality": fullQuality ? "full" : ""
   });
 
   try {
