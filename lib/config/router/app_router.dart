@@ -40,10 +40,6 @@ GoRouter getAppRouter() {
       builder: (context, state) => const FoldersListScreen(),
     ),
     GoRoute(
-      path: '/deleteOption',
-      builder: (context, state) => const DeletingEnabledScreen(),
-    ),
-    GoRoute(
       path: '/login',
       builder: (context, state) =>
           const NicknameScreen(), // const LogInScreen(),

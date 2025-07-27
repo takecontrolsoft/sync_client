@@ -27,18 +27,18 @@ DeviceSettings _$DeviceSettingsFromJson(Map<String, dynamic> json) =>
       ..currentUser = json['currentUser'] == null
           ? null
           : User.fromJson(json['currentUser'] as Map<String, dynamic>)
-      ..mediaDirectories = (json['mediaDirectories'] as List<dynamic>)
-          .map((e) => e as String)
-          .toSet()
+      ..mediaDirectories = json['mediaDirectories'] == null
+          ? {}
+          : DeviceSettings._listToSet(json['mediaDirectories'])
       ..lastErrorMessage = json['lastErrorMessage'] as String?
       ..successMessage = json['successMessage'] as String?
       ..lastSyncDateTime = json['lastSyncDateTime'] == null
           ? null
           : DateTime.parse(json['lastSyncDateTime'] as String)
-      ..deleteLocalFilesEnabled = json['deleteLocalFilesEnabled'] as bool?
-      ..syncedFiles = (json['syncedFiles'] as List<dynamic>)
-          .map((e) => SyncedFile.fromJson(e as Map<String, dynamic>))
-          .toList()
+      ..syncedFiles = (json['syncedFiles'] as List<dynamic>?)
+              ?.map((e) => SyncedFile.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          []
       ..isSyncing = json['isSyncing'] as bool?;
 
 Map<String, dynamic> _$DeviceSettingsToJson(DeviceSettings instance) =>
@@ -47,11 +47,10 @@ Map<String, dynamic> _$DeviceSettingsToJson(DeviceSettings instance) =>
       'model': instance.model,
       'serverUrl': instance.serverUrl,
       'currentUser': instance.currentUser,
-      'mediaDirectories': instance.mediaDirectories.toList(),
+      'mediaDirectories': DeviceSettings._setToList(instance.mediaDirectories),
       'lastErrorMessage': instance.lastErrorMessage,
       'successMessage': instance.successMessage,
       'lastSyncDateTime': instance.lastSyncDateTime?.toIso8601String(),
-      'deleteLocalFilesEnabled': instance.deleteLocalFilesEnabled,
       'syncedFiles': instance.syncedFiles,
       'isSyncing': instance.isSyncing,
     };

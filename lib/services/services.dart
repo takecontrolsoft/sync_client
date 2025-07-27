@@ -16,3 +16,6 @@ limitations under the License.
 
 export 'device_services.dart';
 export 'sync_services.dart';
+
+export 'cache_service.dart';
+export 'enhanced_cache_service.dart';

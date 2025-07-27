@@ -8,11 +8,10 @@ class DeviceServicesCubit extends Cubit<DeviceSettings> {
   DeviceServicesCubit() : super(currentDeviceSettings);
 
   bool isAuthenticated() {
-    bool loggedIn = state.currentUser?.loggedIn ?? false;
-    if (!loggedIn) {
-      logOut();
+    if (state.currentUser == null) {
+      return false;
     }
-    return loggedIn;
+    return state.currentUser?.loggedIn ?? false;
   }
 
   Future<User> logInUserEmailPassword(String email, String password) async {

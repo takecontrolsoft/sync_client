@@ -73,33 +73,22 @@ class BackgroundAction implements IAction {
           if (!syncFileController.isClosed) {
             syncFileController.add(SyncedFile(file.path));
           }
-          if (currentDeviceSettings.deleteLocalFilesEnabled ?? false) {
-            await File(file.path).delete();
-            currentDeviceSettings.syncedFiles.removeWhere(
-                (f) => f.filename.toLowerCase() == file.path.toLowerCase());
-          }
         } else {
           if (file is File && p.extension(file.path).isNotEmpty) {
             var syncedFile = await _transfers.sendFile(
                 syncFileController, file.path, userName, dateClassifier);
 
             if (syncedFile != null) {
-              if ((currentDeviceSettings.deleteLocalFilesEnabled ?? false) &&
-                  syncedFile.errorMessage == null) {
-                await File(syncedFile.filename).delete();
-                currentDeviceSettings.syncedFiles.remove(syncedFile);
-              } else {
-                SyncedFile? fileFromList = currentDeviceSettings.syncedFiles
-                    .firstWhere(
-                        (f) =>
-                            f.filename.toLowerCase() == file.path.toLowerCase(),
-                        orElse: () {
-                  currentDeviceSettings.syncedFiles.add(syncedFile);
-                  return syncedFile;
-                });
-                fileFromList.errorMessage = syncedFile.errorMessage;
-                fileFromList.failedAttempts = fileFromList.failedAttempts + 1;
-              }
+              SyncedFile? fileFromList = currentDeviceSettings.syncedFiles
+                  .firstWhere(
+                      (f) =>
+                          f.filename.toLowerCase() == file.path.toLowerCase(),
+                      orElse: () {
+                currentDeviceSettings.syncedFiles.add(syncedFile);
+                return syncedFile;
+              });
+              fileFromList.errorMessage = syncedFile.errorMessage;
+              fileFromList.failedAttempts = fileFromList.failedAttempts + 1;
             }
           }
         }
