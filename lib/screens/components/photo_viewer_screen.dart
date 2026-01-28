@@ -258,35 +258,41 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final sideTapWidth = (screenWidth * 0.15).clamp(56.0, 120.0);
+
     return Scaffold(
       backgroundColor: Colors.black,
-      body: KeyboardListener(
+      body: Focus(
         focusNode: _focusNode,
-        onKeyEvent: (KeyEvent event) {
-          if (event is KeyDownEvent) {
-            if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-              _goToPrevious();
-            } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-              _goToNext();
-            } else if (event.logicalKey == LogicalKeyboardKey.escape) {
-              Navigator.of(context).pop();
-            } else if (event.logicalKey == LogicalKeyboardKey.space) {
+        autofocus: true,
+        child: KeyboardListener(
+          focusNode: _focusNode,
+          onKeyEvent: (KeyEvent event) {
+            if (event is KeyDownEvent) {
+              if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+                _goToPrevious();
+              } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+                _goToNext();
+              } else if (event.logicalKey == LogicalKeyboardKey.escape) {
+                Navigator.of(context).pop();
+              } else if (event.logicalKey == LogicalKeyboardKey.space) {
+                setState(() {
+                  _showOverlay = !_showOverlay;
+                });
+              }
+            }
+          },
+          child: GestureDetector(
+            onTap: () {
               setState(() {
                 _showOverlay = !_showOverlay;
               });
-            }
-          }
-        },
-        child: GestureDetector(
-          onTap: () {
-            setState(() {
-              _showOverlay = !_showOverlay;
-            });
-          },
-          child: Stack(
-            children: [
-              // Photo gallery
-              PhotoViewGallery.builder(
+            },
+            child: Stack(
+              children: [
+                // Photo gallery (horizontal swipe already supported by PageView)
+                PhotoViewGallery.builder(
                 pageController: _pageController,
                 itemCount: widget.photos.length,
                 onPageChanged: _onPageChanged,
@@ -481,7 +487,32 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                 },
               ),
 
-              // Navigation arrows - Left
+              // Always-active left/right tap zones for previous/next (work even when overlay hidden)
+              if (widget.photos.length > 1 && _currentIndex > 0)
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: sideTapWidth,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _goToPrevious,
+                  ),
+                ),
+              if (widget.photos.length > 1 &&
+                  _currentIndex < widget.photos.length - 1)
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: sideTapWidth,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _goToNext,
+                  ),
+                ),
+
+              // Navigation arrows - Left (visible when overlay shown)
               if (_currentIndex > 0)
                 Positioned(
                   left: 16,
@@ -775,6 +806,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }
