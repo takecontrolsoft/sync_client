@@ -12,6 +12,7 @@ import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:sync_client/config/theme/app_theme.dart';
+import 'package:sync_client/screens/components/video_player_screen.dart';
 
 class PhotoViewerScreen extends StatefulWidget {
   final List<PhotoItem> photos;
@@ -779,68 +780,12 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
   }
 
   void _playVideo(PhotoItem video) {
-    // For now, show a dialog. You'll want to implement a proper video player
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierColor: Colors.black87,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  const Icon(
-                    Icons.videocam,
-                    color: Colors.white,
-                    size: 48,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    video.path.split('/').last,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Video playback coming soon',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Close'),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => VideoPlayerScreen(video: video),
       ),
     );
-
-    // TODO: Implement actual video player
-    // You can use packages like video_player or better_player
-    // Example:
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) => VideoPlayerScreen(video: video),
-    //   ),
-    // );
   }
 
   Future<void> _shareImage() async {

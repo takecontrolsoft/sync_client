@@ -6,3 +6,4 @@ export 'status_widgets.dart';
 export 'grid_component.dart';
 export 'gallery_photo_tile.dart';
 export 'photo_viewer_screen.dart';
+export 'video_player_screen.dart';

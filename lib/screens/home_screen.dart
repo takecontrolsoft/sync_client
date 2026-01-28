@@ -563,19 +563,10 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   void _openVideoPlayer(BuildContext context, PhotoItem video) {
-    // You'll need to implement a video player screen
-    // For now, show a dialog
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Video Player'),
-        content: Text('Video playback for: ${video.path.split('/').last}'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => VideoPlayerScreen(video: video),
       ),
     );
   }

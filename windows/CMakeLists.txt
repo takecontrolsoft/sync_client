@@ -10,6 +10,12 @@ set(BINARY_NAME "sync_client")
 # versions of CMake.
 cmake_policy(VERSION 3.14...3.25)
 
+# Suppress CMP0175 warning from plugins (e.g. media_kit_libs_windows_video) that use
+# add_custom_command(TARGET) without explicit PRE_BUILD/PRE_LINK/POST_BUILD.
+if(POLICY CMP0175)
+  cmake_policy(SET CMP0175 OLD)
+endif()
+
 # Define build configuration option.
 get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(IS_MULTICONFIG)

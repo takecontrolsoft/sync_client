@@ -20,11 +20,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/services/services.dart';
 import 'package:sync_client/storage/storage.dart';
+import 'package:media_kit/media_kit.dart';
 import 'package:media_store_plus/media_store_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  MediaKit.ensureInitialized();
   await loadDeviceSettings();
   if (Platform.isAndroid) {
     final mediaStorePlugin = MediaStore();
