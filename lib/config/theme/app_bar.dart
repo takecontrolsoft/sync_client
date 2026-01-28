@@ -22,6 +22,8 @@ import 'package:sync_client/services/device_services.dart';
 
 enum AppMenuOption { home, trash, sync, theme, account, logout }
 
+const Color _headerOrange = Color(0xFFE85D04);
+
 class MainAppBar {
   /// [actionsBeforeMenu] are shown in the AppBar before the menu (e.g. refresh on Trash).
   static AppBar appBar(BuildContext context, {List<Widget>? actionsBeforeMenu}) {
@@ -29,6 +31,7 @@ class MainAppBar {
     final DeviceServicesCubit deviceService =
         context.read<DeviceServicesCubit>();
     GlobalKey btnKey = GlobalKey();
+    final isDark = theme.state.isDarkMode;
 
     void onClickMenu(MenuItemProvider item) async {
       print('Click menu -> ${item.menuTitle}');
@@ -49,51 +52,134 @@ class MainAppBar {
       }
     }
 
-    void getMenu(BuildContext context) {
-      PopupMenu menu = PopupMenu(
-          context: context,
-          config: MenuConfig(
-              maxColumn: 4,
-              backgroundColor:
-                  theme.state.isDarkMode ? Colors.white : Colors.black,
-              lineColor: Theme.of(context).listTileTheme.iconColor!),
-          items: [
-            mainMenuItem(context, AppMenuOption.home, "Home", Icons.home),
-            mainMenuItem(context, AppMenuOption.trash, "Trash", Icons.delete_outline),
-            mainMenuItem(context, AppMenuOption.sync, "Sync", Icons.sync),
-            mainMenuItem(
-                context,
-                AppMenuOption.theme,
-                theme.state.isDarkMode ? "Light" : "Dark",
-                theme.state.isDarkMode
-                    ? Icons.light_mode_outlined
-                    : Icons.dark_mode_outlined),
-            mainMenuItem(
-                context, AppMenuOption.account, "Account", Icons.person),
-            mainMenuItem(context, AppMenuOption.logout, "LogOut", Icons.logout),
-          ],
-          onClickMenu: onClickMenu);
-      menu.show(widgetKey: btnKey);
+    return AppBar(
+      title: Text(
+        "Mobi Sync Client",
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.5,
+        ),
+      ),
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 8),
+        child: Icon(
+          Icons.cloud_sync_rounded,
+          color: Colors.white.withValues(alpha: 0.95),
+          size: 28,
+        ),
+      ),
+      leadingWidth: 44,
+      backgroundColor: _headerOrange,
+      foregroundColor: Colors.white,
+      elevation: 0,
+      scrolledUnderElevation: 8,
+      surfaceTintColor: Colors.transparent,
+      iconTheme: IconThemeData(color: Colors.white.withValues(alpha: 0.95)),
+      actionsIconTheme: IconThemeData(color: Colors.white.withValues(alpha: 0.95)),
+      actions: actionsBeforeMenu != null ? [...actionsBeforeMenu] : null,
+    );
+  }
+
+  /// AppBar for sub-screens (e.g. Servers, Folders) with Back and optional "Done" to return to Sync.
+  static AppBar appBarWithBack(
+    BuildContext context, {
+    required String title,
+    bool showDoneButton = true,
+  }) {
+    final actions = <Widget>[];
+    if (showDoneButton) {
+      actions.add(
+        Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: TextButton.icon(
+            onPressed: () => context.go("/sync"),
+            icon: const Icon(Icons.check_rounded, size: 20),
+            label: const Text("Done"),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ),
+      );
+    }
+    return AppBar(
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_rounded),
+        tooltip: 'Back',
+        onPressed: () {
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go("/sync");
+          }
+        },
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.3,
+        ),
+      ),
+      backgroundColor: _headerOrange,
+      foregroundColor: Colors.white,
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
+      iconTheme: IconThemeData(color: Colors.white.withValues(alpha: 0.95)),
+      actionsIconTheme: IconThemeData(color: Colors.white.withValues(alpha: 0.95)),
+      actions: actions,
+    );
+  }
+
+  /// Shows the app menu (theme, account, log out). Call from bottom bar or elsewhere.
+  /// [menuButtonKey] should be the GlobalKey of the button that opens the menu (for positioning).
+  static void showAppMenu(BuildContext context, GlobalKey menuButtonKey) {
+    final ThemeCubit theme = context.read<ThemeCubit>();
+    final DeviceServicesCubit deviceService = context.read<DeviceServicesCubit>();
+
+    void onClickMenu(MenuItemProvider item) async {
+      final option = item.menuUserInfo as AppMenuOption;
+      switch (option) {
+        case AppMenuOption.home:
+          context.go("/");
+        case AppMenuOption.trash:
+          context.go("/trash");
+        case AppMenuOption.sync:
+          context.go("/sync");
+        case AppMenuOption.theme:
+          theme.toggleTheme();
+        case AppMenuOption.account:
+          context.go("/account");
+        case AppMenuOption.logout:
+          await logOut(context, deviceService);
+      }
     }
 
-    return AppBar(
-      title: const Text("Mobi Sync Client"),
-      actions: [
-        if (actionsBeforeMenu != null) ...actionsBeforeMenu,
-        IconButton(
-            key: btnKey,
-            icon: const Icon(Icons.menu_rounded),
-            tooltip: 'Show menu',
-            onPressed: () => getMenu(context)),
-        IconButton(
-            icon: const Icon(Icons.add_alert),
-            tooltip: 'Notifications',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text('System notifications list is empty.')));
-            }),
+    final PopupMenu menu = PopupMenu(
+      context: context,
+      config: MenuConfig(
+        maxColumn: 2,
+        backgroundColor: theme.state.isDarkMode ? Colors.white : Colors.black,
+        lineColor: Theme.of(context).listTileTheme.iconColor!,
+      ),
+      items: [
+        mainMenuItem(
+            context,
+            AppMenuOption.theme,
+            theme.state.isDarkMode ? "Light" : "Dark",
+            theme.state.isDarkMode
+                ? Icons.light_mode_outlined
+                : Icons.dark_mode_outlined),
+        mainMenuItem(context, AppMenuOption.account, "Account", Icons.person),
+        mainMenuItem(context, AppMenuOption.logout, "Log out", Icons.logout),
       ],
+      onClickMenu: onClickMenu,
     );
+    menu.show(widgetKey: menuButtonKey);
   }
 
   static Future<void> logOut(

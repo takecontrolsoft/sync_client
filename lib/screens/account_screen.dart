@@ -71,39 +71,6 @@ class AccountScreenView extends StatelessWidget {
             ],
           ),
           SizedBox(
-            width: double.maxFinite,
-            child: okButton(context, "Delete my server files",
-                onPressed: () => showDialog<String>(
-                    context: context,
-                    builder: (BuildContext context) => AlertDialog(
-                          title: const Text('Delete my server files'),
-                          content: const Wrap(
-                              spacing: 20,
-                              runSpacing: 20,
-                              children: <Widget>[
-                                Text(
-                                  'WARNING: This operation will cause deleting all the files synced by this device from the server.',
-                                  textAlign: TextAlign.center,
-                                ),
-                                Text(
-                                  'Make sure they still exist on your device. Check option Deleting:ON/OFF.',
-                                  textAlign: TextAlign.center,
-                                ),
-                                Text(
-                                  'If you confirm your files will be permanently removed from the server for you Nickname and device.',
-                                  textAlign: TextAlign.center,
-                                ),
-                              ]),
-                          actions: [
-                            okButton(context, "Confirm", onPressed: () async {
-                              deleteServerFiles(deviceService);
-                              Navigator.pop(context);
-                            }),
-                            cancelButton(context)
-                          ],
-                        ))),
-          ),
-          SizedBox(
               width: double.maxFinite,
               child: okButton(context, "Delete my local settings",
                   onPressed: () => showDialog<String>(
@@ -152,41 +119,6 @@ class AccountScreenView extends StatelessWidget {
         ]),
       ),
     );
-  }
-
-  void deleteServerFiles(DeviceServicesCubit deviceService) async {
-    String errorText = "";
-    if (!deviceService.isAuthenticated()) {
-      errorText = "No logged in user.";
-    }
-
-    if (deviceService.state.currentUser!.email.isEmpty) {
-      errorText = "Missing user name.";
-    }
-    if (deviceService.state.serverUrl == null) {
-      errorText = "Please select server address.";
-    }
-    if (errorText.isEmpty) {
-      bool deleted = await apiDeleteAllFiles(
-          deviceService.state.currentUser!.email, deviceService.state.id);
-      if (!deleted) {
-        errorText =
-            "An error ocurred while deleting your files from the server.";
-      }
-    }
-    if (errorText.isNotEmpty) {
-      await deviceService.edit((state) {
-        state.lastErrorMessage = errorText;
-      });
-      return;
-    }
-
-    await deviceService.edit((state) {
-      state.lastErrorMessage = null;
-      state.lastSyncDateTime = null;
-      state.syncedFiles.clear();
-      state.successMessage = "Files deleted successfully from the server.";
-    });
   }
 
   Future<void> deleteDeviceSettings(

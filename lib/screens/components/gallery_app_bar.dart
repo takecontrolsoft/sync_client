@@ -11,12 +11,19 @@ class GalleryAppBar {
     required Function(int) onGridSizeChanged,
     required VoidCallback onViewModeToggle,
     VoidCallback? onSelectPressed,
+    VoidCallback? onMoveDocumentsToTrashPressed,
   }) {
     // Get the base app bar
     final baseAppBar = MainAppBar.appBar(context);
 
     // Add gallery-specific actions to the existing actions
     final List<Widget> galleryActions = [
+      if (onMoveDocumentsToTrashPressed != null)
+        IconButton(
+          icon: const Icon(Icons.description),
+          onPressed: onMoveDocumentsToTrashPressed,
+          tooltip: 'Move documents to Trash',
+        ),
       if (onSelectPressed != null)
         IconButton(
           icon: const Icon(Icons.checklist_rtl),
@@ -47,11 +54,17 @@ class GalleryAppBar {
     return AppBar(
       title: baseAppBar.title,
       leading: baseAppBar.leading,
+      leadingWidth: baseAppBar.leadingWidth,
       actions: galleryActions,
       backgroundColor: baseAppBar.backgroundColor,
       foregroundColor: baseAppBar.foregroundColor,
       elevation: baseAppBar.elevation,
+      scrolledUnderElevation: baseAppBar.scrolledUnderElevation,
+      surfaceTintColor: baseAppBar.surfaceTintColor,
+      iconTheme: baseAppBar.iconTheme,
+      actionsIconTheme: baseAppBar.actionsIconTheme,
       centerTitle: baseAppBar.centerTitle,
+      flexibleSpace: baseAppBar.flexibleSpace,
     );
   }
 }

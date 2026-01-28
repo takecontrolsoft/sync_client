@@ -22,7 +22,13 @@ import 'package:popup_menu/popup_menu.dart';
 
 import '../config.dart';
 
-const seedColor = Color.fromARGB(255, 246, 113, 31);
+// Primary: orange. Secondary / surfaces: dark brown.
+const Color _orange = Color(0xFFE85D04);
+const Color _orangeLight = Color(0xFFFF8534);
+const Color _darkBrown = Color(0xFF3D2914);
+const Color _darkBrownLight = Color(0xFF5C3D1E);
+
+const seedColor = _orange;
 
 class AppTheme {
   static ThemeData getTheme(BuildContext context) {
@@ -31,28 +37,134 @@ class AppTheme {
   }
 
   static ThemeData themeData(BuildContext context, ThemeCubit theme) {
+    final isDark = theme.state.isDarkMode;
+    final colorScheme = isDark
+        ? ColorScheme.dark(
+            primary: _orangeLight,
+            onPrimary: Colors.white,
+            secondary: _darkBrownLight,
+            onSecondary: Colors.white,
+            surface: const Color(0xFF1A1209),
+            onSurface: Colors.white,
+            surfaceContainerHighest: _darkBrown,
+          )
+        : ColorScheme.light(
+            primary: _orange,
+            onPrimary: Colors.white,
+            secondary: _darkBrown,
+            onSecondary: Colors.white,
+            surface: Colors.white,
+            onSurface: _darkBrown,
+            surfaceContainerHighest: const Color(0xFFF5E6D3),
+          );
+
+    final buttonStyle = ButtonStyle(
+      backgroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.disabled)) return null;
+        return colorScheme.primary;
+      }),
+      foregroundColor: WidgetStateProperty.all(colorScheme.onPrimary),
+      padding: const WidgetStatePropertyAll(
+        EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      ),
+      shape: WidgetStateProperty.all(
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      elevation: WidgetStateProperty.resolveWith((_) => 0),
+    );
+
+    final outlinedStyle = ButtonStyle(
+      foregroundColor: WidgetStateProperty.all(colorScheme.primary),
+      side: WidgetStateProperty.all(
+        BorderSide(color: colorScheme.primary, width: 1.5),
+      ),
+      padding: const WidgetStatePropertyAll(
+        EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      ),
+      shape: WidgetStateProperty.all(
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+
     return ThemeData(
       useMaterial3: true,
-      colorSchemeSeed: seedColor,
-      brightness: theme.state.isDarkMode ? Brightness.dark : Brightness.light,
-      listTileTheme: const ListTileThemeData(
-        iconColor: seedColor,
+      colorScheme: colorScheme,
+      brightness: isDark ? Brightness.dark : Brightness.light,
+      listTileTheme: ListTileThemeData(
+        iconColor: colorScheme.primary,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        elevation: 0,
+        centerTitle: true,
+        titleTextStyle: TextStyle(
+          color: colorScheme.onSurface,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: colorScheme.surfaceContainerHighest,
+        indicatorColor: colorScheme.primary.withValues(alpha: 0.28),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return IconThemeData(color: colorScheme.primary, size: 24);
+          }
+          return IconThemeData(
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+            size: 24,
+          );
+        }),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.primary,
+            );
+          }
+          return TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: colorScheme.onSurfaceVariant,
+          );
+        }),
+        height: 64,
+        elevation: 0,
+      ),
+      filledButtonTheme: FilledButtonThemeData(style: buttonStyle),
+      elevatedButtonTheme: ElevatedButtonThemeData(style: buttonStyle),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: Colors.blue,
+          foregroundColor: colorScheme.primary,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(style: outlinedStyle),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          foregroundColor: colorScheme.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
         ),
       ),
       checkboxTheme: CheckboxThemeData(
         checkColor: WidgetStateProperty.all(Colors.white),
-        fillColor: WidgetStateProperty.all(objectColor),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ButtonStyle(
-          foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
-          textStyle: WidgetStateProperty.all<TextStyle>(
-              const TextStyle(color: Colors.white)),
-        ),
+        fillColor: WidgetStateProperty.all(colorScheme.primary),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
     );
   }
@@ -579,18 +691,18 @@ MenuItem mainMenuItem(BuildContext context, AppMenuOption menuOption,
 }
 
 MaterialColor objectColor = MaterialColor(
-  const Color.fromRGBO(246, 113, 31, 1).value,
+  0xFFE85D04,
   const <int, Color>{
-    50: Color.fromRGBO(246, 113, 31, 0.1),
-    100: Color.fromRGBO(246, 113, 31, 0.2),
-    200: Color.fromRGBO(246, 113, 31, 0.3),
-    300: Color.fromRGBO(246, 113, 31, 0.4),
-    400: Color.fromRGBO(246, 113, 31, 0.5),
-    500: Color.fromRGBO(246, 113, 31, 0.6),
-    600: Color.fromRGBO(246, 113, 31, 0.7),
-    700: Color.fromRGBO(246, 113, 31, 0.8),
-    800: Color.fromRGBO(246, 113, 31, 0.9),
-    900: Color.fromRGBO(246, 113, 31, 1),
+    50: Color(0x1AE85D04),
+    100: Color(0x33E85D04),
+    200: Color(0x4DE85D04),
+    300: Color(0x66E85D04),
+    400: Color(0x80E85D04),
+    500: Color(0x99E85D04),
+    600: Color(0xB3E85D04),
+    700: Color(0xCCE85D04),
+    800: Color(0xE6E85D04),
+    900: Color(0xFFE85D04),
   },
 );
 

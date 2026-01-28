@@ -29,7 +29,7 @@ class FoldersListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final deviceService = context.read<DeviceServicesCubit>();
     return Scaffold(
-      appBar: MainAppBar.appBar(context),
+      appBar: MainAppBar.appBarWithBack(context, title: "Folders to sync"),
       body: const _FoldersListScreenView(),
       floatingActionButton: FloatingActionButton(
         onPressed: () => selectSourceDir(context, deviceService),

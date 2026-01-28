@@ -8,7 +8,7 @@
 PRODUCT_NAME = sync_client
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = eu.mobisync.client
+PRODUCT_BUNDLE_IDENTIFIER = eu.mobisync.spaceit
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2023 eu.mobisync. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2023 spaceit.mobisync.eu. All rights reserved.

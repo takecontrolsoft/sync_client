@@ -1,11 +1,11 @@
 {
-    "name": "sync_client",
-    "short_name": "sync_client",
+    "name": "SpaceItMobiSync",
+    "short_name": "SpaceItMobiSync",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "SpaceItMobiSync - spaceit.mobisync.eu",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

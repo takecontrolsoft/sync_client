@@ -21,6 +21,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sync_client/config/config.dart';
 import 'package:sync_client/config/theme/app_theme.dart';
 import 'package:sync_client/core/core.dart';
 import 'package:sync_client/screens/components/components.dart';
@@ -291,30 +292,39 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _selectionMode ? _buildSelectionAppBar() : GalleryAppBar.appBar(
-        context,
-        crossAxisCount: _crossAxisCount,
-        isGridView: _isGridView,
-        onGridSizeChanged: (value) {
-          setState(() {
-            _crossAxisCount = value;
-          });
-        },
-        onViewModeToggle: () {
-          setState(() {
-            _isGridView = !_isGridView;
-          });
-        },
-        onSelectPressed: () {
-          setState(() {
-            _selectionMode = true;
-            _selectedPaths.clear();
-          });
-        },
+    return BlocListener<GalleryRefreshCubit, GalleryRefreshState>(
+      listener: (context, state) {
+        if (state.homeNeedsRefresh && mounted) {
+          context.read<GalleryRefreshCubit>().clearHomeRefresh();
+          _refreshInBackground();
+        }
+      },
+      child: Scaffold(
+        appBar: _selectionMode ? _buildSelectionAppBar() : GalleryAppBar.appBar(
+          context,
+          crossAxisCount: _crossAxisCount,
+          isGridView: _isGridView,
+          onGridSizeChanged: (value) {
+            setState(() {
+              _crossAxisCount = value;
+            });
+          },
+          onViewModeToggle: () {
+            setState(() {
+              _isGridView = !_isGridView;
+            });
+          },
+          onMoveDocumentsToTrashPressed: _moveDocumentsToTrash,
+          onSelectPressed: () {
+            setState(() {
+              _selectionMode = true;
+              _selectedPaths.clear();
+            });
+          },
+        ),
+        body: _buildBody(context),
+        floatingActionButton: _selectionMode ? null : _buildFloatingActionButtons(),
       ),
-      body: _buildBody(context), //itemsView(context),
-      floatingActionButton: _selectionMode ? null : _buildFloatingActionButtons(),
     );
   }
 
@@ -353,6 +363,78 @@ class HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  /// Collects all loaded file paths that are documents (by extension) and moves them to Trash.
+  Future<void> _moveDocumentsToTrash() async {
+    final allPaths = <String>[];
+    for (final photos in _photosCache.values) {
+      for (final p in photos) {
+        if (PhotoItem.isDocumentPath(p.path)) allPaths.add(p.path);
+      }
+    }
+    if (allPaths.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No documents found in loaded gallery')),
+        );
+      }
+      return;
+    }
+    final deviceService = context.read<DeviceServicesCubit>();
+    final user = deviceService.state.currentUser?.email;
+    final deviceId = deviceService.state.id;
+    if (user == null || user.isEmpty || deviceId.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Not signed in')),
+        );
+      }
+      return;
+    }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Move documents to Trash'),
+        content: Text(
+          'Move ${allPaths.length} document(s) to Trash? You can restore them later from Trash.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Move to Trash'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      final ok = await apiMoveToTrash(user, deviceId, allPaths);
+      if (!mounted) return;
+      if (ok) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${allPaths.length} document(s) moved to Trash')),
+        );
+        setState(() {
+          _removePhotosFromCache(allPaths);
+        });
+        context.read<GalleryRefreshCubit>().requestTrashRefresh();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to move to Trash')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
   Future<void> _moveSelectedToTrash() async {
     if (_selectedPaths.isEmpty) return;
     final deviceService = context.read<DeviceServicesCubit>();
@@ -379,6 +461,7 @@ class HomeScreenState extends State<HomeScreen> {
           _selectedPaths.clear();
           _removePhotosFromCache(paths);
         });
+        context.read<GalleryRefreshCubit>().requestTrashRefresh();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to move to Trash')),

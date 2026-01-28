@@ -14,6 +14,17 @@ class PhotoItem {
       this.month,
       required this.isVideo});
 
+  /// File extensions treated as documents (for "move documents to trash").
+  static const List<String> documentExtensions = [
+    '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+    '.txt', '.rtf', '.odt', '.ods', '.odp', '.pages', '.numbers', '.key',
+  ];
+
+  static bool isDocumentPath(String path) {
+    final lower = path.toLowerCase();
+    return documentExtensions.any((ext) => lower.endsWith(ext));
+  }
+
   factory PhotoItem.fromPath(String path, String folder) {
     DateTime? extractedDate;
     String? monthKey;

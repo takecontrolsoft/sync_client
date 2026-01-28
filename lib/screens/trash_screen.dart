@@ -90,6 +90,7 @@ class _TrashScreenState extends State<TrashScreen> {
             video: photo,
             photos: photos,
             initialIndex: initialIndex,
+            isFromTrash: true,
           ),
         ),
       );
@@ -100,6 +101,7 @@ class _TrashScreenState extends State<TrashScreen> {
           builder: (context) => PhotoViewerScreen(
             photos: photos,
             initialIndex: initialIndex,
+            isFromTrash: true,
           ),
         ),
       );
@@ -114,101 +116,6 @@ class _TrashScreenState extends State<TrashScreen> {
         _selectedPaths.add(photo.path);
       }
     });
-  }
-
-  Future<void> _showEmptyTrashDialog() async {
-    final deviceService = context.read<DeviceServicesCubit>();
-    final user = deviceService.state.currentUser?.email;
-    final deviceId = deviceService.state.id;
-    if (user == null || user.isEmpty || deviceId.isEmpty) return;
-    final passwordController = TextEditingController();
-    final passwordFocus = FocusNode();
-    if (!mounted) return;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) {
-        return AlertDialog(
-          title: const Text('Empty Trash'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'This will permanently delete all items in Trash. Enter your password to confirm.',
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: passwordController,
-                focusNode: passwordFocus,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(),
-                ),
-                onSubmitted: (_) => Navigator.of(ctx).pop(true),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: const Text('Empty Trash'),
-            ),
-          ],
-        );
-      },
-    );
-    final password = confirmed == true ? passwordController.text : '';
-    // Defer disposal so the dialog route is fully removed (avoids _dependents.isEmpty).
-    void disposeDialogResources() {
-      try {
-        passwordFocus.dispose();
-      } catch (_) {}
-      try {
-        passwordController.dispose();
-      } catch (_) {}
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        disposeDialogResources();
-      });
-    });
-    if (confirmed != true || !mounted) return;
-    try {
-      final ok = await apiEmptyTrash(user, deviceId, password);
-      if (!mounted) return;
-      if (ok) {
-        // Defer UI update so overlay/route cleanup finishes first (avoids _dependents.isEmpty).
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Trash emptied')),
-          );
-          _loadTrashFiles();
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to empty Trash')),
-        );
-      }
-    } on InvalidCredentialError catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Wrong password')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
-    }
   }
 
   Future<void> _restoreSelected() async {
@@ -231,6 +138,7 @@ class _TrashScreenState extends State<TrashScreen> {
       if (ok) {
         await CacheService.clearCache();
         if (!mounted) return;
+        context.read<GalleryRefreshCubit>().requestHomeRefresh();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${paths.length} item(s) restored to Home')),
         );
@@ -298,32 +206,34 @@ class _TrashScreenState extends State<TrashScreen> {
       );
     }
 
-    return Scaffold(
-      appBar: _selectionMode
-          ? _buildSelectionAppBar()
-          : MainAppBar.appBar(
-              context,
-              actionsBeforeMenu: _trashPhotos.isEmpty
-                  ? null
-                  : [
-                      IconButton(
-                        icon: const Icon(Icons.delete_sweep),
-                        onPressed: _showEmptyTrashDialog,
-                        tooltip: 'Empty Trash',
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.checklist_rtl),
-                        onPressed: () {
-                          setState(() {
-                            _selectionMode = true;
-                            _selectedPaths.clear();
-                          });
-                        },
-                        tooltip: 'Select',
-                      ),
-                    ],
-            ),
-      floatingActionButton: _selectionMode
+    return BlocListener<GalleryRefreshCubit, GalleryRefreshState>(
+      listener: (context, state) {
+        if (state.trashNeedsRefresh && mounted) {
+          context.read<GalleryRefreshCubit>().clearTrashRefresh();
+          _loadTrashFiles();
+        }
+      },
+      child: Scaffold(
+        appBar: _selectionMode
+            ? _buildSelectionAppBar()
+            : MainAppBar.appBar(
+                context,
+                actionsBeforeMenu: _trashPhotos.isEmpty
+                    ? null
+                    : [
+                        IconButton(
+                          icon: const Icon(Icons.checklist_rtl),
+                          onPressed: () {
+                            setState(() {
+                              _selectionMode = true;
+                              _selectedPaths.clear();
+                            });
+                          },
+                          tooltip: 'Select',
+                        ),
+                      ],
+              ),
+        floatingActionButton: _selectionMode
           ? null
           : Column(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -432,6 +342,7 @@ class _TrashScreenState extends State<TrashScreen> {
                           ),
                         ],
                       ),
+        ),
       ),
     );
   }

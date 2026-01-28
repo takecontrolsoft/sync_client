@@ -1,0 +1,170 @@
+name: Deploy (Google Play & App Store)
+
+# Publishes AAB to Google Play and IPA to TestFlight.
+# Trigger: tag v* or workflow_dispatch.
+#
+# Google Play – Secrets: GOOGLE_PLAY_CREDENTIALS (service account JSON), same as build for Android.
+# App Store – Secrets: BUILD_CERTIFICATE_BASE64 (p12), P12_PASSWORD, BUILD_PROVISION_PROFILE_BASE64;
+#   Vars: APPSTORE_ISSUER_ID, APPSTORE_API_KEY_ID. Secret: APPSTORE_API_PRIVATE_KEY (.p8 contents).
+#   Var: IOS_PROFILE_NAME – exact provisioning profile name for eu.mobisync.syncClient.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      play_track:
+        description: 'Google Play track'
+        required: false
+        default: 'internal'
+        type: choice
+        options:
+          - internal
+          - alpha
+          - beta
+          - production
+      deploy_android:
+        description: 'Deploy to Google Play'
+        required: false
+        default: true
+        type: boolean
+      deploy_ios:
+        description: 'Deploy to App Store (TestFlight)'
+        required: false
+        default: true
+        type: boolean
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy-android:
+    name: Deploy Android (Google Play)
+    if: github.event_name != 'workflow_dispatch' || github.event.inputs.deploy_android != 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Create keystore and key.properties
+        run: |
+          printf '%s' "$ANDROID_KEYSTORE_B64" | base64 -d > android/app/upload-keystore.jks
+          mkdir -p android
+          cat > android/key.properties << EOF
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          storeFile=upload-keystore.jks
+          EOF
+        env:
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build App Bundle (release)
+        run: flutter build appbundle --release
+
+      - name: Upload to Google Play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_CREDENTIALS }}
+          packageName: eu.mobisync.sync_client
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: ${{ github.event.inputs.play_track || 'internal' }}
+          status: completed
+          mappingFile: android/app/build/outputs/mapping/release/mapping.txt
+
+  deploy-ios:
+    name: Deploy iOS (TestFlight)
+    if: github.event_name != 'workflow_dispatch' || github.event.inputs.deploy_ios != 'false'
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Import code signing certificate
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          p12-password: ${{ secrets.P12_PASSWORD }}
+
+      - name: Install provisioning profile
+        run: |
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          printf '%s' "$BUILD_PROVISION_PROFILE_B64" | base64 -d > "$HOME/Library/MobileDevice/Provisioning Profiles/ci.mobileprovision"
+        env:
+          BUILD_PROVISION_PROFILE_B64: ${{ secrets.BUILD_PROVISION_PROFILE_BASE64 }}
+
+      - name: Create ExportOptions.plist
+        run: |
+          PROFILE="${{ vars.IOS_PROFILE_NAME }}"
+          if [ -z "$PROFILE" ]; then
+            echo "::error::Repository variable IOS_PROFILE_NAME is required for iOS deploy."
+            exit 1
+          fi
+          cat > ios/ExportOptions.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store</string>
+            <key>teamID</key>
+            <string>R25XLT6Z87</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>signingCertificate</key>
+            <string>iPhone Distribution</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>eu.mobisync.syncClient</key>
+              <string>${PROFILE}</string>
+            </dict>
+            <key>uploadSymbols</key>
+            <true/>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Install CocoaPods
+        run: cd ios && pod install && cd ..
+
+      - name: Build IPA
+        run: flutter build ipa --export-options-plist=ios/ExportOptions.plist
+
+      - name: Locate IPA
+        id: ipa
+        run: |
+          F=$(ls build/ios/ipa/*.ipa 2>/dev/null | head -1)
+          if [ -z "$F" ]; then echo "::error::No IPA found"; exit 1; fi
+          echo "path=$F" >> "$GITHUB_OUTPUT"
+
+      - name: Upload to TestFlight
+        uses: apple-actions/upload-testflight-build@v3
+        with:
+          app-path: ${{ steps.ipa.outputs.path }}
+          issuer-id: ${{ vars.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ vars.APPSTORE_API_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}

@@ -126,55 +126,6 @@ Future<bool> apiRestoreFromTrash(
   }
 }
 
-/// Permanently deletes all files in Trash. Requires [password] (or server may accept Bearer token).
-/// Returns true on success. Throws on 401 (wrong password).
-Future<bool> apiEmptyTrash(
-  String userName,
-  String deviceId,
-  String password,
-) async {
-  var request = Request('POST', getUrl("empty-trash"));
-  request.headers.addAll(
-      <String, String>{'Content-Type': 'application/json; charset=UTF-8'});
-  request.body = jsonEncode(<String, dynamic>{
-    'User': userName,
-    'DeviceId': deviceId,
-    'Password': password,
-  });
-  try {
-    var streamedResponse = await request.send();
-    var response = await Response.fromStream(streamedResponse);
-    if (response.statusCode == 200) return true;
-    if (response.statusCode == 401) {
-      throw InvalidCredentialError();
-    }
-  } catch (err) {
-    if (err is InvalidCredentialError) rethrow;
-    throw GetFoldersError();
-  }
-  return false;
-}
-
-Future<bool> apiDeleteAllFiles(String userName, String deviceId) async {
-  var request = Request('POST', getUrl("delete-all"));
-  request.headers.addAll(
-      <String, String>{'Content-Type': 'application/json; charset=UTF-8'});
-
-  request.body = jsonEncode(<String, dynamic>{
-    'User': userName,
-    'DeviceId': deviceId,
-  });
-  try {
-    var response = await request.send();
-    if (response.statusCode == 200) {
-      return true;
-    }
-  } catch (err) {
-    throw GetFoldersError();
-  }
-  return false;
-}
-
 Future<Uint8List?> apiGetImageBytes(
   String userName,
   String deviceId,

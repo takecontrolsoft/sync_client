@@ -1,60 +1,60 @@
-# Дизайн: Вход и сигурност в приложението
+# Design: Login and security in the app
 
-## Изисквания
+## Requirements
 
-1. **Вход в приложението** – един от следните (или и двете):
-   - **Username + парола** – сървърът валидира срещу локална SQLite БД.
-   - **Google акаунт** – вход с Google Sign-In; сървърът приема Google ID token и създава/свързва потребител.
+1. **App login** – one or both of:
+   - **Username + password** – server validates against local SQLite DB.
+   - **Google account** – sign in with Google Sign-In; server accepts Google ID token and creates/links user.
 
-2. **Паролата на устройството** – запазва се **сигурно** на устройството (не в обикновен JSON):
-   - Използва се **flutter_secure_storage** (или подобно) за session token / credentials.
-   - При отваряне на приложението – ако има валиден токен в secure storage, потребителят остава „вписан“ без да въвежда парола отново.
+2. **Device password** – stored **securely** on device (not in plain JSON):
+   - Use **flutter_secure_storage** (or similar) for session token / credentials.
+   - On app launch – if a valid token exists in secure storage, user stays "logged in" without re-entering password.
 
-3. **При изтриване / опасни действия** – изисква се допълнително потвърждение:
-   - **Биометрични данни** (пръст, лице) – чрез **local_auth**.
-   - Или **PIN код** – зададен от потребителя в настройките; при „Delete all“, „Empty trash“, масово „Move to Trash“ – първо се показва екран за биометрия или въвеждане на PIN.
-
----
-
-## Компоненти
-
-### Сървър (sync_server)
-
-- **SQLite БД** – таблица `users` (username, password_hash).
-- **POST /auth/login** – `{ "User": "", "Password": "" }` → при успех връща `{ "Token": "..." }` (JWT или случайно токен, съхранен в БД).
-- **POST /auth/register** – създава потребител (опционално, ако е включена регистрация).
-- **Опасни endpoints** (`/delete-all`, `/empty-trash`) – изискват заглавка `Authorization: Bearer <token>` или парола в тялото; сървърът проверява токена/паролата преди изпълнение.
-- **POST /auth/google** (фаза 2) – приема Google ID token, проверява го, създава/връща session token.
-
-### Клиент (sync_client)
-
-- **Secure storage** – `flutter_secure_storage` за:
-  - `auth_token` – след успешен login/Google вход.
-  - Опционално: да не се пази паролата в plain text в DeviceSettings; само токен.
-- **Login екран** – както сега (email + парола) + бутон „Вход с Google“ (фаза 2).
-  - При успешен вход – запазване на токен в secure storage и в state (currentUser + token).
-- **При стартиране** – прочитане на токен от secure storage; ако има валиден токен → автоматичен вход (без показване на login екран).
-- **API заявки** – всички заявки към сървъра да включват `Authorization: Bearer <token>` (когато има токен).
-- **Опасни действия** – преди извикване на `apiDeleteAllFiles` / `apiEmptyTrash` / масово „Move to Trash“:
-  - Показва се диалог: „Потвърдете с биометрия или PIN“.
-  - **local_auth**: `authenticate()` – при успех продължаваме с заявката.
-  - Ако биометрията не е налична или потребителят избере PIN – показва се екран за въвеждане на PIN (запазен в secure storage при първо задаване в настройките).
-
-### PIN код
-
-- В **Настройки / Account** – опция „Задай PIN за потвърждение при изтриване“.
-- PIN се пази само в **secure storage** (хеширан или криптиран).
-- При първо „Delete all“ / „Empty trash“ – ако няма зададен PIN, може да се подкани потребителят да зададе PIN или да използва само биометрия.
+3. **On delete / dangerous actions** – additional confirmation required:
+   - **Biometrics** (fingerprint, face) – via **local_auth**.
+   - Or **PIN** – set by user in settings; for "Delete all", "Empty trash", bulk "Move to Trash" – show biometric or PIN entry screen first.
 
 ---
 
-## Фази на внедряване
+## Components
 
-| Фаза | Описание |
-|------|----------|
-| **1** | Сървър: SQLite auth БД + `/auth/login` + защита на `/delete-all` и `/empty-trash` с парола или токен. Клиент: запазване на токен в secure storage, изпращане в заявките; преди delete/empty-trash – изискване за биометрия (local_auth). |
-| **2** | Клиент: опция за PIN в настройките; при опасни действия – биометрия или въвеждане на PIN. |
-| **3** | Вход с Google: бутон в login екран, `google_sign_in`, сървър endpoint `/auth/google`. |
-| **4** | Премахване на паролата от DeviceSettings (plain text); само токен в secure storage. |
+### Server (sync_server)
 
-Този документ описва общия дизайн; конкретната имплементация следва тези фази.
+- **SQLite DB** – `users` table (username, password_hash).
+- **POST /auth/login** – `{ "User": "", "Password": "" }` → on success returns `{ "Token": "..." }` (JWT or random token stored in DB).
+- **POST /auth/register** – creates user (optional, if registration is enabled).
+- **Dangerous endpoints** (`/delete-all`, `/empty-trash`) – require `Authorization: Bearer <token>` header or password in body; server verifies token/password before execution.
+- **POST /auth/google** (phase 2) – accepts Google ID token, validates it, creates/returns session token.
+
+### Client (sync_client)
+
+- **Secure storage** – `flutter_secure_storage` for:
+  - `auth_token` – after successful login/Google sign-in.
+  - Optionally: do not store password in plain text in DeviceSettings; token only.
+- **Login screen** – current (email + password) + "Sign in with Google" button (phase 2).
+  - On successful login – store token in secure storage and state (currentUser + token).
+- **On startup** – read token from secure storage; if valid token → auto login (no login screen).
+- **API requests** – all requests to server include `Authorization: Bearer <token>` (when token exists).
+- **Dangerous actions** – before calling `apiDeleteAllFiles` / `apiEmptyTrash` / bulk "Move to Trash":
+  - Show dialog: "Confirm with biometrics or PIN".
+  - **local_auth**: `authenticate()` – on success proceed with request.
+  - If biometrics unavailable or user chooses PIN – show PIN entry screen (PIN stored in secure storage when first set in settings).
+
+### PIN
+
+- In **Settings / Account** – option "Set PIN for delete confirmation".
+- PIN stored only in **secure storage** (hashed or encrypted).
+- On first "Delete all" / "Empty trash" – if no PIN set, prompt user to set PIN or use biometrics only.
+
+---
+
+## Implementation phases
+
+| Phase | Description |
+|-------|-------------|
+| **1** | Server: SQLite auth DB + `/auth/login` + protect `/delete-all` and `/empty-trash` with password or token. Client: store token in secure storage, send in requests; before delete/empty-trash – require biometrics (local_auth). |
+| **2** | Client: PIN option in settings; for dangerous actions – biometrics or PIN entry. |
+| **3** | Google sign-in: button on login screen, `google_sign_in`, server endpoint `/auth/google`. |
+| **4** | Remove password from DeviceSettings (plain text); token only in secure storage. |
+
+This document describes the overall design; concrete implementation follows these phases.

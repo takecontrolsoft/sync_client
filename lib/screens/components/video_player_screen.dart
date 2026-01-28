@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'package:sync_client/config/config.dart';
 import 'package:sync_client/config/theme/app_theme.dart';
 import 'package:sync_client/core/core.dart';
 import 'package:sync_client/models/photo_item.dart';
@@ -31,12 +32,15 @@ class VideoPlayerScreen extends StatefulWidget {
     required this.video,
     this.photos,
     this.initialIndex,
+    this.isFromTrash = false,
   });
 
   final PhotoItem video;
-  /// When set, app bar shows prev/next and move-to-trash.
+  /// When set, app bar shows prev/next and move-to-trash (unless isFromTrash).
   final List<PhotoItem>? photos;
   final int? initialIndex;
+  /// When true (e.g. opened from Trash), hide move-to-trash button.
+  final bool isFromTrash;
 
   @override
   State<VideoPlayerScreen> createState() => _VideoPlayerScreenState();
@@ -127,6 +131,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             video: item,
             photos: widget.photos,
             initialIndex: idx,
+            isFromTrash: widget.isFromTrash,
           ),
         ),
       );
@@ -136,6 +141,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           builder: (context) => PhotoViewerScreen(
             photos: widget.photos!,
             initialIndex: idx,
+            isFromTrash: widget.isFromTrash,
           ),
         ),
       );
@@ -154,6 +160,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             video: item,
             photos: widget.photos,
             initialIndex: idx,
+            isFromTrash: widget.isFromTrash,
           ),
         ),
       );
@@ -163,6 +170,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           builder: (context) => PhotoViewerScreen(
             photos: widget.photos!,
             initialIndex: idx,
+            isFromTrash: widget.isFromTrash,
           ),
         ),
       );
@@ -188,6 +196,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Moved to Trash')),
         );
+        context.read<GalleryRefreshCubit>().requestTrashRefresh();
         Navigator.of(context).pop(widget.video.path);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -220,26 +229,84 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
-          if (_canGoPrevious)
+          if (!widget.isFromTrash)
             IconButton(
-              icon: const Icon(Icons.arrow_back_ios),
-              onPressed: _goToPrevious,
-              tooltip: 'Previous',
+              icon: const Icon(Icons.delete_outline),
+              onPressed: _moveToTrash,
+              tooltip: 'Move to Trash',
             ),
-          if (_canGoNext)
-            IconButton(
-              icon: const Icon(Icons.arrow_forward_ios),
-              onPressed: _goToNext,
-              tooltip: 'Next',
-            ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            onPressed: _moveToTrash,
-            tooltip: 'Move to Trash',
-          ),
         ],
       ),
-      body: _buildBody(),
+      body: Stack(
+        children: [
+          _buildBody(),
+          // Prev/next arrows on both sides of video (not in app bar)
+          if (_canGoPrevious)
+            Positioned(
+              left: 20,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _goToPrevious,
+                    borderRadius: BorderRadius.circular(28),
+                    child: Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          if (_canGoNext)
+            Positioned(
+              right: 20,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _goToNext,
+                    borderRadius: BorderRadius.circular(28),
+                    child: Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 

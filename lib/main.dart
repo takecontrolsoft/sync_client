@@ -66,6 +66,7 @@ class BlocProviders extends StatelessWidget {
         BlocProvider(create: (context) => DeviceServicesCubit()),
         BlocProvider(create: (context) => SyncServicesCubit()),
         BlocProvider(create: (context) => ThemeCubit()),
+        BlocProvider(create: (context) => GalleryRefreshCubit()),
       ],
       child: const MyApp(),
     );

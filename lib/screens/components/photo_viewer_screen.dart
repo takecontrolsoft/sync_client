@@ -11,17 +11,21 @@ import 'package:photo_view/photo_view_gallery.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'package:sync_client/config/config.dart';
 import 'package:sync_client/config/theme/app_theme.dart';
 import 'package:sync_client/screens/components/video_player_screen.dart';
 
 class PhotoViewerScreen extends StatefulWidget {
   final List<PhotoItem> photos;
   final int initialIndex;
+  /// When true (e.g. opened from Trash), hide "Move to Trash" option.
+  final bool isFromTrash;
 
   const PhotoViewerScreen({
     Key? key,
     required this.photos,
     required this.initialIndex,
+    this.isFromTrash = false,
   }) : super(key: key);
 
   @override
@@ -512,43 +516,38 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                   ),
                 ),
 
-              // Navigation arrows - Left (vertically centered, visible when overlay shown)
-              if (_currentIndex > 0)
+              // Navigation arrows - left and right sides of photo (clear of top bar)
+              if (widget.photos.length > 1 && _currentIndex > 0)
                 Positioned(
-                  left: 0,
+                  left: 20,
                   top: 0,
                   bottom: 0,
-                  width: 72,
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 16),
-                      child: AnimatedOpacity(
-                        opacity: _showOverlay ? 1.0 : 0.0,
-                        duration: GalleryAnimations.overlayFade,
-                        child: IgnorePointer(
-                          ignoring: !_showOverlay,
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: _goToPrevious,
-                              borderRadius: BorderRadius.circular(28),
-                              child: Container(
-                                width: 56,
-                                height: 56,
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.5),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.2),
-                                    width: 1,
-                                  ),
+                  child: Center(
+                    child: AnimatedOpacity(
+                      opacity: _showOverlay ? 1.0 : 0.0,
+                      duration: GalleryAnimations.overlayFade,
+                      child: IgnorePointer(
+                        ignoring: !_showOverlay,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: _goToPrevious,
+                            borderRadius: BorderRadius.circular(28),
+                            child: Container(
+                              width: 56,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.5),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.2),
+                                  width: 1,
                                 ),
-                                child: const Icon(
-                                  Icons.arrow_back_ios_new,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
+                              ),
+                              child: const Icon(
+                                Icons.arrow_back_ios_new,
+                                color: Colors.white,
+                                size: 24,
                               ),
                             ),
                           ),
@@ -558,43 +557,38 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                   ),
                 ),
 
-              // Navigation arrows - Right (vertically centered)
-              if (_currentIndex < widget.photos.length - 1)
+              if (widget.photos.length > 1 &&
+                  _currentIndex < widget.photos.length - 1)
                 Positioned(
-                  right: 0,
+                  right: 20,
                   top: 0,
                   bottom: 0,
-                  width: 72,
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 16),
-                      child: AnimatedOpacity(
-                        opacity: _showOverlay ? 1.0 : 0.0,
-                        duration: GalleryAnimations.overlayFade,
-                        child: IgnorePointer(
-                          ignoring: !_showOverlay,
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: _goToNext,
-                              borderRadius: BorderRadius.circular(28),
-                              child: Container(
-                                width: 56,
-                                height: 56,
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.5),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.2),
-                                    width: 1,
-                                  ),
+                  child: Center(
+                    child: AnimatedOpacity(
+                      opacity: _showOverlay ? 1.0 : 0.0,
+                      duration: GalleryAnimations.overlayFade,
+                      child: IgnorePointer(
+                        ignoring: !_showOverlay,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: _goToNext,
+                            borderRadius: BorderRadius.circular(28),
+                            child: Container(
+                              width: 56,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.5),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.2),
+                                  width: 1,
                                 ),
-                                child: const Icon(
-                                  Icons.arrow_forward_ios,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
+                              ),
+                              child: const Icon(
+                                Icons.arrow_forward_ios,
+                                color: Colors.white,
+                                size: 24,
                               ),
                             ),
                           ),
@@ -698,14 +692,15 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                                         contentPadding: EdgeInsets.zero,
                                       ),
                                     ),
-                                    const PopupMenuItem(
-                                      value: 'trash',
-                                      child: ListTile(
-                                        leading: Icon(Icons.delete_outline),
-                                        title: Text('Move to Trash'),
-                                        contentPadding: EdgeInsets.zero,
+                                    if (!widget.isFromTrash)
+                                      const PopupMenuItem(
+                                        value: 'trash',
+                                        child: ListTile(
+                                          leading: Icon(Icons.delete_outline),
+                                          title: Text('Move to Trash'),
+                                          contentPadding: EdgeInsets.zero,
+                                        ),
                                       ),
-                                    ),
                                     const PopupMenuItem(
                                       value: 'info',
                                       child: ListTile(
@@ -829,6 +824,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
           video: video,
           photos: widget.photos,
           initialIndex: _currentIndex,
+          isFromTrash: widget.isFromTrash,
         ),
       ),
     );
@@ -917,6 +913,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Moved to Trash')),
         );
+        context.read<GalleryRefreshCubit>().requestTrashRefresh();
         Navigator.of(context).pop(photo.path);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
