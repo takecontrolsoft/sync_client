@@ -81,6 +81,80 @@ Future<List<String>> apiGetFiles(
   return [];
 }
 
+Future<bool> apiMoveToTrash(
+  String userName,
+  String deviceId,
+  List<String> files,
+) async {
+  if (files.isEmpty) return true;
+  var request = Request('POST', getUrl("move-to-trash"));
+  request.headers.addAll(
+      <String, String>{'Content-Type': 'application/json; charset=UTF-8'});
+  request.body = jsonEncode(<String, dynamic>{
+    'UserData': <String, dynamic>{'User': userName, 'DeviceId': deviceId},
+    'Files': files,
+  });
+  try {
+    var streamedResponse = await request.send();
+    var response = await Response.fromStream(streamedResponse);
+    return response.statusCode == 200;
+  } catch (err) {
+    throw GetFoldersError();
+  }
+}
+
+/// Restore files from Trash back to Home. [files] must be paths like "Trash/2024/01/photo.jpg".
+Future<bool> apiRestoreFromTrash(
+  String userName,
+  String deviceId,
+  List<String> files,
+) async {
+  if (files.isEmpty) return true;
+  var request = Request('POST', getUrl("restore"));
+  request.headers.addAll(
+      <String, String>{'Content-Type': 'application/json; charset=UTF-8'});
+  request.body = jsonEncode(<String, dynamic>{
+    'UserData': <String, dynamic>{'User': userName, 'DeviceId': deviceId},
+    'Files': files,
+  });
+  try {
+    var streamedResponse = await request.send();
+    var response = await Response.fromStream(streamedResponse);
+    return response.statusCode == 200;
+  } catch (err) {
+    throw GetFoldersError();
+  }
+}
+
+/// Permanently deletes all files in Trash. Requires [password] (or server may accept Bearer token).
+/// Returns true on success. Throws on 401 (wrong password).
+Future<bool> apiEmptyTrash(
+  String userName,
+  String deviceId,
+  String password,
+) async {
+  var request = Request('POST', getUrl("empty-trash"));
+  request.headers.addAll(
+      <String, String>{'Content-Type': 'application/json; charset=UTF-8'});
+  request.body = jsonEncode(<String, dynamic>{
+    'User': userName,
+    'DeviceId': deviceId,
+    'Password': password,
+  });
+  try {
+    var streamedResponse = await request.send();
+    var response = await Response.fromStream(streamedResponse);
+    if (response.statusCode == 200) return true;
+    if (response.statusCode == 401) {
+      throw InvalidCredentialError();
+    }
+  } catch (err) {
+    if (err is InvalidCredentialError) rethrow;
+    throw GetFoldersError();
+  }
+  return false;
+}
+
 Future<bool> apiDeleteAllFiles(String userName, String deviceId) async {
   var request = Request('POST', getUrl("delete-all"));
   request.headers.addAll(

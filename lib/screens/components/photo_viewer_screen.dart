@@ -512,38 +512,43 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                   ),
                 ),
 
-              // Navigation arrows - Left (visible when overlay shown)
+              // Navigation arrows - Left (vertically centered, visible when overlay shown)
               if (_currentIndex > 0)
                 Positioned(
-                  left: 16,
+                  left: 0,
                   top: 0,
                   bottom: 0,
-                  child: Center(
-                    child: AnimatedOpacity(
-                      opacity: _showOverlay ? 1.0 : 0.0,
-                      duration: GalleryAnimations.overlayFade,
-                      child: IgnorePointer(
-                        ignoring: !_showOverlay,
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: _goToPrevious,
-                            borderRadius: BorderRadius.circular(28),
-                            child: Container(
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.5),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.2),
-                                  width: 1,
+                  width: 72,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 16),
+                      child: AnimatedOpacity(
+                        opacity: _showOverlay ? 1.0 : 0.0,
+                        duration: GalleryAnimations.overlayFade,
+                        child: IgnorePointer(
+                          ignoring: !_showOverlay,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: _goToPrevious,
+                              borderRadius: BorderRadius.circular(28),
+                              child: Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.5),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.2),
+                                    width: 1,
+                                  ),
                                 ),
-                              ),
-                              child: const Icon(
-                                Icons.arrow_back_ios_new,
-                                color: Colors.white,
-                                size: 24,
+                                child: const Icon(
+                                  Icons.arrow_back_ios_new,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
                               ),
                             ),
                           ),
@@ -553,38 +558,43 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                   ),
                 ),
 
-              // Navigation arrows - Right
+              // Navigation arrows - Right (vertically centered)
               if (_currentIndex < widget.photos.length - 1)
                 Positioned(
-                  right: 16,
+                  right: 0,
                   top: 0,
                   bottom: 0,
-                  child: Center(
-                    child: AnimatedOpacity(
-                      opacity: _showOverlay ? 1.0 : 0.0,
-                      duration: GalleryAnimations.overlayFade,
-                      child: IgnorePointer(
-                        ignoring: !_showOverlay,
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: _goToNext,
-                            borderRadius: BorderRadius.circular(28),
-                            child: Container(
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.5),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.2),
-                                  width: 1,
+                  width: 72,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: AnimatedOpacity(
+                        opacity: _showOverlay ? 1.0 : 0.0,
+                        duration: GalleryAnimations.overlayFade,
+                        child: IgnorePointer(
+                          ignoring: !_showOverlay,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: _goToNext,
+                              borderRadius: BorderRadius.circular(28),
+                              child: Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.5),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.2),
+                                    width: 1,
+                                  ),
                                 ),
-                              ),
-                              child: const Icon(
-                                Icons.arrow_forward_ios,
-                                color: Colors.white,
-                                size: 24,
+                                child: const Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
                               ),
                             ),
                           ),
@@ -671,8 +681,8 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                                       case 'share':
                                         _shareImage();
                                         break;
-                                      case 'delete':
-                                        _deleteImage();
+                                      case 'trash':
+                                        _moveToTrash();
                                         break;
                                       case 'info':
                                         _showImageInfo();
@@ -689,10 +699,10 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                                       ),
                                     ),
                                     const PopupMenuItem(
-                                      value: 'delete',
+                                      value: 'trash',
                                       child: ListTile(
-                                        leading: Icon(Icons.delete),
-                                        title: Text('Delete'),
+                                        leading: Icon(Icons.delete_outline),
+                                        title: Text('Move to Trash'),
                                         contentPadding: EdgeInsets.zero,
                                       ),
                                     ),
@@ -815,7 +825,11 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => VideoPlayerScreen(video: video),
+        builder: (context) => VideoPlayerScreen(
+          video: video,
+          photos: widget.photos,
+          initialIndex: _currentIndex,
+        ),
       ),
     );
   }
@@ -862,15 +876,26 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
     }
   }
 
-  Future<void> _deleteImage() async {
+  Future<void> _moveToTrash() async {
     final photo = widget.photos[_currentIndex];
+    final deviceService = context.read<DeviceServicesCubit>();
+    final user = deviceService.state.currentUser?.email;
+    final deviceId = deviceService.state.id;
+    if (user == null || user.isEmpty || deviceId.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Not signed in')),
+        );
+      }
+      return;
+    }
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Photo'),
+        title: const Text('Move to Trash'),
         content: Text(
-            'Are you sure you want to delete ${photo.path.split('/').last}?'),
+            'Move ${photo.path.split('/').last} to Trash? You can restore it later from Trash.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -878,19 +903,32 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: const Text('Move to Trash'),
           ),
         ],
       ),
     );
 
-    if (confirmed == true) {
-      // Implement delete functionality
-      // You'll need to add an API call to delete the image
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Delete functionality not implemented')),
-      );
+    if (confirmed != true || !mounted) return;
+    try {
+      final ok = await apiMoveToTrash(user, deviceId, [photo.path]);
+      if (!mounted) return;
+      if (ok) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Moved to Trash')),
+        );
+        Navigator.of(context).pop(photo.path);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to move to Trash')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
     }
   }
 

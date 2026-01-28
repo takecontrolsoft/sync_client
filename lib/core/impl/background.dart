@@ -1,5 +1,5 @@
 /*
-	Copyright 2023 Take Control - Software & Infrastructure
+	Copyright 2026 Take Control - Software & Infrastructure
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -63,6 +63,12 @@ class BackgroundAction implements IAction {
     for (FileSystemEntity file in reversedFiles) {
       if (!FileSystemEntity.isDirectorySync(file.path)) {
         DateTime lastFileDate = await File(file.path).lastModified();
+        // Avoid future or bogus dates: clamp to today if lastModified is in future
+        // or before 2000 (e.g. missing date on device)
+        final now = DateTime.now();
+        if (lastFileDate.isAfter(now) || lastFileDate.year < 2000) {
+          lastFileDate = now;
+        }
         String dateClassifier = "${lastFileDate.year}-${lastFileDate.month}";
 
         final fileHadBeenSynced = currentDeviceSettings.syncedFiles.any((f) =>

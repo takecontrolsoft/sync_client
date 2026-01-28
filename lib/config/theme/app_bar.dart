@@ -20,10 +20,11 @@ import 'package:popup_menu/popup_menu.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/services/device_services.dart';
 
-enum AppMenuOption { home, sync, theme, account, logout }
+enum AppMenuOption { home, trash, sync, theme, account, logout }
 
 class MainAppBar {
-  static AppBar appBar(BuildContext context) {
+  /// [actionsBeforeMenu] are shown in the AppBar before the menu (e.g. refresh on Trash).
+  static AppBar appBar(BuildContext context, {List<Widget>? actionsBeforeMenu}) {
     final ThemeCubit theme = context.watch<ThemeCubit>();
     final DeviceServicesCubit deviceService =
         context.read<DeviceServicesCubit>();
@@ -34,22 +35,15 @@ class MainAppBar {
       final option = item.menuUserInfo as AppMenuOption;
       switch (option) {
         case AppMenuOption.home:
-          if (context.canPop()) {
-            context.pop();
-          }
-          context.push("/");
+          context.go("/");
+        case AppMenuOption.trash:
+          context.go("/trash");
         case AppMenuOption.sync:
-          if (context.canPop()) {
-            context.pop();
-          }
-          context.push("/sync");
+          context.go("/sync");
         case AppMenuOption.theme:
           theme.toggleTheme();
         case AppMenuOption.account:
-          if (context.canPop()) {
-            context.pop();
-          }
-          context.push("/account");
+          context.go("/account");
         case AppMenuOption.logout:
           await logOut(context, deviceService);
       }
@@ -65,6 +59,7 @@ class MainAppBar {
               lineColor: Theme.of(context).listTileTheme.iconColor!),
           items: [
             mainMenuItem(context, AppMenuOption.home, "Home", Icons.home),
+            mainMenuItem(context, AppMenuOption.trash, "Trash", Icons.delete_outline),
             mainMenuItem(context, AppMenuOption.sync, "Sync", Icons.sync),
             mainMenuItem(
                 context,
@@ -84,6 +79,7 @@ class MainAppBar {
     return AppBar(
       title: const Text("Mobi Sync Client"),
       actions: [
+        if (actionsBeforeMenu != null) ...actionsBeforeMenu,
         IconButton(
             key: btnKey,
             icon: const Icon(Icons.menu_rounded),

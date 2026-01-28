@@ -53,6 +53,10 @@ class HomeScreenState extends State<HomeScreen> {
   bool _isGridView = true;
   int _crossAxisCount = 3;
   final ScrollController _scrollController = ScrollController();
+  bool _selectionMode = false;
+  final Set<String> _selectedPaths = {};
+  bool _wasRouteCurrent = false;
+  bool _leftHome = false;
 
   // Loading configuration
   static const Duration _timeout = Duration(seconds: 15);
@@ -63,6 +67,22 @@ class HomeScreenState extends State<HomeScreen> {
     super.initState();
     _initializeLoading();
     _setupScrollController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final isCurrent = ModalRoute.of(context)?.isCurrent ?? false;
+    if (_wasRouteCurrent && !isCurrent) {
+      _leftHome = true;
+    }
+    if (isCurrent && _leftHome) {
+      _leftHome = false;
+      if (_folders.isNotEmpty) {
+        _refreshInBackground();
+      }
+    }
+    _wasRouteCurrent = isCurrent;
   }
 
   @override
@@ -85,12 +105,15 @@ class HomeScreenState extends State<HomeScreen> {
     // First, try to load from cache immediately
     final cachedFolders = await CacheService.getCachedFolders();
     if (cachedFolders != null && cachedFolders.isNotEmpty && mounted) {
+      final filtered = cachedFolders
+          .where((f) => f != 'Trash' && !f.startsWith('Trash/'))
+          .toList();
       setState(() {
-        _folders = cachedFolders;
+        _folders = filtered;
       });
 
-      // Load cached files for each folder
-      for (final folder in cachedFolders) {
+      // Load cached files for each folder (excluding Trash)
+      for (final folder in filtered) {
         final cachedFiles = await CacheService.getCachedFiles(folder);
         if (cachedFiles != null && mounted) {
           final photos =
@@ -269,7 +292,7 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: GalleryAppBar.appBar(
+      appBar: _selectionMode ? _buildSelectionAppBar() : GalleryAppBar.appBar(
         context,
         crossAxisCount: _crossAxisCount,
         isGridView: _isGridView,
@@ -283,10 +306,113 @@ class HomeScreenState extends State<HomeScreen> {
             _isGridView = !_isGridView;
           });
         },
+        onSelectPressed: () {
+          setState(() {
+            _selectionMode = true;
+            _selectedPaths.clear();
+          });
+        },
       ),
       body: _buildBody(context), //itemsView(context),
-      floatingActionButton: _buildFloatingActionButtons(),
+      floatingActionButton: _selectionMode ? null : _buildFloatingActionButtons(),
     );
+  }
+
+  AppBar _buildSelectionAppBar() {
+    final n = _selectedPaths.length;
+    return AppBar(
+      leading: IconButton(
+        icon: const Icon(Icons.close),
+        onPressed: () {
+          setState(() {
+            _selectionMode = false;
+            _selectedPaths.clear();
+          });
+        },
+        tooltip: 'Cancel',
+      ),
+      title: Text(n == 0 ? 'Select items' : '$n selected'),
+      actions: [
+        if (n > 0)
+          TextButton.icon(
+            icon: const Icon(Icons.delete_outline),
+            label: const Text('Move to Trash'),
+            onPressed: _moveSelectedToTrash,
+          ),
+      ],
+    );
+  }
+
+  void _toggleSelection(PhotoItem photo) {
+    setState(() {
+      if (_selectedPaths.contains(photo.path)) {
+        _selectedPaths.remove(photo.path);
+      } else {
+        _selectedPaths.add(photo.path);
+      }
+    });
+  }
+
+  Future<void> _moveSelectedToTrash() async {
+    if (_selectedPaths.isEmpty) return;
+    final deviceService = context.read<DeviceServicesCubit>();
+    final user = deviceService.state.currentUser?.email;
+    final deviceId = deviceService.state.id;
+    if (user == null || user.isEmpty || deviceId.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Not signed in')),
+        );
+      }
+      return;
+    }
+    final paths = _selectedPaths.toList();
+    try {
+      final ok = await apiMoveToTrash(user, deviceId, paths);
+      if (!mounted) return;
+      if (ok) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${paths.length} item(s) moved to Trash')),
+        );
+        setState(() {
+          _selectionMode = false;
+          _selectedPaths.clear();
+          _removePhotosFromCache(paths);
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to move to Trash')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
+  void _removePhotosFromCache(List<String> paths) {
+    final pathSet = paths.toSet();
+    for (final month in _photosByMonth.keys.toList()) {
+      final photos = _photosByMonth[month]!;
+      photos.removeWhere((p) => pathSet.contains(p.path));
+      if (photos.isEmpty) {
+        _photosByMonth.remove(month);
+      }
+    }
+    for (final folder in _photosCache.keys.toList()) {
+      final photos = _photosCache[folder]!;
+      photos.removeWhere((p) => pathSet.contains(p.path));
+      if (photos.isEmpty) {
+        _photosCache.remove(folder);
+      } else {
+        _photosCache[folder] = photos;
+        CacheService.cacheFiles(
+            folder, photos.map((p) => p.path).toList());
+      }
+    }
   }
 
   Widget _buildFloatingActionButtons() {
@@ -508,9 +634,14 @@ class HomeScreenState extends State<HomeScreen> {
                   ),
                   itemCount: photos.length,
                   itemBuilder: (context, index) {
+                    final photo = photos[index];
                     return GalleryPhotoTile(
-                      photo: photos[index],
-                      onTap: () => _openPhotoViewer(context, photos, index),
+                      photo: photo,
+                      onTap: _selectionMode
+                          ? () => _toggleSelection(photo)
+                          : () => _openPhotoViewer(context, photos, index),
+                      isSelectionMode: _selectionMode,
+                      isSelected: _selectedPaths.contains(photo.path),
                     );
                   },
                 ),
@@ -526,12 +657,18 @@ class HomeScreenState extends State<HomeScreen> {
                       height: 60,
                       child: GalleryPhotoTile(
                         photo: photo,
-                        onTap: () => _openPhotoViewer(context, photos, index),
+                        onTap: _selectionMode
+                            ? () => _toggleSelection(photo)
+                            : () => _openPhotoViewer(context, photos, index),
+                        isSelectionMode: _selectionMode,
+                        isSelected: _selectedPaths.contains(photo.path),
                       ),
                     ),
                     title: Text(photo.path.split('/').last),
                     subtitle: Text(photo.folder),
-                    onTap: () => _openPhotoViewer(context, photos, index),
+                    onTap: _selectionMode
+                        ? () => _toggleSelection(photo)
+                        : () => _openPhotoViewer(context, photos, index),
                   );
                 }).toList(),
               );
@@ -547,10 +684,9 @@ class HomeScreenState extends State<HomeScreen> {
     final photo = photos[initialIndex];
 
     if (photo.isVideo) {
-      // Open video player instead
-      _openVideoPlayer(context, photo);
+      _openVideoPlayer(context, photo, photos, initialIndex);
     } else {
-      Navigator.push(
+      _pushViewerAndRefreshIfTrashed(
         context,
         MaterialPageRoute(
           builder: (context) => PhotoViewerScreen(
@@ -562,13 +698,33 @@ class HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _openVideoPlayer(BuildContext context, PhotoItem video) {
-    Navigator.push(
+  void _openVideoPlayer(
+    BuildContext context,
+    PhotoItem video,
+    List<PhotoItem> photos,
+    int initialIndex,
+  ) {
+    _pushViewerAndRefreshIfTrashed(
       context,
       MaterialPageRoute(
-        builder: (context) => VideoPlayerScreen(video: video),
+        builder: (context) => VideoPlayerScreen(
+          video: video,
+          photos: photos,
+          initialIndex: initialIndex,
+        ),
       ),
     );
+  }
+
+  Future<void> _pushViewerAndRefreshIfTrashed(
+      BuildContext context, MaterialPageRoute route) async {
+    final result = await Navigator.push<Object?>(context, route);
+    if (!mounted) return;
+    if (result is String) {
+      setState(() => _removePhotosFromCache([result]));
+    } else if (result is List<String>) {
+      setState(() => _removePhotosFromCache(result));
+    }
   }
 
   List<String> getChildrenFolders(List<NetFolder>? folders) {
@@ -592,7 +748,9 @@ class HomeScreenState extends State<HomeScreen> {
         deviceService.state.currentUser!.email, deviceService.state.id);
 
     final List<String> allFolders = getChildrenFolders(folders);
-    return allFolders;
+    return allFolders
+        .where((f) => f != 'Trash' && !f.startsWith('Trash/'))
+        .toList();
   }
 
   Future<List<String>> getAllFiles(

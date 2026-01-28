@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 export 'home_screen.dart';
+export 'trash_screen.dart';
 export 'servers_list_screen.dart';
 export 'folders_list_screen.dart';
 export 'login_screen.dart';

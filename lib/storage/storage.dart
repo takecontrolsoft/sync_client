@@ -16,9 +16,9 @@ limitations under the License.
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:uuid/uuid.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sync_client/storage/device_id.dart';
 import 'package:sync_client/storage/schema.dart';
 
 export 'schema.dart';
@@ -28,7 +28,7 @@ late DeviceSettings currentDeviceSettings;
 
 Future<DeviceSettings> updateCurrentDevice(
     DeviceSettings deviceSettings) async {
-  deviceSettings.id = const Uuid().v4();
+  deviceSettings.id = await getPersistentDeviceId();
   return deviceSettings;
 }
 
@@ -40,10 +40,10 @@ Future<void> loadDeviceSettings() async {
     if (!await jsonFile.exists() || jsonFile.readAsStringSync().isEmpty) {
       // Try to load from bundled asset
       try {
-        ByteData realmBytes = await rootBundle.load("data/$dataFilename");
+        ByteData assetBytes = await rootBundle.load("data/$dataFilename");
         await jsonFile.writeAsBytes(
-          realmBytes.buffer
-              .asUint8List(realmBytes.offsetInBytes, realmBytes.lengthInBytes),
+          assetBytes.buffer
+              .asUint8List(assetBytes.offsetInBytes, assetBytes.lengthInBytes),
           mode: FileMode.write,
         );
       } catch (e) {
@@ -110,7 +110,7 @@ Future<void> loadDeviceSettings() async {
     print('Error loading device settings: $e');
     // Final fallback - create default settings
     currentDeviceSettings = DeviceSettings("");
-    currentDeviceSettings.id = const Uuid().v4();
+    currentDeviceSettings.id = await getPersistentDeviceId();
   }
 }
 
@@ -140,13 +140,13 @@ Future<void> deleteDeviceSettings() async {
 
     // Create fresh default settings
     currentDeviceSettings = DeviceSettings("");
-    currentDeviceSettings.id = const Uuid().v4();
+    currentDeviceSettings.id = await getPersistentDeviceId();
     await saveDeviceSettings(currentDeviceSettings);
   } catch (e) {
     print('Error deleting device settings: $e');
     // Fallback to default settings
     currentDeviceSettings = DeviceSettings("");
-    currentDeviceSettings.id = const Uuid().v4();
+    currentDeviceSettings.id = await getPersistentDeviceId();
   }
 }
 

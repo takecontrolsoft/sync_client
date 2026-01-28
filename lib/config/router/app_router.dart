@@ -24,6 +24,10 @@ GoRouter getAppRouter() {
       builder: (context, state) => const HomeScreen(),
     ),
     GoRoute(
+      path: '/trash',
+      builder: (context, state) => const TrashScreen(),
+    ),
+    GoRoute(
       path: '/sync',
       builder: (context, state) => const SyncScreen(),
     ),
@@ -41,8 +45,7 @@ GoRouter getAppRouter() {
     ),
     GoRoute(
       path: '/login',
-      builder: (context, state) =>
-          const NicknameScreen(), // const LogInScreen(),
+      builder: (context, state) => const LogInScreen(),
     ),
   ]);
 }

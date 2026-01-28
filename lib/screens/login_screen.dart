@@ -14,12 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/core/core.dart';
 import 'package:sync_client/screens/components/components.dart';
 import 'package:sync_client/services/services.dart';
+import 'package:sync_client/storage/storage.dart';
 
 class LogInScreen extends StatefulWidget {
   const LogInScreen({super.key});
@@ -34,11 +36,13 @@ class LogInScreenState extends State<LogInScreen> {
 
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
+  late TextEditingController _deviceIdController;
 
   @override
   void initState() {
     _emailController = TextEditingController()..addListener(clearError);
     _passwordController = TextEditingController()..addListener(clearError);
+    _deviceIdController = TextEditingController(text: currentDeviceSettings.id);
     super.initState();
   }
 
@@ -46,6 +50,7 @@ class LogInScreenState extends State<LogInScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _deviceIdController.dispose();
     super.dispose();
   }
 
@@ -68,6 +73,7 @@ class LogInScreenState extends State<LogInScreen> {
                     labelText: "Password",
                     hintText: "Enter secure password",
                     obscure: true),
+                if (!_isLogin) _buildDeviceIdField(context),
                 const Padding(
                   padding: EdgeInsets.fromLTRB(15, 0, 15, 0),
                   child: Text(
@@ -99,6 +105,52 @@ class LogInScreenState extends State<LogInScreen> {
     );
   }
 
+  Widget _buildDeviceIdField(BuildContext context) {
+    final deviceId = _deviceIdController.text;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(15, 8, 15, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Уникален код на устройството',
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _deviceIdController,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'Потвърдете или променете кода от deviceSettings',
+                    isDense: true,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.copy),
+                tooltip: 'Копирай',
+                onPressed: () {
+                  if (deviceId.isNotEmpty) {
+                    Clipboard.setData(ClipboardData(text: deviceId));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Кодът е копиран'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   void clearError() {
     if (_errorMessage != null) {
       setState(() {
@@ -117,6 +169,10 @@ class LogInScreenState extends State<LogInScreen> {
         await deviceServices.logInUserEmailPassword(email, password);
       } else {
         await deviceServices.registerUserEmailPassword(email, password);
+        final newDeviceId = _deviceIdController.text.trim();
+        if (newDeviceId.isNotEmpty) {
+          await deviceServices.updateDeviceId(newDeviceId);
+        }
       }
       setState(() {
         context.push("/");

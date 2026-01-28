@@ -44,11 +44,15 @@ class MonthHeaderDelegate extends SliverPersistentHeaderDelegate {
 class GalleryPhotoTile extends StatefulWidget {
   final PhotoItem photo;
   final VoidCallback onTap;
+  final bool isSelectionMode;
+  final bool isSelected;
 
   const GalleryPhotoTile({
     Key? key,
     required this.photo,
     required this.onTap,
+    this.isSelectionMode = false,
+    this.isSelected = false,
   }) : super(key: key);
 
   @override
@@ -150,6 +154,32 @@ class _GalleryPhotoTileState extends State<GalleryPhotoTile>
                       color: Colors.white,
                       size: 32,
                     ),
+                  ),
+                ),
+
+              // Selection overlay (checkbox)
+              if (widget.isSelectionMode)
+                Positioned(
+                  top: 4,
+                  left: 4,
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: widget.isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.white.withOpacity(0.8),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: widget.isSelected
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.grey,
+                        width: 2,
+                      ),
+                    ),
+                    child: widget.isSelected
+                        ? const Icon(Icons.check, color: Colors.white, size: 20)
+                        : null,
                   ),
                 ),
 

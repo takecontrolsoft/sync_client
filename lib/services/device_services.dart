@@ -72,4 +72,13 @@ class DeviceServicesCubit extends Cubit<DeviceSettings> {
     DeviceSettings newState = currentDeviceSettings;
     emit(newState);
   }
+
+  /// Updates the device ID (e.g. after user confirms or changes it on registration).
+  Future<void> updateDeviceId(String newId) async {
+    final trimmed = newId.trim();
+    if (trimmed.isEmpty) return;
+    await edit((state) {
+      state.id = trimmed;
+    });
+  }
 }

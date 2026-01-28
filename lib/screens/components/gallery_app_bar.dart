@@ -10,12 +10,19 @@ class GalleryAppBar {
     required bool isGridView,
     required Function(int) onGridSizeChanged,
     required VoidCallback onViewModeToggle,
+    VoidCallback? onSelectPressed,
   }) {
     // Get the base app bar
     final baseAppBar = MainAppBar.appBar(context);
 
     // Add gallery-specific actions to the existing actions
     final List<Widget> galleryActions = [
+      if (onSelectPressed != null)
+        IconButton(
+          icon: const Icon(Icons.checklist_rtl),
+          onPressed: onSelectPressed,
+          tooltip: 'Select',
+        ),
       // Grid size selector
       PopupMenuButton<int>(
         icon: const Icon(Icons.grid_view),
