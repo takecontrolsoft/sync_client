@@ -240,7 +240,8 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
           _fullImageCache[index] = fullData;
           _fullImageLoadingStates[index] = false;
         });
-        EnhancedCacheService.cacheImage(fullPath, fullData).catchError((Object e) {
+        EnhancedCacheService.cacheImage(fullPath, fullData)
+            .catchError((Object e) {
           debugPrint('Failed to cache image: $e');
         });
       } else if (mounted) {
