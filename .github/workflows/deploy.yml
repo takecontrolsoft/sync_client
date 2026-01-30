@@ -67,6 +67,8 @@ jobs:
             -srckeystore android/app/upload-keystore.jks \
             -destkeystore android/app/upload-keystore-legacy.jks \
             -deststoretype JKS \
+            -srcalias "$KEY_ALIAS" \
+            -destalias "$KEY_ALIAS" \
             -deststorepass "$STORE_PASS" \
             -destkeypass "$KEY_PASS" \
             -srcstorepass "$STORE_PASS" \
@@ -83,6 +85,7 @@ jobs:
           ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
 
       - name: Install dependencies
         run: flutter pub get
