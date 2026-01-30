@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -34,13 +35,49 @@ class TrashScreen extends StatefulWidget {
 
 class _TrashScreenState extends State<TrashScreen> {
   List<PhotoItem> _trashPhotos = [];
+  Map<String, List<PhotoItem>> _trashPhotosByMonth = {};
   bool _isLoading = false;
   String? _errorMessage;
   bool _wasRouteCurrent = false;
   bool _selectionMode = false;
   final Set<String> _selectedPaths = {};
+  final Set<String> _collapsedMonths = {};
 
   static const String _trashFolder = 'Trash';
+
+  void _groupTrashByMonth() {
+    _trashPhotosByMonth.clear();
+    for (final photo in _trashPhotos) {
+      final month = photo.month ?? 'Recent';
+      _trashPhotosByMonth[month] ??= [];
+      _trashPhotosByMonth[month]!.add(photo);
+    }
+    for (final photos in _trashPhotosByMonth.values) {
+      photos.sort((a, b) =>
+          (b.date ?? DateTime.now()).compareTo(a.date ?? DateTime.now()));
+    }
+  }
+
+  List<PhotoItem> _getTrashPhotosInOrder() {
+    final sortedMonths = _trashPhotosByMonth.keys.toList();
+    sortedMonths.sort((a, b) {
+      // Newest month first; "Recent" (unknown date) last
+      if (a == 'Recent') return 1;
+      if (b == 'Recent') return -1;
+      try {
+        final dateA = DateFormat('MMMM yyyy').parse(a);
+        final dateB = DateFormat('MMMM yyyy').parse(b);
+        return dateB.compareTo(dateA);
+      } catch (e) {
+        return b.compareTo(a);
+      }
+    });
+    final list = <PhotoItem>[];
+    for (final month in sortedMonths) {
+      list.addAll(_trashPhotosByMonth[month] ?? []);
+    }
+    return list;
+  }
 
   Future<void> _loadTrashFiles() async {
     final deviceService = context.read<DeviceServicesCubit>();
@@ -67,6 +104,7 @@ class _TrashScreenState extends State<TrashScreen> {
           .toList();
       setState(() {
         _trashPhotos = photos;
+        _groupTrashByMonth();
         _isLoading = false;
       });
     } catch (e) {
@@ -159,6 +197,120 @@ class _TrashScreenState extends State<TrashScreen> {
         );
       }
     }
+  }
+
+  Widget _buildTrashList() {
+    final sortedMonths = _trashPhotosByMonth.keys.toList();
+    sortedMonths.sort((a, b) {
+      // Newest month first; "Recent" last
+      if (a == 'Recent') return 1;
+      if (b == 'Recent') return -1;
+      try {
+        final dateA = DateFormat('MMMM yyyy').parse(a);
+        final dateB = DateFormat('MMMM yyyy').parse(b);
+        return dateB.compareTo(dateA);
+      } catch (e) {
+        return b.compareTo(a);
+      }
+    });
+    final photosInOrder = _getTrashPhotosInOrder();
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(8),
+      itemCount: sortedMonths.length * 2 + 1,
+      itemBuilder: (context, index) {
+        if (index == 0 && _isLoading) {
+          return const LinearProgressIndicator();
+        }
+        final adjustedIndex = _isLoading ? index - 1 : index;
+        final monthIndex = adjustedIndex ~/ 2;
+        final isHeader = adjustedIndex % 2 == 0;
+
+        if (monthIndex >= sortedMonths.length) {
+          return const SizedBox.shrink();
+        }
+
+        final month = sortedMonths[monthIndex];
+        final photos = _trashPhotosByMonth[month] ?? [];
+
+        if (isHeader) {
+          final isCollapsed = _collapsedMonths.contains(month);
+          return Material(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  if (isCollapsed) {
+                    _collapsedMonths.remove(month);
+                  } else {
+                    _collapsedMonths.add(month);
+                  }
+                });
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    Icon(
+                      isCollapsed ? Icons.chevron_right : Icons.expand_more,
+                      size: 28,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        month,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ),
+                    Text(
+                      '${photos.length}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        if (_collapsedMonths.contains(month)) {
+          return const SizedBox.shrink();
+        }
+
+        return Padding(
+          padding: GalleryStyles.galleryPadding,
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: GalleryStyles.photoSpacing,
+              crossAxisSpacing: GalleryStyles.photoSpacing,
+              childAspectRatio: 1.0,
+            ),
+            itemCount: photos.length,
+            itemBuilder: (context, gridIndex) {
+              final photo = photos[gridIndex];
+              final globalIndex = photosInOrder.indexOf(photo);
+              return GalleryPhotoTile(
+                photo: photo,
+                onTap: _selectionMode
+                    ? () => _toggleSelection(photo)
+                    : () => _openPhotoViewer(
+                        context, photosInOrder, globalIndex),
+                isSelectionMode: _selectionMode,
+                isSelected: _selectedPaths.contains(photo.path),
+              );
+            },
+          ),
+        );
+      },
+    );
   }
 
   AppBar _buildSelectionAppBar() {
@@ -301,47 +453,7 @@ class _TrashScreenState extends State<TrashScreen> {
                           ],
                         ),
                       )
-                    : ListView(
-                        padding: const EdgeInsets.all(8),
-                        children: [
-                          if (_isLoading)
-                            const LinearProgressIndicator(),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            child: Text(
-                              '${_trashPhotos.length} item(s)',
-                              style: Theme.of(context).textTheme.titleSmall,
-                            ),
-                          ),
-                          GridView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              mainAxisSpacing:
-                                  GalleryStyles.photoSpacing,
-                              crossAxisSpacing:
-                                  GalleryStyles.photoSpacing,
-                              childAspectRatio: 1.0,
-                            ),
-                            itemCount: _trashPhotos.length,
-                            itemBuilder: (context, index) {
-                              final photo = _trashPhotos[index];
-                              return GalleryPhotoTile(
-                                photo: photo,
-                                onTap: _selectionMode
-                                    ? () => _toggleSelection(photo)
-                                    : () => _openPhotoViewer(
-                                        context, _trashPhotos, index),
-                                isSelectionMode: _selectionMode,
-                                isSelected: _selectedPaths.contains(photo.path),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
+                    : _buildTrashList(),
         ),
       ),
     );

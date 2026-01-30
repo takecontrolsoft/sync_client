@@ -233,31 +233,43 @@ class _GalleryPhotoTileState extends State<GalleryPhotoTile>
     );
   }
 
+  static const Duration _loadTimeout = Duration(seconds: 20);
+
   Future<Uint8List?> _loadImage(DeviceServicesCubit deviceService) async {
+    final fullPath = widget.photo.fullPath;
+    if (fullPath.isEmpty) {
+      debugPrint('Thumbnail load: empty path, skipping');
+      return null;
+    }
     try {
-      // Check cache first
+      // 1) Cache first (memory then disk), then server
       final cachedThumb =
-          await EnhancedCacheService.getCachedThumbnail(widget.photo.path);
-      if (cachedThumb != null) {
+          await EnhancedCacheService.getCachedThumbnail(fullPath);
+      if (cachedThumb != null && cachedThumb.isNotEmpty) {
         return cachedThumb;
       }
 
-      // Load from server
+      // 2) Load from server – always when not in cache
+      debugPrint('Thumbnail load from server: $fullPath');
       final data = await apiGetImageBytes(
         deviceService.state.currentUser!.email,
         deviceService.state.id,
-        widget.photo.path,
-      );
+        fullPath,
+      ).timeout(_loadTimeout, onTimeout: () {
+        debugPrint('Thumbnail load timeout: $fullPath');
+        return null;
+      });
 
       if (data != null && data.isNotEmpty) {
-        // Cache for future use
-        await EnhancedCacheService.cacheThumbnail(widget.photo.path, data);
+        debugPrint('Thumbnail loaded from server (${data.length} bytes): $fullPath');
+        await EnhancedCacheService.cacheThumbnail(fullPath, data);
         return data;
       }
 
+      debugPrint('Thumbnail load: server returned no data: $fullPath');
       return null;
     } catch (e) {
-      debugPrint('Error loading image ${widget.photo.path}: $e');
+      debugPrint('Error loading image $fullPath: $e');
       return null;
     }
   }

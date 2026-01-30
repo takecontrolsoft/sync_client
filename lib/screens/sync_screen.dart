@@ -23,6 +23,7 @@ import 'package:sync_client/config/config.dart';
 import 'package:sync_client/core/core.dart';
 import 'package:sync_client/screens/components/components.dart';
 import 'package:sync_client/services/services.dart';
+import 'package:sync_client/services/thumbnail_cache_service.dart';
 import 'package:sync_client/storage/storage.dart';
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
@@ -159,6 +160,9 @@ class SyncScreenView extends StatelessWidget {
       return;
     }
     syncService.reset();
+
+    // Clear thumbnail cache so new/updated files load fresh from server
+    await ThumbnailCacheService.clear();
 
     await deviceService.edit((state) {
       state.lastErrorMessage = null;

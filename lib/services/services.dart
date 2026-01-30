@@ -19,3 +19,4 @@ export 'sync_services.dart';
 
 export 'cache_service.dart';
 export 'enhanced_cache_service.dart';
+export 'thumbnail_cache_service.dart';

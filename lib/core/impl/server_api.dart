@@ -22,6 +22,9 @@ import 'package:sync_client/storage/storage.dart';
 
 import 'request_utils.dart';
 
+/// Server expects forward slashes; on Windows paths may use backslash.
+String _normalizePath(String path) => path.replaceAll(r'\', '/');
+
 Future<List<NetFolder>?> apiGetFolders(String userName, String deviceId) async {
   var request = Request('POST', getUrl("folders"));
   request.headers.addAll(
@@ -63,7 +66,7 @@ Future<List<String>> apiGetFiles(
       'User': userName,
       'DeviceId': deviceId,
     },
-    "Folder": folder
+    "Folder": _normalizePath(folder)
   });
   try {
     var streamedResponse = await request.send();
@@ -92,7 +95,7 @@ Future<bool> apiMoveToTrash(
       <String, String>{'Content-Type': 'application/json; charset=UTF-8'});
   request.body = jsonEncode(<String, dynamic>{
     'UserData': <String, dynamic>{'User': userName, 'DeviceId': deviceId},
-    'Files': files,
+    'Files': files.map(_normalizePath).toList(),
   });
   try {
     var streamedResponse = await request.send();
@@ -115,7 +118,7 @@ Future<bool> apiRestoreFromTrash(
       <String, String>{'Content-Type': 'application/json; charset=UTF-8'});
   request.body = jsonEncode(<String, dynamic>{
     'UserData': <String, dynamic>{'User': userName, 'DeviceId': deviceId},
-    'Files': files,
+    'Files': files.map(_normalizePath).toList(),
   });
   try {
     var streamedResponse = await request.send();
@@ -141,7 +144,7 @@ Future<Uint8List?> apiGetImageBytes(
       'User': userName,
       'DeviceId': deviceId,
     },
-    "File": file,
+    "File": _normalizePath(file),
     "Quality": fullQuality ? "full" : ""
   });
 
@@ -151,7 +154,10 @@ Future<Uint8List?> apiGetImageBytes(
     if (response.statusCode == 200) {
       return response.bodyBytes;
     }
+    // Log so we can see 404 etc. (e.g. wrong path on server)
+    print('apiGetImageBytes: server returned ${response.statusCode} for file: $file');
   } catch (err) {
+    print('apiGetImageBytes error: $err');
     throw GetFoldersError();
   }
   return null;

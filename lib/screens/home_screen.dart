@@ -56,6 +56,7 @@ class HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _selectionMode = false;
   final Set<String> _selectedPaths = {};
+  final Set<String> _collapsedMonths = {};
   bool _wasRouteCurrent = false;
   bool _leftHome = false;
 
@@ -103,39 +104,12 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _initializeLoading() async {
-    // First, try to load from cache immediately
-    final cachedFolders = await CacheService.getCachedFolders();
-    if (cachedFolders != null && cachedFolders.isNotEmpty && mounted) {
-      final filtered = cachedFolders
-          .where((f) => f != 'Trash' && !f.startsWith('Trash/'))
-          .toList();
-      setState(() {
-        _folders = filtered;
-      });
-
-      // Load cached files for each folder (excluding Trash)
-      for (final folder in filtered) {
-        final cachedFiles = await CacheService.getCachedFiles(folder);
-        if (cachedFiles != null && mounted) {
-          final photos =
-              cachedFiles.map((f) => PhotoItem.fromPath(f, folder)).toList();
-          setState(() {
-            _photosCache[folder] = photos;
-          });
-          _groupPhotosByMonth();
-        }
+    // Always load folder/file list from server (fast); thumbnails are cached on device
+    Future.delayed(_initialDelay, () {
+      if (mounted) {
+        _loadFolders();
       }
-
-      // Then refresh in background
-      _refreshInBackground();
-    } else {
-      // No cache, load with delay to let UI render first
-      Future.delayed(_initialDelay, () {
-        if (mounted) {
-          _loadFolders();
-        }
-      });
-    }
+    });
   }
 
   void _groupPhotosByMonth() {
@@ -195,10 +169,7 @@ class HomeScreenState extends State<HomeScreen> {
           _isLoading = false;
         });
 
-        // Cache the folders
-        await CacheService.cacheFolders(folders);
-
-        // Start loading files for each folder progressively
+        // Load files for each folder from server
         _loadFilesProgressively(folders, deviceService);
       }
     } catch (e) {
@@ -234,13 +205,6 @@ class HomeScreenState extends State<HomeScreen> {
             _photosCache[folder] = photos;
           });
           _groupPhotosByMonth();
-
-          // Cache the filtered files
-          await CacheService.cacheFiles(
-              folder,
-              files
-                  .where((f) => !f.toLowerCase().contains('.converted.jpg'))
-                  .toList());
         }
       } catch (e) {
         debugPrint('Error loading files for $folder: $e');
@@ -262,7 +226,6 @@ class HomeScreenState extends State<HomeScreen> {
           _folders = folders;
         });
 
-        await CacheService.cacheFolders(folders);
         _loadFilesProgressively(folders, deviceService);
       }
     } catch (e) {
@@ -281,7 +244,6 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _handleRefresh() async {
-    await CacheService.clearCache();
     setState(() {
       _folders.clear();
       _photosCache.clear();
@@ -492,8 +454,6 @@ class HomeScreenState extends State<HomeScreen> {
         _photosCache.remove(folder);
       } else {
         _photosCache[folder] = photos;
-        CacheService.cacheFiles(
-            folder, photos.map((p) => p.path).toList());
       }
     }
   }
@@ -650,8 +610,9 @@ class HomeScreenState extends State<HomeScreen> {
   Widget _buildGallery() {
     final sortedMonths = _photosByMonth.keys.toList();
     sortedMonths.sort((a, b) {
-      if (a == 'Recent') return -1;
-      if (b == 'Recent') return 1;
+      // Put "Recent" (unknown date) last; otherwise newest month first (descending by date taken)
+      if (a == 'Recent') return 1;
+      if (b == 'Recent') return -1;
       try {
         final dateA = DateFormat('MMMM yyyy').parse(a);
         final dateB = DateFormat('MMMM yyyy').parse(b);
@@ -690,19 +651,54 @@ class HomeScreenState extends State<HomeScreen> {
           final photos = _photosByMonth[month] ?? [];
 
           if (isHeader) {
-            // Month header
-            return Container(
+            // Month header (tappable to collapse/expand)
+            final isCollapsed = _collapsedMonths.contains(month);
+            return Material(
               color: Theme.of(context).scaffoldBackgroundColor,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                month,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    if (isCollapsed) {
+                      _collapsedMonths.remove(month);
+                    } else {
+                      _collapsedMonths.add(month);
+                    }
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isCollapsed ? Icons.chevron_right : Icons.expand_more,
+                        size: 28,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          month,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ),
+                      Text(
+                        '${photos.length}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             );
           } else {
-            // Photos grid
+            // Photos grid (hidden when month is collapsed)
+            if (_collapsedMonths.contains(month)) {
+              return const SizedBox.shrink();
+            }
             if (_isGridView) {
               return Padding(
                 padding: GalleryStyles.galleryPadding,
@@ -850,8 +846,8 @@ class HomeScreenState extends State<HomeScreen> {
   List<PhotoItem> _getAllPhotosInOrder() {
     final sortedMonths = _photosByMonth.keys.toList();
     sortedMonths.sort((a, b) {
-      if (a == 'Recent') return -1;
-      if (b == 'Recent') return 1;
+      if (a == 'Recent') return 1;
+      if (b == 'Recent') return -1;
       try {
         final dateA = DateFormat('MMMM yyyy').parse(a);
         final dateB = DateFormat('MMMM yyyy').parse(b);

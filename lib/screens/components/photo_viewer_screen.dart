@@ -124,9 +124,10 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
       final photo = widget.photos[index];
       final deviceService = context.read<DeviceServicesCubit>();
 
-      // Check cache for thumbnail
+      // Check cache for thumbnail (disk + memory)
+      final fullPath = photo.fullPath;
       final cachedImage =
-          await EnhancedCacheService.getCachedThumbnail(photo.path);
+          await EnhancedCacheService.getCachedThumbnail(fullPath);
       if (cachedImage != null) {
         if (mounted) {
           setState(() {
@@ -141,7 +142,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
       final data = await apiGetImageBytes(
         deviceService.state.currentUser!.email,
         deviceService.state.id,
-        photo.path,
+        fullPath,
         fullQuality: false,
       );
 
@@ -151,8 +152,8 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
           _loadingStates[index] = false;
         });
 
-        // Cache the thumbnail
-        await EnhancedCacheService.cacheThumbnail(photo.path, data);
+        // Cache the thumbnail (disk + memory)
+        await EnhancedCacheService.cacheThumbnail(fullPath, data);
       }
     } catch (e) {
       debugPrint('Error loading thumbnail: $e');
@@ -181,13 +182,14 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
       final photo = widget.photos[index];
       final deviceService = context.read<DeviceServicesCubit>();
 
-      debugPrint('Loading full quality image for index $index: ${photo.path}');
+      final fullPath = photo.fullPath;
+      debugPrint('Loading full quality image for index $index: $fullPath');
 
       // Check cache for full quality image
       final cachedFullImage =
-          await EnhancedCacheService.getCachedImage(photo.path);
+          await EnhancedCacheService.getCachedImage(fullPath);
       if (cachedFullImage != null) {
-        debugPrint('Found cached full quality image for: ${photo.path}');
+        debugPrint('Found cached full quality image for: $fullPath');
         if (mounted) {
           setState(() {
             _fullImageCache[index] = cachedFullImage;
@@ -198,11 +200,11 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
       }
 
       // Load full quality from server
-      debugPrint('Loading full quality from server: ${photo.path}');
+      debugPrint('Loading full quality from server: $fullPath');
       final data = await apiGetImageBytes(
         deviceService.state.currentUser!.email,
         deviceService.state.id,
-        photo.path,
+        fullPath,
         fullQuality: true,
       );
 
@@ -227,7 +229,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
         }
 
         // Cache the full quality image asynchronously
-        EnhancedCacheService.cacheImage(photo.path, data).catchError((e) {
+        EnhancedCacheService.cacheImage(fullPath, data).catchError((e) {
           debugPrint('Failed to cache image: $e');
         });
       } else {
@@ -270,30 +272,33 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
       body: Focus(
         focusNode: _focusNode,
         autofocus: true,
-        child: KeyboardListener(
-          focusNode: _focusNode,
-          onKeyEvent: (KeyEvent event) {
-            if (event is KeyDownEvent) {
-              if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-                _goToPrevious();
-              } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-                _goToNext();
-              } else if (event.logicalKey == LogicalKeyboardKey.escape) {
-                Navigator.of(context).pop();
-              } else if (event.logicalKey == LogicalKeyboardKey.space) {
-                setState(() {
-                  _showOverlay = !_showOverlay;
-                });
-              }
-            }
-          },
-          child: GestureDetector(
-            onTap: () {
+        onKeyEvent: (FocusNode node, KeyEvent event) {
+          if (event is KeyDownEvent) {
+            if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+              _goToPrevious();
+              return KeyEventResult.handled;
+            } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+              _goToNext();
+              return KeyEventResult.handled;
+            } else if (event.logicalKey == LogicalKeyboardKey.escape) {
+              Navigator.of(context).pop();
+              return KeyEventResult.handled;
+            } else if (event.logicalKey == LogicalKeyboardKey.space) {
               setState(() {
                 _showOverlay = !_showOverlay;
               });
-            },
-            child: Stack(
+              return KeyEventResult.handled;
+            }
+          }
+          return KeyEventResult.ignored;
+        },
+        child: GestureDetector(
+          onTap: () {
+            setState(() {
+              _showOverlay = !_showOverlay;
+            });
+          },
+          child: Stack(
               children: [
                 // Photo gallery (horizontal swipe already supported by PageView)
                 PhotoViewGallery.builder(
@@ -811,7 +816,6 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
             ],
           ),
         ),
-      ),
       ),
     );
   }
