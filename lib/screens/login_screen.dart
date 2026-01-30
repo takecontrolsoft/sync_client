@@ -44,9 +44,9 @@ class LogInScreenState extends State<LogInScreen> {
     _emailController = TextEditingController()..addListener(clearError);
     _passwordController = TextEditingController()..addListener(clearError);
     _deviceIdController = TextEditingController(text: currentDeviceSettings.id);
-    _serverUrlController = TextEditingController(
-        text: currentDeviceSettings.serverUrl ?? '')
-      ..addListener(clearError);
+    _serverUrlController =
+        TextEditingController(text: currentDeviceSettings.serverUrl ?? '')
+          ..addListener(clearError);
     super.initState();
   }
 

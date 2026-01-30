@@ -206,19 +206,18 @@ class HomeScreenState extends State<HomeScreen> {
           final photos = files
               .where((f) => !f.toLowerCase().contains('.converted.jpg'))
               .map((f) {
-                if (showAll) {
-                  final parsed = PhotoItem.parseDeviceIdPath(f);
-                  final devId = parsed[0];
-                  final path = parsed[1]!;
-                  final pathFolder = path.contains('/')
-                      ? path.substring(0, path.lastIndexOf('/'))
-                      : folder;
-                  return PhotoItem.fromPath(path, pathFolder,
-                      deviceIdOverride: devId);
-                }
-                return PhotoItem.fromPath(f, folder);
-              })
-              .toList();
+            if (showAll) {
+              final parsed = PhotoItem.parseDeviceIdPath(f);
+              final devId = parsed[0];
+              final path = parsed[1]!;
+              final pathFolder = path.contains('/')
+                  ? path.substring(0, path.lastIndexOf('/'))
+                  : folder;
+              return PhotoItem.fromPath(path, pathFolder,
+                  deviceIdOverride: devId);
+            }
+            return PhotoItem.fromPath(f, folder);
+          }).toList();
 
           setState(() {
             _photosCache[folder] = photos;
@@ -784,7 +783,8 @@ class HomeScreenState extends State<HomeScreen> {
                             ? () => _toggleSelection(photo)
                             : () => _openPhotoViewer(context, photos, index),
                         isSelectionMode: _selectionMode,
-                        isSelected: _selectedPaths.contains(_selectionKey(photo)),
+                        isSelected:
+                            _selectedPaths.contains(_selectionKey(photo)),
                       ),
                     ),
                     title: Text(photo.path.split('/').last),
@@ -867,11 +867,10 @@ class HomeScreenState extends State<HomeScreen> {
     if ((deviceService.state.serverUrl ?? "").isEmpty) {
       return [];
     }
-    final deviceId = deviceService.state.showAllDevices
-        ? ''
-        : deviceService.state.id;
-    List<NetFolder>? folders = await apiGetFolders(
-        deviceService.state.currentUser!.email, deviceId);
+    final deviceId =
+        deviceService.state.showAllDevices ? '' : deviceService.state.id;
+    List<NetFolder>? folders =
+        await apiGetFolders(deviceService.state.currentUser!.email, deviceId);
 
     final List<String> allFolders = getChildrenFolders(folders);
     return allFolders
@@ -885,9 +884,8 @@ class HomeScreenState extends State<HomeScreen> {
     if (url == null || url.isEmpty) {
       return [];
     }
-    final deviceId = deviceService.state.showAllDevices
-        ? ''
-        : deviceService.state.id;
+    final deviceId =
+        deviceService.state.showAllDevices ? '' : deviceService.state.id;
     List<String>? files = await apiGetFiles(
         deviceService.state.currentUser!.email, deviceId, folder);
 
