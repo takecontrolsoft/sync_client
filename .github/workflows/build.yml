@@ -35,8 +35,18 @@ jobs:
 
       - name: Create keystore and key.properties
         run: |
+          mkdir -p android/app
           printf '%s' "$ANDROID_KEYSTORE_B64" | base64 -d > android/app/upload-keystore.jks
-          mkdir -p android
+          keytool -importkeystore \
+            -srckeystore android/app/upload-keystore.jks \
+            -destkeystore android/app/upload-keystore-legacy.jks \
+            -deststoretype JKS \
+            -deststorepass "$STORE_PASS" \
+            -destkeypass "$KEY_PASS" \
+            -srcstorepass "$STORE_PASS" \
+            -srckeypass "$KEY_PASS" \
+            -noprompt
+          mv android/app/upload-keystore-legacy.jks android/app/upload-keystore.jks
           cat > android/key.properties << EOF
           storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
@@ -45,6 +55,8 @@ jobs:
           EOF
         env:
           ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
       - name: Install dependencies
         run: flutter pub get
