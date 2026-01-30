@@ -69,22 +69,14 @@ class Transfers {
       } else {
         currentDeviceSettings.lastErrorMessage =
             "ERROR: $filename response statusCode: ${response.statusCode} ${response.body}";
-
-        if (!syncFileController.isClosed) {
-          syncFileController
-              .addError(SyncError(currentDeviceSettings.lastErrorMessage!));
-        }
+        // Do not addError – record failure and let the upload loop continue with other files
         return SyncedFile(filename,
             errorMessage: currentDeviceSettings.lastErrorMessage!);
       }
-    } on Exception catch (ex) {
+    } catch (e) {
       currentDeviceSettings.lastErrorMessage =
-          "ERROR: $filename [${ex.toString()}]";
-      if (!syncFileController.isClosed) {
-        syncFileController
-            .addError(SyncError(currentDeviceSettings.lastErrorMessage!));
-      }
-
+          "ERROR: $filename [${e.toString()}]";
+      // Do not addError – record failure and let the upload loop continue
       return SyncedFile(filename,
           errorMessage: currentDeviceSettings.lastErrorMessage!);
     }

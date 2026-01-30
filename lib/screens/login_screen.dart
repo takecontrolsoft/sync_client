@@ -282,12 +282,6 @@ class LogInScreenState extends State<LogInScreen> {
       context.go("/");
     } catch (err) {
       setState(() {
-        if (err is ArgumentError &&
-            err.message?.toString().contains('Invalid user credentials') == true) {
-          _errorMessage = 'Invalid email or password. '
-              'If you signed up on another device, use Sign up with the same email and password.';
-          return;
-        }
         if (err is CustomError) {
           _errorMessage = err.message;
           return;

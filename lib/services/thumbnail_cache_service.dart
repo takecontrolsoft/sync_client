@@ -21,6 +21,8 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
+const String _manifestFilename = 'manifest.txt';
+
 /// Thumbnails stored as files on the device. No expiry – thumbnails don't change
 /// unless deleted on server. Cache is cleared when user presses Sync.
 class ThumbnailCacheService {
@@ -129,6 +131,7 @@ class ThumbnailCacheService {
         if (!ok) {
           debugPrint('ThumbnailCacheService put: file missing after write');
         }
+        await _manifestAdd(dir, path);
       } on FileSystemException catch (e) {
         debugPrint('ThumbnailCacheService put (disk) FileSystemException: ${e.message} path=${e.path}');
       } catch (e, st) {
@@ -137,6 +140,54 @@ class ThumbnailCacheService {
       }
     } catch (e) {
       debugPrint('ThumbnailCacheService put error: $e');
+    }
+  }
+
+  static File _manifestFile(Directory dir) =>
+      File(p.join(dir.path, _manifestFilename));
+
+  static Future<void> _manifestAdd(Directory dir, String path) async {
+    try {
+      final file = _manifestFile(dir);
+      final lines = await file.exists() ? await file.readAsLines() : <String>[];
+      if (lines.contains(path)) return;
+      await file.writeAsString('${path.replaceAll('\n', ' ')}\n', mode: FileMode.append);
+    } catch (e) {
+      debugPrint('ThumbnailCacheService _manifestAdd error: $e');
+    }
+  }
+
+  /// All paths that have a cached thumbnail (from manifest).
+  static Future<List<String>> listCachedPaths() async {
+    try {
+      final dir = await _getCacheDir();
+      final file = _manifestFile(dir);
+      if (!await file.exists()) return [];
+      final lines = await file.readAsLines();
+      return lines.map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    } catch (e) {
+      debugPrint('ThumbnailCacheService listCachedPaths error: $e');
+      return [];
+    }
+  }
+
+  /// Removes one cached thumbnail (file + manifest entry + memory). Path must match manifest.
+  static Future<void> delete(String path) async {
+    final key = _sanitizeKey(path);
+    _memoryCache.remove(key);
+    _memoryLru.remove(key);
+    try {
+      final dir = await _getCacheDir();
+      final file = File(p.join(dir.path, key));
+      if (await file.exists()) await file.delete();
+      final manifest = _manifestFile(dir);
+      if (await manifest.exists()) {
+        final lines = await manifest.readAsLines();
+        final rest = lines.where((s) => s.trim() != path).toList();
+        await manifest.writeAsString(rest.isEmpty ? '' : '${rest.join('\n')}\n');
+      }
+    } catch (e) {
+      debugPrint('ThumbnailCacheService delete error: $e');
     }
   }
 
@@ -164,6 +215,8 @@ class ThumbnailCacheService {
           if (entity is File) await entity.delete();
         }
       }
+      final manifest = _manifestFile(dir);
+      if (await manifest.exists()) await manifest.delete();
     } catch (e) {
       debugPrint('ThumbnailCacheService clear error: $e');
     }

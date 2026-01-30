@@ -325,24 +325,11 @@ class HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  /// Collects all loaded file paths that are documents (by extension) and moves them to Trash.
+  /// Asks the server to run document detection on existing files (server uses its own logic, e.g. Python); thumbnails and metadata cleaned, then documents moved to Trash.
   Future<void> _moveDocumentsToTrash() async {
-    final allPaths = <String>[];
-    for (final photos in _photosCache.values) {
-      for (final p in photos) {
-        if (PhotoItem.isDocumentPath(p.path)) allPaths.add(p.path);
-      }
-    }
-    if (allPaths.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No documents found in loaded gallery')),
-        );
-      }
-      return;
-    }
     final deviceService = context.read<DeviceServicesCubit>();
-    final user = deviceService.state.currentUser?.email;
+    // Prefer userId when auth is used so the server scans the correct folder (UploadDirectory/userId/deviceId).
+    final user = deviceService.state.currentUser?.userId ?? deviceService.state.currentUser?.email;
     final deviceId = deviceService.state.id;
     if (user == null || user.isEmpty || deviceId.isEmpty) {
       if (mounted) {
@@ -356,8 +343,9 @@ class HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Move documents to Trash'),
-        content: Text(
-          'Move ${allPaths.length} document(s) to Trash? You can restore them later from Trash.',
+        content: const Text(
+          'The server will scan folders and detect documents (using its detection logic), clean their thumbnails and metadata, and move them to Trash. You can restore them later from Trash.',
+          textAlign: TextAlign.center,
         ),
         actions: [
           TextButton(
@@ -366,28 +354,35 @@ class HomeScreenState extends State<HomeScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Move to Trash'),
+            child: const Text('Run on server'),
           ),
         ],
       ),
     );
     if (confirmed != true || !mounted) return;
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Detecting documents on server…')),
+      );
+    }
     try {
-      final ok = await apiMoveToTrash(user, deviceId, allPaths);
+      final moved = await apiRunDocumentDetection(user, deviceId);
       if (!mounted) return;
-      if (ok) {
+      if (moved < 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${allPaths.length} document(s) moved to Trash')),
+          const SnackBar(content: Text('Server did not accept or endpoint not implemented')),
         );
-        setState(() {
-          _removePhotosFromCache(allPaths);
-        });
-        context.read<GalleryRefreshCubit>().requestTrashRefresh();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to move to Trash')),
-        );
+        return;
       }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                moved == 0
+                    ? 'No documents found on the server.'
+                    : '$moved document(s) moved to Trash on server.')),
+      );
+      context.read<GalleryRefreshCubit>().requestHomeRefresh();
+      context.read<GalleryRefreshCubit>().requestTrashRefresh();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -475,7 +470,7 @@ class HomeScreenState extends State<HomeScreen> {
             child: const Icon(Icons.arrow_upward),
           ),
         const SizedBox(height: 10),
-        FloatingActionButton(
+        FloatingActionButton.small(
           heroTag: 'refresh',
           onPressed: _handleRefresh,
           tooltip: 'Refresh',

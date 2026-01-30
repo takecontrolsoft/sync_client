@@ -74,8 +74,8 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
   void dispose() {
     _pageController.dispose();
     _focusNode.dispose();
-    // Restore status bar
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    // Restore same mode as main shell (immersive sticky on Android)
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     super.dispose();
   }
 

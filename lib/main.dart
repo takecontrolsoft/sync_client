@@ -16,6 +16,7 @@ limitations under the License.
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/services/services.dart';
@@ -29,6 +30,8 @@ void main() async {
   MediaKit.ensureInitialized();
   await loadDeviceSettings();
   if (Platform.isAndroid) {
+    // Hide system nav bar; swipe from bottom reveals it (immersive sticky)
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     final mediaStorePlugin = MediaStore();
     await mediaStorePlugin.getPlatformSDKInt();
     await MediaStore.ensureInitialized();

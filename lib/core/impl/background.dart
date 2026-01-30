@@ -61,41 +61,61 @@ class BackgroundAction implements IAction {
       List<FileSystemEntity> files, String userName) async {
     final reversedFiles = files.reversed;
     for (FileSystemEntity file in reversedFiles) {
-      if (!FileSystemEntity.isDirectorySync(file.path)) {
-        DateTime lastFileDate = await File(file.path).lastModified();
-        // Avoid future or bogus dates: clamp to today if lastModified is in future
-        // or before 2000 (e.g. missing date on device)
-        final now = DateTime.now();
-        if (lastFileDate.isAfter(now) || lastFileDate.year < 2000) {
-          lastFileDate = now;
-        }
-        String dateClassifier = "${lastFileDate.year}-${lastFileDate.month}";
-
-        final fileHadBeenSynced = currentDeviceSettings.syncedFiles.any((f) =>
-            f.filename.toLowerCase() == file.path.toLowerCase() &&
-                (f.errorMessage ?? "").trim() == "" ||
-            f.failedAttempts > 3);
-        if (fileHadBeenSynced) {
-          if (!syncFileController.isClosed) {
-            syncFileController.add(SyncedFile(file.path));
+      try {
+        if (!FileSystemEntity.isDirectorySync(file.path)) {
+          DateTime lastFileDate = await File(file.path).lastModified();
+          // Avoid future or bogus dates: clamp to today if lastModified is in future
+          // or before 2000 (e.g. missing date on device)
+          final now = DateTime.now();
+          if (lastFileDate.isAfter(now) || lastFileDate.year < 2000) {
+            lastFileDate = now;
           }
-        } else {
-          if (file is File && p.extension(file.path).isNotEmpty) {
-            var syncedFile = await _transfers.sendFile(
-                syncFileController, file.path, userName, dateClassifier);
+          String dateClassifier = "${lastFileDate.year}-${lastFileDate.month}";
 
-            if (syncedFile != null) {
-              SyncedFile? fileFromList = currentDeviceSettings.syncedFiles
-                  .firstWhere(
-                      (f) =>
-                          f.filename.toLowerCase() == file.path.toLowerCase(),
-                      orElse: () {
-                currentDeviceSettings.syncedFiles.add(syncedFile);
-                return syncedFile;
-              });
-              fileFromList.errorMessage = syncedFile.errorMessage;
-              fileFromList.failedAttempts = fileFromList.failedAttempts + 1;
+          final fileHadBeenSynced = currentDeviceSettings.syncedFiles.any((f) =>
+              f.filename.toLowerCase() == file.path.toLowerCase() &&
+                  (f.errorMessage ?? "").trim() == "" ||
+              f.failedAttempts > 3);
+          if (fileHadBeenSynced) {
+            if (!syncFileController.isClosed) {
+              syncFileController.add(SyncedFile(file.path));
             }
+          } else {
+            if (file is File && p.extension(file.path).isNotEmpty) {
+              // Skip system/metadata files that the server rejects (e.g. desktop.ini, Thumbs.db)
+              final base = p.basename(file.path).toLowerCase();
+              if (base == 'desktop.ini' || base == 'thumbs.db') continue;
+              SyncedFile? syncedFile;
+              try {
+                syncedFile = await _transfers.sendFile(
+                    syncFileController, file.path, userName, dateClassifier);
+              } catch (e) {
+                syncedFile = SyncedFile(file.path,
+                    errorMessage: 'Upload failed: ${e.toString()}');
+              }
+              if (syncedFile != null) {
+                SyncedFile? fileFromList = currentDeviceSettings.syncedFiles
+                    .firstWhere(
+                        (f) =>
+                            f.filename.toLowerCase() == file.path.toLowerCase(),
+                        orElse: () {
+                  currentDeviceSettings.syncedFiles.add(syncedFile!);
+                  return syncedFile;
+                });
+                fileFromList.errorMessage = syncedFile.errorMessage;
+                fileFromList.failedAttempts = fileFromList.failedAttempts + 1;
+              }
+            }
+          }
+        }
+      } catch (e) {
+        // Continue with next file on any error (e.g. lastModified, permission, etc.)
+        print('Upload skip ${file.path}: $e');
+        if (file is File && !syncFileController.isClosed) {
+          final failed = SyncedFile(file.path, errorMessage: e.toString());
+          if (!currentDeviceSettings.syncedFiles.any((f) =>
+              f.filename.toLowerCase() == file.path.toLowerCase())) {
+            currentDeviceSettings.syncedFiles.add(failed);
           }
         }
       }

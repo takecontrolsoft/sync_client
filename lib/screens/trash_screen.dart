@@ -413,7 +413,7 @@ class _TrashScreenState extends State<TrashScreen> {
           : Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                FloatingActionButton(
+                FloatingActionButton.small(
                   heroTag: 'trash_refresh',
                   onPressed: _isLoading ? null : _loadTrashFiles,
                   tooltip: 'Refresh',

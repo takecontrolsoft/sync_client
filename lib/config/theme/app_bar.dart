@@ -30,8 +30,8 @@ class MainAppBar {
     final ThemeCubit theme = context.watch<ThemeCubit>();
     final DeviceServicesCubit deviceService =
         context.read<DeviceServicesCubit>();
+    final colorScheme = Theme.of(context).colorScheme;
     GlobalKey btnKey = GlobalKey();
-    final isDark = theme.state.isDarkMode;
 
     void onClickMenu(MenuItemProvider item) async {
       print('Click menu -> ${item.menuTitle}');
@@ -53,31 +53,28 @@ class MainAppBar {
     }
 
     return AppBar(
-      title: Text(
-        "Mobi Sync Client",
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.5,
-        ),
-      ),
       leading: Padding(
-        padding: const EdgeInsets.only(left: 8),
-        child: Icon(
-          Icons.cloud_sync_rounded,
-          color: Colors.white.withValues(alpha: 0.95),
-          size: 28,
+        padding: const EdgeInsets.only(left: 12),
+        child: Image.asset(
+          'images/mobi-sync.png',
+          height: 36,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => Icon(
+            Icons.cloud_sync_rounded,
+            color: colorScheme.onSurface,
+            size: 28,
+          ),
         ),
       ),
-      leadingWidth: 44,
-      backgroundColor: _headerOrange,
-      foregroundColor: Colors.white,
+      leadingWidth: 48,
+      title: const SizedBox.shrink(),
+      backgroundColor: colorScheme.surfaceContainerHighest,
+      foregroundColor: colorScheme.onSurface,
       elevation: 0,
       scrolledUnderElevation: 8,
       surfaceTintColor: Colors.transparent,
-      iconTheme: IconThemeData(color: Colors.white.withValues(alpha: 0.95)),
-      actionsIconTheme: IconThemeData(color: Colors.white.withValues(alpha: 0.95)),
+      iconTheme: IconThemeData(color: colorScheme.onSurface),
+      actionsIconTheme: IconThemeData(color: colorScheme.onSurface),
       actions: actionsBeforeMenu != null ? [...actionsBeforeMenu] : null,
     );
   }
