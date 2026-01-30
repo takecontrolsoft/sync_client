@@ -61,6 +61,12 @@ add_subdirectory("runner")
 
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
+# Set CMP0175 OLD immediately before loading plugins so media_kit_libs_windows_video
+# (and similar) do not warn about add_custom_command() missing PRE_BUILD/PRE_LINK/POST_BUILD.
+# CMP0175 was introduced in CMake 3.31.
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.31")
+  cmake_policy(SET CMP0175 OLD)
+endif()
 include(flutter/generated_plugins.cmake)
 
 

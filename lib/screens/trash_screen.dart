@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -40,6 +41,7 @@ class _TrashScreenState extends State<TrashScreen> {
   String? _errorMessage;
   bool _wasRouteCurrent = false;
   bool _selectionMode = false;
+  bool _isRestoring = false;
   final Set<String> _selectedPaths = {};
   final Set<String> _collapsedMonths = {};
 
@@ -170,12 +172,12 @@ class _TrashScreenState extends State<TrashScreen> {
       return;
     }
     final paths = _selectedPaths.toList();
+    setState(() => _isRestoring = true);
     try {
-      final ok = await apiRestoreFromTrash(user, deviceId, paths);
+      final ok = await apiRestoreFromTrash(user, deviceId, paths)
+          .timeout(const Duration(seconds: 60));
       if (!mounted) return;
       if (ok) {
-        await CacheService.clearCache();
-        if (!mounted) return;
         context.read<GalleryRefreshCubit>().requestHomeRefresh();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${paths.length} item(s) restored to Home')),
@@ -183,15 +185,28 @@ class _TrashScreenState extends State<TrashScreen> {
         setState(() {
           _selectionMode = false;
           _selectedPaths.clear();
+          _isRestoring = false;
         });
         _loadTrashFiles();
+        // Clear cache in background so UI doesn't hang (many keys = slow)
+        unawaited(CacheService.clearCache());
       } else {
+        setState(() => _isRestoring = false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to restore from Trash')),
         );
       }
+    } on TimeoutException {
+      if (mounted) {
+        setState(() => _isRestoring = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Restore timed out. Check the server and try again.')),
+        );
+      }
     } catch (e) {
       if (mounted) {
+        setState(() => _isRestoring = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e')),
         );
@@ -318,21 +333,29 @@ class _TrashScreenState extends State<TrashScreen> {
     return AppBar(
       leading: IconButton(
         icon: const Icon(Icons.close),
-        onPressed: () {
-          setState(() {
-            _selectionMode = false;
-            _selectedPaths.clear();
-          });
-        },
+        onPressed: _isRestoring
+            ? null
+            : () {
+                setState(() {
+                  _selectionMode = false;
+                  _selectedPaths.clear();
+                });
+              },
         tooltip: 'Cancel',
       ),
       title: Text(n == 0 ? 'Select items' : '$n selected'),
       actions: [
         if (n > 0)
           TextButton.icon(
-            icon: const Icon(Icons.restore_from_trash),
-            label: const Text('Restore from Trash'),
-            onPressed: _restoreSelected,
+            icon: _isRestoring
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.restore_from_trash),
+            label: Text(_isRestoring ? 'Restoring…' : 'Restore from Trash'),
+            onPressed: _isRestoring ? null : _restoreSelected,
           ),
       ],
     );

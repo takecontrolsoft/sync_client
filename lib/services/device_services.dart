@@ -81,4 +81,15 @@ class DeviceServicesCubit extends Cubit<DeviceSettings> {
       state.id = trimmed;
     });
   }
+
+  /// Clears sync metadata only: syncedFiles, lastSyncDateTime, isSyncing.
+  /// Keeps account (currentUser, serverUrl, id) and selected folders (mediaDirectories).
+  /// Persists to deviceSettings.json.
+  Future<void> clearSyncMetadata() async {
+    await edit((state) {
+      state.syncedFiles = [];
+      state.lastSyncDateTime = null;
+      state.isSyncing = null;
+    });
+  }
 }

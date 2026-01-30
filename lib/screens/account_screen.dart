@@ -22,8 +22,91 @@ import 'package:go_router/go_router.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/core/core.dart';
 import 'package:sync_client/screens/components/components.dart';
+import 'package:sync_client/services/device_services.dart';
 import 'package:sync_client/services/services.dart';
 import 'package:sync_client/storage/storage.dart';
+
+Future<void> _confirmDeleteCachedImages(BuildContext context) async {
+  final confirm = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) => AlertDialog(
+      title: const Text('Delete cached images'),
+      content: const Text(
+        'This will clear all cached thumbnails and images from this device. '
+        'Images will be re-downloaded when you browse again.',
+        textAlign: TextAlign.center,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Delete'),
+        ),
+      ],
+    ),
+  );
+  if (confirm != true || !context.mounted) return;
+  try {
+    await ThumbnailCacheService.clear();
+    await CacheService.clearCache();
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cached images deleted')),
+      );
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+}
+
+Future<void> _confirmDeleteSyncMetadata(
+    BuildContext context, DeviceServicesCubit deviceService) async {
+  final confirm = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) => AlertDialog(
+      title: const Text('Delete Sync Metadata'),
+      content: const Text(
+        'This will clear sync metadata (synced file list, last sync time) from '
+        'device settings (deviceSettings.json). Your account and selected folders '
+        'to sync are kept.',
+        textAlign: TextAlign.center,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Delete'),
+        ),
+      ],
+    ),
+  );
+  if (confirm != true || !context.mounted) return;
+  try {
+    await deviceService.clearSyncMetadata();
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sync metadata deleted')),
+      );
+    }
+  } catch (e) {
+    if (context.mounted) {
+      deviceService.edit((state) {
+        state.lastErrorMessage = 'Failed to delete sync metadata: $e';
+        state.successMessage = null;
+      });
+    }
+  }
+}
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});
@@ -69,6 +152,42 @@ class AccountScreenView extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          const Padding(
+            padding: EdgeInsets.only(left: 25, top: 16),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Data & cache",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: double.maxFinite,
+            child: okButton(context, "Delete cached images",
+                onPressed: () => _confirmDeleteCachedImages(context)),
+          ),
+          SizedBox(
+            width: double.maxFinite,
+            child: okButton(context, "Delete Sync Metadata",
+                onPressed: () => _confirmDeleteSyncMetadata(context, deviceService)),
+          ),
+          const Padding(
+            padding: EdgeInsets.only(left: 25, top: 24),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Account",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
           ),
           SizedBox(
               width: double.maxFinite,
