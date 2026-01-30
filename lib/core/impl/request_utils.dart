@@ -29,3 +29,12 @@ Uri getUrl(String relPath) {
   }
   return Uri.parse("${currentDeviceSettings.serverUrl!}/$relPath");
 }
+
+/// Builds the stream URL for video/audio playback (GET with Range support).
+Uri getStreamUrl(String serverUrl, String user, String deviceId, String file) {
+  final uri = Uri.parse(serverUrl.trim());
+  return uri.replace(
+    path: uri.path.isEmpty || uri.path == '/' ? 'stream' : '${uri.path}/stream',
+    queryParameters: {'User': user, 'DeviceId': deviceId, 'File': file},
+  );
+}

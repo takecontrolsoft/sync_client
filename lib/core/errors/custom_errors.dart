@@ -22,3 +22,8 @@ final class SyncError extends CustomError {
 final class GetFoldersError extends CustomError {
   GetFoldersError() : super("Failed to get folders from server.");
 }
+
+final class ServerUrlNotSetError extends CustomError {
+  ServerUrlNotSetError()
+      : super("Server URL is not set. Add server in Account.");
+}

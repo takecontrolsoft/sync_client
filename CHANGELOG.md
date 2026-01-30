@@ -4,6 +4,16 @@
 An App for wireless syncing of photos and videos from devices to home server. (https://mobisync.eu)
 
 
+## 1.0.10 Release notes (2026-01-29)
+
+### Enhancements
+* iOS: deployment target set to 13.0 for pod compatibility (wakelock_plus, url_launcher_ios)
+* Android: AGP 8.9.1 and Gradle 8.11.1 for androidx deps; keystore conversion to JKS in CI
+* Added url_launcher for mobisync.eu link; branding strip below nav bar
+
+### Fixes
+* CI: Android keystore conversion with srcalias/destalias; Gradle daemon disabled in CI
+
 ## 1.0.9 Release notes (2024-09-02)
 
 ### Enhancements

@@ -12,36 +12,71 @@ Widget formLayout(BuildContext context, Widget? contentWidget) {
           )));
 }
 
-Widget loginField(TextEditingController controller,
+Widget loginField(BuildContext context, TextEditingController controller,
     {String? labelText, String? hintText, bool? obscure}) {
   return Padding(
-    padding: const EdgeInsets.all(15),
+    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
     child: TextField(
-        obscureText: obscure ?? false,
-        controller: controller,
-        decoration: InputDecoration(
-            border: const OutlineInputBorder(),
-            labelText: labelText,
-            hintText: hintText)),
+      obscureText: obscure ?? false,
+      controller: controller,
+      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+      decoration: InputDecoration(
+        labelText: labelText,
+        hintText: hintText,
+        floatingLabelBehavior: FloatingLabelBehavior.auto,
+        filled: true,
+        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: Colors.grey.shade300,
+            width: 1,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
+            width: 2,
+          ),
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      ),
+    ),
   );
 }
 
 Widget loginButton(BuildContext context,
     {void Function()? onPressed, Widget? child}) {
-  return Container(
-    height: 50,
-    width: 250,
-    margin: const EdgeInsets.symmetric(vertical: 25),
-    child: ElevatedButton(
-      style: ButtonStyle(
-          backgroundColor: WidgetStateProperty.all(objectColor),
-          textStyle: WidgetStateProperty.all<TextStyle>(
-              const TextStyle(color: Colors.white, fontSize: 20)),
-          shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-              RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20.0)))),
-      onPressed: onPressed,
-      child: child,
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+    child: SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: FilledButton(
+        onPressed: onPressed,
+        style: FilledButton.styleFrom(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: Colors.white,
+          elevation: 2,
+          shadowColor:
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
+        child: child,
+      ),
     ),
   );
 }

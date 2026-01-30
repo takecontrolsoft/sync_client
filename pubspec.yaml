@@ -2,7 +2,7 @@ name: sync_client
 description: Mobile and Desktop device application for automatically uploading image, video and audio files
 publish_to: 'none'
 
-version: 1.0.9
+version: 1.0.10
 
 environment:
   sdk: '>=3.2.0 <5.0.0'
@@ -25,15 +25,27 @@ dependencies:
   go_router: ^16.0.0
   intl: ^0.20.2
   json_annotation: ^4.9.0
-  path_provider: ^2.1.4
   popup_menu: ^2.0.0
   uuid: ^4.4.2
   media_store_plus: ^0.1.2
   permission_handler: ^12.0.1
+  shared_preferences: ^2.2.2
+  path_provider: ^2.1.5
+  visibility_detector: ^0.4.0+2
+  photo_view: ^0.15.0
+  share_plus: ^11.0.0
+  cached_network_image: ^3.3.1
+  media_kit: ^1.2.6
+  media_kit_video: ^2.0.1
+  media_kit_libs_video: ^1.0.7
+  device_info_plus: ^11.1.0
+  saver_gallery: ^3.0.6
+  flutter_secure_storage: ^9.2.2
+  url_launcher: ^6.2.0
 
 dev_dependencies:
-  integration_test:
-    sdk: flutter
+  #integration_test:
+    #sdk: flutter
   flutter_test:
     sdk: flutter
 

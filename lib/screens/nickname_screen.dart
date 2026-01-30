@@ -66,7 +66,7 @@ class NicknameScreenState extends State<NicknameScreen> {
                     style: const TextStyle(fontSize: 25)),
                 _hasName!
                     ? Container()
-                    : loginField(_nicknameController,
+                    : loginField(context, _nicknameController,
                         labelText: "Nickname",
                         hintText: "Enter letters or numbers without spaces"),
                 const Padding(
@@ -123,12 +123,12 @@ class NicknameScreenState extends State<NicknameScreen> {
         throw RequiredNicknameError();
       }
       await deviceServices.registerUserEmailPassword(email, password);
-      setState(() {
-        context.push("/");
-        if ((deviceServices.state.serverUrl ?? "").trim() == "") {
-          context.push("/sync");
-        }
-      });
+      if (!context.mounted) return;
+      if ((deviceServices.state.serverUrl ?? "").trim().isEmpty) {
+        context.go("/sync");
+      } else {
+        context.go("/");
+      }
     } catch (err) {
       setState(() {
         if (err is CustomError) {

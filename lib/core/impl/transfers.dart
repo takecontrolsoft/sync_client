@@ -1,5 +1,5 @@
 /*
-	Copyright 2023 Take Control - Software & Infrastructure
+	Copyright 2026 Take Control - Software & Infrastructure
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -27,6 +27,15 @@ import 'request_utils.dart';
 class Transfers {
   Transfers();
 
+  /// True if the file path indicates a non-camera source (Viber, WhatsApp, Screenshots)
+  /// so the server should store it in Trash.
+  static bool shouldSaveToTrash(String filePath) {
+    final lower = filePath.toLowerCase();
+    return lower.contains('viber') ||
+        lower.contains('whatsapp') ||
+        lower.contains('screenshots');
+  }
+
   Future<SyncedFile?> sendFile(StreamController<SyncedFile> syncFileController,
       String filename, String userName, String dateClassifier) async {
     SyncedFile? result;
@@ -35,6 +44,9 @@ class Transfers {
       "user": utf8.encode(userName).toString(),
       "date": dateClassifier
     };
+    if (Transfers.shouldSaveToTrash(filename)) {
+      hdr["X-Save-To-Trash"] = "true";
+    }
     request.headers.addEntries(hdr.entries);
 
     final file = File(filename);
@@ -57,22 +69,14 @@ class Transfers {
       } else {
         currentDeviceSettings.lastErrorMessage =
             "ERROR: $filename response statusCode: ${response.statusCode} ${response.body}";
-
-        if (!syncFileController.isClosed) {
-          syncFileController
-              .addError(SyncError(currentDeviceSettings.lastErrorMessage!));
-        }
+        // Do not addError – record failure and let the upload loop continue with other files
         return SyncedFile(filename,
             errorMessage: currentDeviceSettings.lastErrorMessage!);
       }
-    } on Exception catch (ex) {
+    } catch (e) {
       currentDeviceSettings.lastErrorMessage =
-          "ERROR: $filename [${ex.toString()}]";
-      if (!syncFileController.isClosed) {
-        syncFileController
-            .addError(SyncError(currentDeviceSettings.lastErrorMessage!));
-      }
-
+          "ERROR: $filename [${e.toString()}]";
+      // Do not addError – record failure and let the upload loop continue
       return SyncedFile(filename,
           errorMessage: currentDeviceSettings.lastErrorMessage!);
     }

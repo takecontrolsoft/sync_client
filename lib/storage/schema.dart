@@ -8,6 +8,9 @@ class User {
 
   String email;
   String? password;
+
+  /// Server-side user id (from /auth/login or /auth/register). Used for paths when auth DB is enabled.
+  String? userId;
   bool? loggedIn = false;
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
@@ -23,16 +26,31 @@ class DeviceSettings {
   String? model;
   String? serverUrl;
   User? currentUser;
+
+  @JsonKey(
+    toJson: _setToList,
+    fromJson: _listToSet,
+    defaultValue: <String>{},
+  )
   Set<String> mediaDirectories = {};
+
   String? lastErrorMessage;
   String? successMessage;
   DateTime? lastSyncDateTime;
-  bool? deleteLocalFilesEnabled;
+
+  /// When true, gallery shows photos from all devices for this account; when false, only this device.
+  bool showAllDevices = true;
+
+  @JsonKey(defaultValue: <SyncedFile>[])
   List<SyncedFile> syncedFiles = [];
+
   bool? isSyncing;
 
-  factory DeviceSettings.fromJson(Map<String, dynamic> json) =>
-      _$DeviceSettingsFromJson(json);
+  factory DeviceSettings.fromJson(Map<String, dynamic> json) {
+    // Ensure mediaDirectories is not null
+    json['mediaDirectories'] ??= <String>[];
+    return _$DeviceSettingsFromJson(json);
+  }
 
   Map<String, dynamic> toJson() => _$DeviceSettingsToJson(this);
 
@@ -47,6 +65,17 @@ class DeviceSettings {
 
   @override
   int get hashCode => super.hashCode + 1;
+
+  // Helper methods for JSON conversion
+  static List<String> _setToList(Set<String> set) => set.toList();
+
+  static Set<String> _listToSet(dynamic list) {
+    if (list == null) return <String>{};
+    if (list is List) {
+      return Set<String>.from(list.whereType<String>());
+    }
+    return <String>{};
+  }
 }
 
 @JsonSerializable()

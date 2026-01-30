@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "eu.mobisync" "\0"
-            VALUE "FileDescription", "sync_client" "\0"
+            VALUE "CompanyName", "spaceit.mobisync.eu" "\0"
+            VALUE "FileDescription", "SpaceItMobiSync" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "sync_client" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2023 eu.mobisync. All rights reserved." "\0"
+            VALUE "InternalName", "SpaceItMobiSync" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2023 spaceit.mobisync.eu. All rights reserved." "\0"
             VALUE "OriginalFilename", "sync_client.exe" "\0"
-            VALUE "ProductName", "sync_client" "\0"
+            VALUE "ProductName", "SpaceItMobiSync" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

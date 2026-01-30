@@ -2,28 +2,38 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sync_client/core/core.dart';
 import 'package:sync_client/storage/storage.dart';
 
 class DeviceServicesCubit extends Cubit<DeviceSettings> {
   DeviceServicesCubit() : super(currentDeviceSettings);
 
   bool isAuthenticated() {
-    bool loggedIn = state.currentUser?.loggedIn ?? false;
-    if (!loggedIn) {
-      logOut();
+    if (state.currentUser == null) {
+      return false;
     }
-    return loggedIn;
+    return state.currentUser?.loggedIn ?? false;
   }
 
   Future<User> logInUserEmailPassword(String email, String password) async {
-    if (state.currentUser == null ||
-        state.currentUser?.email != email ||
-        state.currentUser?.password != password) {
-      throw ArgumentError("Invalid user credentials", email);
+    if (state.serverUrl == null || state.serverUrl!.trim().isEmpty) {
+      throw ServerUrlNotSetError();
     }
+    final result = await apiLogin(email, password);
+    await setAuthToken(result.token);
     await edit(
       (state) {
-        state.currentUser!.loggedIn = true;
+        if (state.currentUser == null) {
+          state.currentUser = User(email)
+            ..password = password
+            ..userId = result.userId
+            ..loggedIn = true;
+        } else {
+          state.currentUser!.email = email;
+          state.currentUser!.password = password;
+          state.currentUser!.userId = result.userId;
+          state.currentUser!.loggedIn = true;
+        }
       },
     );
     emit(state);
@@ -31,29 +41,35 @@ class DeviceServicesCubit extends Cubit<DeviceSettings> {
   }
 
   Future<User> registerUserEmailPassword(String email, String password) async {
+    if (state.serverUrl == null || state.serverUrl!.trim().isEmpty) {
+      throw ServerUrlNotSetError();
+    }
+    final result = await apiRegister(email, password);
+    await setAuthToken(result.token);
     await edit(
       (state) {
         if (state.currentUser == null) {
-          state.currentUser ??= User(email)..password = password;
+          state.currentUser = User(email)
+            ..password = password
+            ..userId = result.userId
+            ..loggedIn = true;
         } else {
           state.currentUser!.email = email;
           state.currentUser!.password = password;
+          state.currentUser!.userId = result.userId;
+          state.currentUser!.loggedIn = true;
         }
-        state.currentUser!.loggedIn = true;
       },
     );
     return state.currentUser!;
   }
 
   Future<void> logOut() async {
-    if (isAuthenticated()) {
-      edit(
-        (state) {
-          state.currentUser!.loggedIn = false;
-        },
-      );
+    await clearAuthToken();
+    await edit((state) {
       state.currentUser = null;
-    }
+    });
+    emit(state);
   }
 
   Future<T> edit<T>(T Function(DeviceSettings) editCallback) async {
@@ -72,5 +88,45 @@ class DeviceServicesCubit extends Cubit<DeviceSettings> {
     await deleteDeviceSettings();
     DeviceSettings newState = currentDeviceSettings;
     emit(newState);
+  }
+
+  /// Updates the device ID (e.g. after user confirms or changes it on registration).
+  Future<void> updateDeviceId(String newId) async {
+    final trimmed = newId.trim();
+    if (trimmed.isEmpty) return;
+    await edit((state) {
+      state.id = trimmed;
+    });
+  }
+
+  /// Updates the server URL (e.g. on login/sign up screen before authenticating).
+  Future<void> updateServerUrl(String url) async {
+    final trimmed = url.trim();
+    if (trimmed.isEmpty) return;
+    await edit((state) {
+      if (state.serverUrl != trimmed) {
+        state.syncedFiles = [];
+        state.lastSyncDateTime = null;
+      }
+      state.serverUrl = trimmed;
+    });
+  }
+
+  /// Toggles whether gallery shows photos from all devices (true) or only this device (false).
+  Future<void> updateShowAllDevices(bool showAll) async {
+    await edit((state) {
+      state.showAllDevices = showAll;
+    });
+  }
+
+  /// Clears sync metadata only: syncedFiles, lastSyncDateTime, isSyncing.
+  /// Keeps account (currentUser, serverUrl, id) and selected folders (mediaDirectories).
+  /// Persists to deviceSettings.json.
+  Future<void> clearSyncMetadata() async {
+    await edit((state) {
+      state.syncedFiles = [];
+      state.lastSyncDateTime = null;
+      state.isSyncing = null;
+    });
   }
 }

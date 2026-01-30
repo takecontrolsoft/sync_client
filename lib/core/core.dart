@@ -13,8 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+export 'auth_storage.dart';
 export 'impl/background.dart';
 export 'impl/transfers.dart';
 export 'impl/server_api.dart';
+export 'impl/request_utils.dart';
 export 'errors/custom_errors.dart';
 export 'utils/json_utils.dart';

@@ -16,17 +16,22 @@ limitations under the License.
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/services/services.dart';
 import 'package:sync_client/storage/storage.dart';
+import 'package:media_kit/media_kit.dart';
 import 'package:media_store_plus/media_store_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  MediaKit.ensureInitialized();
   await loadDeviceSettings();
   if (Platform.isAndroid) {
+    // Hide system nav bar; swipe from bottom reveals it (immersive sticky)
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     final mediaStorePlugin = MediaStore();
     await mediaStorePlugin.getPlatformSDKInt();
     await MediaStore.ensureInitialized();
@@ -41,7 +46,6 @@ Future<void> requestPermissions() async {
   List<Permission> permissions = [
     Permission.storage,
   ];
-  permissions.add(Permission.manageExternalStorage);
   permissions.add(Permission.storage);
   permissions.add(Permission.photos);
   permissions.add(Permission.audio);
@@ -65,6 +69,7 @@ class BlocProviders extends StatelessWidget {
         BlocProvider(create: (context) => DeviceServicesCubit()),
         BlocProvider(create: (context) => SyncServicesCubit()),
         BlocProvider(create: (context) => ThemeCubit()),
+        BlocProvider(create: (context) => GalleryRefreshCubit()),
       ],
       child: const MyApp(),
     );

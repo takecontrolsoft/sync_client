@@ -10,11 +10,13 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
       json['email'] as String,
     )
       ..password = json['password'] as String?
+      ..userId = json['userId'] as String?
       ..loggedIn = json['loggedIn'] as bool?;
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'email': instance.email,
       'password': instance.password,
+      'userId': instance.userId,
       'loggedIn': instance.loggedIn,
     };
 
@@ -27,18 +29,19 @@ DeviceSettings _$DeviceSettingsFromJson(Map<String, dynamic> json) =>
       ..currentUser = json['currentUser'] == null
           ? null
           : User.fromJson(json['currentUser'] as Map<String, dynamic>)
-      ..mediaDirectories = (json['mediaDirectories'] as List<dynamic>)
-          .map((e) => e as String)
-          .toSet()
+      ..mediaDirectories = json['mediaDirectories'] == null
+          ? {}
+          : DeviceSettings._listToSet(json['mediaDirectories'])
       ..lastErrorMessage = json['lastErrorMessage'] as String?
       ..successMessage = json['successMessage'] as String?
       ..lastSyncDateTime = json['lastSyncDateTime'] == null
           ? null
           : DateTime.parse(json['lastSyncDateTime'] as String)
-      ..deleteLocalFilesEnabled = json['deleteLocalFilesEnabled'] as bool?
-      ..syncedFiles = (json['syncedFiles'] as List<dynamic>)
-          .map((e) => SyncedFile.fromJson(e as Map<String, dynamic>))
-          .toList()
+      ..showAllDevices = json['showAllDevices'] as bool? ?? true
+      ..syncedFiles = (json['syncedFiles'] as List<dynamic>?)
+              ?.map((e) => SyncedFile.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          []
       ..isSyncing = json['isSyncing'] as bool?;
 
 Map<String, dynamic> _$DeviceSettingsToJson(DeviceSettings instance) =>
@@ -47,11 +50,11 @@ Map<String, dynamic> _$DeviceSettingsToJson(DeviceSettings instance) =>
       'model': instance.model,
       'serverUrl': instance.serverUrl,
       'currentUser': instance.currentUser,
-      'mediaDirectories': instance.mediaDirectories.toList(),
+      'mediaDirectories': DeviceSettings._setToList(instance.mediaDirectories),
       'lastErrorMessage': instance.lastErrorMessage,
       'successMessage': instance.successMessage,
       'lastSyncDateTime': instance.lastSyncDateTime?.toIso8601String(),
-      'deleteLocalFilesEnabled': instance.deleteLocalFilesEnabled,
+      'showAllDevices': instance.showAllDevices,
       'syncedFiles': instance.syncedFiles,
       'isSyncing': instance.isSyncing,
     };

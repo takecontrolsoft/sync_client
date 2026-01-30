@@ -96,19 +96,6 @@ class SyncScreenView extends StatelessWidget {
                 onTap: () {
                   context.push("/folders");
                 },
-              )),
-              Card(
-                  child: ListTile(
-                leading: const Icon(Icons.clear),
-                title: const Text("Delete synced files from this device?"),
-                subtitle: reactiveBuilder<DeviceServicesCubit, DeviceSettings>(
-                    child: (context, state) {
-                  return Text(
-                      'Deleting: ${state.deleteLocalFilesEnabled ?? false ? "ON" : "OFF"}');
-                }),
-                onTap: () {
-                  context.push("/deleteOption");
-                },
               ))
             ],
           ),
@@ -156,47 +143,7 @@ class SyncScreenView extends StatelessWidget {
 
   Future<void> _sync(BuildContext context, DeviceServicesCubit deviceService,
       SyncServicesCubit syncService) async {
-    if (!(deviceService.state.deleteLocalFilesEnabled ?? false)) {
-      await _run(context, deviceService, syncService);
-    } else {
-      final errorMessage = _validate(deviceService);
-      if (errorMessage.isNotEmpty) {
-        await deviceService.edit((state) {
-          state.lastErrorMessage = errorMessage;
-        });
-      } else {
-        showDialog<String>(
-            context: context,
-            builder: (BuildContext context) => AlertDialog(
-                  title: const Text('Synced files will be deleted'),
-                  content: const Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 20,
-                      runSpacing: 20,
-                      children: <Widget>[
-                        Text(
-                          'WARNING: Option Deleting=ON.',
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(
-                          'All the synced files will be deleted from this device.',
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(
-                          'Would you like to continue?',
-                          textAlign: TextAlign.center,
-                        ),
-                      ]),
-                  actions: [
-                    okButton(context, "Confirm", onPressed: () {
-                      Navigator.pop(context);
-                      _run(context, deviceService, syncService);
-                    }),
-                    cancelButton(context)
-                  ],
-                ));
-      }
-    }
+    await _run(context, deviceService, syncService);
   }
 
   Future<void> _run(BuildContext context, DeviceServicesCubit deviceService,
@@ -210,6 +157,9 @@ class SyncScreenView extends StatelessWidget {
       return;
     }
     syncService.reset();
+
+    // Clear thumbnail cache so new/updated files load fresh from server
+    await ThumbnailCacheService.clear();
 
     await deviceService.edit((state) {
       state.lastErrorMessage = null;
