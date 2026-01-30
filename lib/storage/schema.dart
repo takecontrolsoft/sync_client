@@ -45,7 +45,7 @@ class DeviceSettings {
 
   factory DeviceSettings.fromJson(Map<String, dynamic> json) {
     // Ensure mediaDirectories is not null
-    json['mediaDirectories'] ??= [];
+    json['mediaDirectories'] ??= <String>[];
     return _$DeviceSettingsFromJson(json);
   }
 

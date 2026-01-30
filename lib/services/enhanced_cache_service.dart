@@ -10,7 +10,6 @@ import 'thumbnail_cache_service.dart';
 class EnhancedCacheService extends CacheService {
   static const String _thumbnailPrefix = 'cached_thumb_';
   static const String _fullImagePrefix = 'cached_image_';
-  static const Duration _thumbnailCacheExpiry = Duration(days: 30);
   static const Duration _imageCacheExpiry = Duration(days: 7);
 
   // Thumbnail caching: disk + memory via ThumbnailCacheService for fast lists

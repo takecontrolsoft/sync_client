@@ -28,30 +28,7 @@ class MainAppBar {
   /// [actionsBeforeMenu] are shown in the AppBar before the menu (e.g. refresh on Trash).
   static AppBar appBar(BuildContext context,
       {List<Widget>? actionsBeforeMenu}) {
-    final ThemeCubit theme = context.watch<ThemeCubit>();
-    final DeviceServicesCubit deviceService =
-        context.read<DeviceServicesCubit>();
     final colorScheme = Theme.of(context).colorScheme;
-    GlobalKey btnKey = GlobalKey();
-
-    void onClickMenu(MenuItemProvider item) async {
-      print('Click menu -> ${item.menuTitle}');
-      final option = item.menuUserInfo as AppMenuOption;
-      switch (option) {
-        case AppMenuOption.home:
-          context.go("/");
-        case AppMenuOption.trash:
-          context.go("/trash");
-        case AppMenuOption.sync:
-          context.go("/sync");
-        case AppMenuOption.theme:
-          theme.toggleTheme();
-        case AppMenuOption.account:
-          context.go("/account");
-        case AppMenuOption.logout:
-          await logOut(context, deviceService);
-      }
-    }
 
     return AppBar(
       leading: Padding(

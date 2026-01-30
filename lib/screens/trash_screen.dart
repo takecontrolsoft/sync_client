@@ -24,7 +24,6 @@ import 'package:sync_client/config/theme/app_theme.dart';
 import 'package:sync_client/core/core.dart';
 import 'package:sync_client/models/photo_item.dart';
 import 'package:sync_client/screens/components/components.dart';
-import 'package:sync_client/screens/components/gallery_app_bar.dart';
 import 'package:sync_client/services/services.dart';
 
 class TrashScreen extends StatefulWidget {
@@ -123,9 +122,9 @@ class _TrashScreenState extends State<TrashScreen> {
       BuildContext context, List<PhotoItem> photos, int initialIndex) {
     final photo = photos[initialIndex];
     if (photo.isVideo) {
-      Navigator.push(
+      Navigator.push<void>(
         context,
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (context) => VideoPlayerScreen(
             video: photo,
             photos: photos,
@@ -135,9 +134,9 @@ class _TrashScreenState extends State<TrashScreen> {
         ),
       );
     } else {
-      Navigator.push(
+      Navigator.push<void>(
         context,
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (context) => PhotoViewerScreen(
             photos: photos,
             initialIndex: initialIndex,

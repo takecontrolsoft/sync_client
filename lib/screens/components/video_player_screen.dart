@@ -152,8 +152,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     final item = widget.photos![idx];
     Navigator.of(context).pop();
     if (item.isVideo) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
+      Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
           builder: (context) => VideoPlayerScreen(
             video: item,
             photos: widget.photos,
@@ -163,8 +163,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         ),
       );
     } else {
-      Navigator.of(context).push(
-        MaterialPageRoute(
+      Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
           builder: (context) => PhotoViewerScreen(
             photos: widget.photos!,
             initialIndex: idx,
@@ -181,8 +181,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     final item = widget.photos![idx];
     Navigator.of(context).pop();
     if (item.isVideo) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
+      Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
           builder: (context) => VideoPlayerScreen(
             video: item,
             photos: widget.photos,
@@ -192,8 +192,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         ),
       );
     } else {
-      Navigator.of(context).push(
-        MaterialPageRoute(
+      Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
           builder: (context) => PhotoViewerScreen(
             photos: widget.photos!,
             initialIndex: idx,

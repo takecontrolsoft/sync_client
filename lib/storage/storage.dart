@@ -62,7 +62,7 @@ Future<void> loadDeviceSettings() async {
         try {
           final jsonData = jsonDecode(jsonAsString);
           // Ensure mediaDirectories exists and is a list
-          jsonData['mediaDirectories'] ??= [];
+          jsonData['mediaDirectories'] ??= <dynamic>[];
           deviceSettings = DeviceSettings.fromJson(jsonData);
         } catch (e) {
           print('Error parsing bundled deviceSettings.json: $e');
@@ -91,11 +91,11 @@ Future<void> loadDeviceSettings() async {
 
       // Ensure mediaDirectories is not null
       if (jsonData is Map<String, dynamic>) {
-        jsonData['mediaDirectories'] ??= [];
+        jsonData['mediaDirectories'] ??= <dynamic>[];
 
         // Ensure it's a list
         if (jsonData['mediaDirectories'] is! List) {
-          jsonData['mediaDirectories'] = [];
+          jsonData['mediaDirectories'] = <dynamic>[];
         }
       }
 
@@ -121,7 +121,7 @@ Future<void> saveDeviceSettings(DeviceSettings deviceSettings) async {
 
     // Ensure the data is valid before saving
     final jsonData = deviceSettings.toJson();
-    jsonData['mediaDirectories'] ??= [];
+    jsonData['mediaDirectories'] ??= <dynamic>[];
 
     jsonFile.writeAsStringSync(jsonEncode(jsonData));
   } catch (e) {
@@ -166,7 +166,7 @@ Future<void> migrateDeviceSettings() async {
         // Fix missing or null mediaDirectories
         if (jsonData['mediaDirectories'] == null ||
             jsonData['mediaDirectories'] is! List) {
-          jsonData['mediaDirectories'] = [];
+          jsonData['mediaDirectories'] = <dynamic>[];
           needsUpdate = true;
         }
 

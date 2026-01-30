@@ -43,7 +43,7 @@ class FoldersListScreen extends StatelessWidget {
       BuildContext context, DeviceServicesCubit deviceService) async {
     try {
       // Show loading while picker opens
-      showDialog(
+      showDialog<void>(
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) {
@@ -85,7 +85,7 @@ class FoldersListScreen extends StatelessWidget {
 
         // Show error with helpful message
         if (context.mounted) {
-          showDialog(
+          showDialog<void>(
             context: context,
             builder: (context) => AlertDialog(
               title: const Text('Unable to open folder picker'),
@@ -490,12 +490,8 @@ class _FoldersListScreenView extends StatelessWidget {
     );
   }
 
-  String _getPlatformHelpText() {
-    return FolderListStyles.getPlatformHelpText();
-  }
-
   void _showFolderOptions(BuildContext context, String directory) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (context) => SafeArea(
         child: Column(
@@ -533,7 +529,7 @@ class _FoldersListScreenView extends StatelessWidget {
                 }
 
                 if (context.mounted) {
-                  showDialog(
+                  showDialog<void>(
                     context: context,
                     builder: (context) => AlertDialog(
                       title: const Text('Folder Information'),

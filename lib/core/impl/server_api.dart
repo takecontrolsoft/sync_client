@@ -22,8 +22,6 @@ import 'package:sync_client/core/errors/custom_errors.dart';
 import 'package:sync_client/core/impl/request_utils.dart';
 import 'package:sync_client/storage/storage.dart';
 
-import 'request_utils.dart';
-
 /// Server expects forward slashes; on Windows paths may use backslash.
 String _normalizePath(String path) => path.replaceAll(r'\', '/');
 

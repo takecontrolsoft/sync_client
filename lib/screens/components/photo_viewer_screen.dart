@@ -240,7 +240,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
           _fullImageCache[index] = fullData;
           _fullImageLoadingStates[index] = false;
         });
-        EnhancedCacheService.cacheImage(fullPath, fullData).catchError((e) {
+        EnhancedCacheService.cacheImage(fullPath, fullData).catchError((Object e) {
           debugPrint('Failed to cache image: $e');
         });
       } else if (mounted) {
@@ -894,9 +894,9 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
   }
 
   void _playVideo(PhotoItem video) {
-    Navigator.push(
+    Navigator.push<void>(
       context,
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (context) => VideoPlayerScreen(
           video: video,
           photos: widget.photos,
@@ -1009,7 +1009,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
       }
       if (Platform.isAndroid || Platform.isIOS) {
         final result = await SaverGallery.saveImage(
-          bytes!,
+          bytes,
           fileName: fileName,
           skipIfExists: false,
         );
@@ -1041,7 +1041,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
           await dir.create(recursive: true);
         }
         final file = File(p.join(picturesPath, fileName));
-        await file.writeAsBytes(bytes!);
+        await file.writeAsBytes(bytes);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -1124,7 +1124,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
         _thumbnailCache[_currentIndex];
     final isFullQuality = _fullImageCache.containsKey(_currentIndex);
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       backgroundColor: PhotoViewerStyles.infoSheetDecoration(context).color,
       shape: const RoundedRectangleBorder(

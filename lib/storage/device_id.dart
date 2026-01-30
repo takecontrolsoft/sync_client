@@ -38,7 +38,7 @@ Future<String> getPersistentDeviceId() async {
     if (Platform.isAndroid) {
       final android = await deviceInfo.androidInfo;
       final id = android.id;
-      if (id != null && id.isNotEmpty && id != 'unknown') {
+      if (id.isNotEmpty && id != 'unknown') {
         return _sanitizeForPath(id);
       }
     }

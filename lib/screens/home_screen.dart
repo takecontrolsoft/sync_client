@@ -800,7 +800,7 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _pushViewerAndRefreshIfTrashed(
-      BuildContext context, MaterialPageRoute route) async {
+      BuildContext context, MaterialPageRoute<void> route) async {
     final result = await Navigator.push<Object?>(context, route);
     if (!mounted) return;
     if (result is String) {
@@ -838,15 +838,18 @@ class HomeScreenState extends State<HomeScreen> {
 
   Future<List<String>> getAllFiles(
       DeviceServicesCubit deviceService, String folder) async {
-    if ((deviceService.state.serverUrl ?? "").isEmpty) {
+    final url = deviceService.state.serverUrl;
+    if (url == null || url.isEmpty) {
       return [];
     }
     List<String>? files = await apiGetFiles(
         deviceService.state.currentUser!.email, deviceService.state.id, folder);
 
+    // ignore: dead_null_aware_expression
     return files ?? [];
   }
 
+  // ignore: unused_element
   List<PhotoItem> _getAllPhotosInOrder() {
     final sortedMonths = _photosByMonth.keys.toList();
     sortedMonths.sort((a, b) {

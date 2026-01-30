@@ -8,7 +8,7 @@ class GalleryAppBar {
     BuildContext context, {
     required int crossAxisCount,
     required bool isGridView,
-    required Function(int) onGridSizeChanged,
+    required void Function(int) onGridSizeChanged,
     required VoidCallback onViewModeToggle,
     VoidCallback? onSelectPressed,
     VoidCallback? onMoveDocumentsToTrashPressed,

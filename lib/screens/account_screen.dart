@@ -93,7 +93,7 @@ Future<void> _confirmCleanOrphanThumbnails(
   if (confirm != true || !context.mounted) return;
   final user = deviceService.state.currentUser?.email;
   final deviceId = deviceService.state.id;
-  if (user == null || user.isEmpty || (deviceId ?? '').isEmpty) {
+  if (user == null || user.isEmpty || deviceId.isEmpty) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Not signed in')),
@@ -107,7 +107,7 @@ Future<void> _confirmCleanOrphanThumbnails(
         const SnackBar(content: Text('Cleaning on server…')),
       );
     }
-    final ok = await apiCleanOrphanThumbnails(user, deviceId!);
+    final ok = await apiCleanOrphanThumbnails(user, deviceId);
     if (!context.mounted) return;
     if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -120,12 +120,10 @@ Future<void> _confirmCleanOrphanThumbnails(
     final serverPaths = await apiGetAllFilePaths(user, deviceId);
     final validSet = serverPaths.map((s) => s.replaceAll(r'\', '/')).toSet();
     final cached = await ThumbnailCacheService.listCachedPaths();
-    int removed = 0;
     for (final path in cached) {
       final normalized = path.replaceAll(r'\', '/');
       if (!validSet.contains(normalized)) {
         await ThumbnailCacheService.delete(path);
-        removed++;
       }
     }
     if (context.mounted) {
@@ -171,7 +169,7 @@ Future<void> _confirmRegenerateThumbnails(
   if (confirm != true || !context.mounted) return;
   final user = deviceService.state.currentUser?.email;
   final deviceId = deviceService.state.id;
-  if (user == null || user.isEmpty || (deviceId ?? '').isEmpty) {
+  if (user == null || user.isEmpty || deviceId.isEmpty) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Not signed in')),
@@ -185,7 +183,7 @@ Future<void> _confirmRegenerateThumbnails(
         const SnackBar(content: Text('Regenerating on server…')),
       );
     }
-    final ok = await apiRegenerateThumbnails(user, deviceId!);
+    final ok = await apiRegenerateThumbnails(user, deviceId);
     if (!context.mounted) return;
     if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
