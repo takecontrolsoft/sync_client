@@ -105,7 +105,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       serverUrl,
       user,
       deviceId,
-      widget.video.path,
+      widget.video.fullPath,
     );
 
     try {

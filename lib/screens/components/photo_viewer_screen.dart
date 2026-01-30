@@ -257,6 +257,8 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
   void _onPageChanged(int index) {
     setState(() {
       _currentIndex = index;
+      // When swiping to a video, hide overlay so play button is tappable and video is visible
+      if (widget.photos[index].isVideo) _showOverlay = false;
     });
 
     _loadHighThenFullQualityImage(index);
@@ -502,8 +504,8 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                 },
               ),
 
-              // When overlay hidden: tap anywhere (center) shows controls again (PhotoView consumes tap otherwise)
-              if (!_showOverlay)
+              // When overlay hidden: tap center shows controls — but NOT when current is video (so play button receives tap)
+              if (!_showOverlay && !widget.photos[_currentIndex].isVideo)
                 Positioned.fill(
                   child: GestureDetector(
                     behavior: HitTestBehavior.translucent,
