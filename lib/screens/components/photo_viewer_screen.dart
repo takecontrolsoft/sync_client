@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:saver_gallery/saver_gallery.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_view/photo_view.dart';
@@ -1008,12 +1008,13 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
         return;
       }
       if (Platform.isAndroid || Platform.isIOS) {
-        final result = await ImageGallerySaver.saveImage(
+        final result = await SaverGallery.saveImage(
           bytes!,
-          name: fileName,
+          fileName: fileName,
+          skipIfExists: false,
         );
         if (!mounted) return;
-        if (result['isSuccess'] == true) {
+        if (result.isSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Saved to gallery'),
@@ -1022,7 +1023,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to save: ${result['error']}')),
+            SnackBar(content: Text('Failed to save: ${result.errorMessage}')),
           );
         }
       } else {
