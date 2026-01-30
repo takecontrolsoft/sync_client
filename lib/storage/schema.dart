@@ -38,6 +38,9 @@ class DeviceSettings {
   String? successMessage;
   DateTime? lastSyncDateTime;
 
+  /// When true, gallery shows photos from all devices for this account; when false, only this device.
+  bool showAllDevices = true;
+
   @JsonKey(defaultValue: <SyncedFile>[])
   List<SyncedFile> syncedFiles = [];
 

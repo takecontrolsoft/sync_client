@@ -37,6 +37,7 @@ DeviceSettings _$DeviceSettingsFromJson(Map<String, dynamic> json) =>
       ..lastSyncDateTime = json['lastSyncDateTime'] == null
           ? null
           : DateTime.parse(json['lastSyncDateTime'] as String)
+      ..showAllDevices = json['showAllDevices'] as bool? ?? true
       ..syncedFiles = (json['syncedFiles'] as List<dynamic>?)
               ?.map((e) => SyncedFile.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -53,6 +54,7 @@ Map<String, dynamic> _$DeviceSettingsToJson(DeviceSettings instance) =>
       'lastErrorMessage': instance.lastErrorMessage,
       'successMessage': instance.successMessage,
       'lastSyncDateTime': instance.lastSyncDateTime?.toIso8601String(),
+      'showAllDevices': instance.showAllDevices,
       'syncedFiles': instance.syncedFiles,
       'isSyncing': instance.isSyncing,
     };

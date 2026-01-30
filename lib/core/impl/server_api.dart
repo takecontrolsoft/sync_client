@@ -22,6 +22,9 @@ import 'package:sync_client/core/errors/custom_errors.dart';
 import 'package:sync_client/core/impl/request_utils.dart';
 import 'package:sync_client/storage/storage.dart';
 
+/// API version sent to the server so it can use compatible behavior from the start.
+const String apiVersion = '1.0.8';
+
 /// Server expects forward slashes; on Windows paths may use backslash.
 String _normalizePath(String path) => path.replaceAll(r'\', '/');
 
@@ -30,6 +33,7 @@ Future<Map<String, String>> _authHeaders() async {
   final token = await getAuthToken();
   return <String, String>{
     'Content-Type': 'application/json; charset=UTF-8',
+    'X-Api-Version': apiVersion,
     if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
   };
 }
@@ -111,6 +115,10 @@ Future<List<NetFolder>?> apiGetFolders(String userName, String deviceId) async {
                   .toList())))
           .toList();
       return folders;
+    }
+    // No folder for this device yet (e.g. sync not run) → empty list
+    if (response.statusCode == 404) {
+      return <NetFolder>[];
     }
   } catch (err) {
     throw GetFoldersError();

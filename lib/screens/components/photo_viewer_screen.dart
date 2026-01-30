@@ -147,9 +147,11 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
       }
 
       // Load thumbnail from server
+      final deviceId =
+          photo.deviceIdOverride ?? deviceService.state.id;
       final data = await apiGetImageBytes(
         deviceService.state.currentUser!.email,
-        deviceService.state.id,
+        deviceId,
         fullPath,
         fullQuality: false,
       );
@@ -198,9 +200,11 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
         setState(() => _highImageLoadingStates[index] = true);
       }
       try {
+        final deviceId =
+            photo.deviceIdOverride ?? deviceService.state.id;
         final highData = await apiGetImageBytes(
           deviceService.state.currentUser!.email,
-          deviceService.state.id,
+          deviceId,
           fullPath,
           quality: 'high',
         );
@@ -229,9 +233,11 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
       setState(() => _fullImageLoadingStates[index] = true);
     }
     try {
+      final deviceId =
+          photo.deviceIdOverride ?? deviceService.state.id;
       final fullData = await apiGetImageBytes(
         deviceService.state.currentUser!.email,
-        deviceService.state.id,
+        deviceId,
         fullPath,
         quality: 'full',
       );
@@ -971,7 +977,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
       }
       final deviceService = context.read<DeviceServicesCubit>();
       final user = deviceService.state.currentUser?.email;
-      final deviceId = deviceService.state.id;
+      final deviceId = photo.deviceIdOverride ?? deviceService.state.id;
       if (user == null || deviceId.isEmpty) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -1065,7 +1071,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
     final photo = widget.photos[_currentIndex];
     final deviceService = context.read<DeviceServicesCubit>();
     final user = deviceService.state.currentUser?.email;
-    final deviceId = deviceService.state.id;
+    final deviceId = photo.deviceIdOverride ?? deviceService.state.id;
     if (user == null || user.isEmpty || deviceId.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

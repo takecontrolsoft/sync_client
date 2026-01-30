@@ -99,6 +99,26 @@ class DeviceServicesCubit extends Cubit<DeviceSettings> {
     });
   }
 
+  /// Updates the server URL (e.g. on login/sign up screen before authenticating).
+  Future<void> updateServerUrl(String url) async {
+    final trimmed = url.trim();
+    if (trimmed.isEmpty) return;
+    await edit((state) {
+      if (state.serverUrl != trimmed) {
+        state.syncedFiles = [];
+        state.lastSyncDateTime = null;
+      }
+      state.serverUrl = trimmed;
+    });
+  }
+
+  /// Toggles whether gallery shows photos from all devices (true) or only this device (false).
+  Future<void> updateShowAllDevices(bool showAll) async {
+    await edit((state) {
+      state.showAllDevices = showAll;
+    });
+  }
+
   /// Clears sync metadata only: syncedFiles, lastSyncDateTime, isSyncing.
   /// Keeps account (currentUser, serverUrl, id) and selected folders (mediaDirectories).
   /// Persists to deviceSettings.json.

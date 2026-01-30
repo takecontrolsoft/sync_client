@@ -251,9 +251,11 @@ class _GalleryPhotoTileState extends State<GalleryPhotoTile>
 
       // 2) Load from server – always when not in cache
       debugPrint('Thumbnail load from server: $fullPath');
+      final deviceId =
+          widget.photo.deviceIdOverride ?? deviceService.state.id;
       final data = await apiGetImageBytes(
         deviceService.state.currentUser!.email,
-        deviceService.state.id,
+        deviceId,
         fullPath,
       ).timeout(_loadTimeout, onTimeout: () {
         debugPrint('Thumbnail load timeout: $fullPath');

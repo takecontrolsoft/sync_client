@@ -174,11 +174,17 @@ class HomeScreenState extends State<HomeScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final deviceService = context.read<DeviceServicesCubit>();
+        final noFolderYet = e is GetFoldersError &&
+            !deviceService.state.showAllDevices &&
+            (deviceService.state.id.isNotEmpty);
         setState(() {
           _hasError = true;
-          _errorMessage = e is CustomError
-              ? e.message
-              : 'Failed to load folders: ${e.toString()}';
+          _errorMessage = noFolderYet
+              ? 'No photos on server yet. Run sync to upload photos from this device.'
+              : (e is CustomError
+                  ? e.message
+                  : 'Failed to load folders: ${e.toString()}');
           _isLoading = false;
         });
       }
@@ -195,10 +201,23 @@ class HomeScreenState extends State<HomeScreen> {
       try {
         final files = await getAllFiles(deviceService, folder);
         if (mounted) {
-          // Filter out .converted.jpg files and create PhotoItems
+          final showAll = deviceService.state.showAllDevices;
+          // Filter out .converted.jpg and create PhotoItems; when showAllDevices, file is "deviceId/path"
           final photos = files
               .where((f) => !f.toLowerCase().contains('.converted.jpg'))
-              .map((f) => PhotoItem.fromPath(f, folder))
+              .map((f) {
+                if (showAll) {
+                  final parsed = PhotoItem.parseDeviceIdPath(f);
+                  final devId = parsed[0];
+                  final path = parsed[1]!;
+                  final pathFolder = path.contains('/')
+                      ? path.substring(0, path.lastIndexOf('/'))
+                      : folder;
+                  return PhotoItem.fromPath(path, pathFolder,
+                      deviceIdOverride: devId);
+                }
+                return PhotoItem.fromPath(f, folder);
+              })
               .toList();
 
           setState(() {
@@ -318,12 +337,20 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  static String _selectionKey(PhotoItem photo) {
+    if (photo.deviceIdOverride != null) {
+      return '${photo.deviceIdOverride}|${photo.path}';
+    }
+    return photo.path;
+  }
+
   void _toggleSelection(PhotoItem photo) {
+    final key = _selectionKey(photo);
     setState(() {
-      if (_selectedPaths.contains(photo.path)) {
-        _selectedPaths.remove(photo.path);
+      if (_selectedPaths.contains(key)) {
+        _selectedPaths.remove(key);
       } else {
-        _selectedPaths.add(photo.path);
+        _selectedPaths.add(key);
       }
     });
   }
@@ -401,8 +428,8 @@ class HomeScreenState extends State<HomeScreen> {
     if (_selectedPaths.isEmpty) return;
     final deviceService = context.read<DeviceServicesCubit>();
     final user = deviceService.state.currentUser?.email;
-    final deviceId = deviceService.state.id;
-    if (user == null || user.isEmpty || deviceId.isEmpty) {
+    final currentDeviceId = deviceService.state.id;
+    if (user == null || user.isEmpty || currentDeviceId.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Not signed in')),
@@ -410,18 +437,31 @@ class HomeScreenState extends State<HomeScreen> {
       }
       return;
     }
-    final paths = _selectedPaths.toList();
+    final keys = _selectedPaths.toList();
+    final byDevice = <String, List<String>>{};
+    final pathsForCache = <String>[];
+    for (final key in keys) {
+      final bar = key.indexOf('|');
+      final deviceId = bar > 0 ? key.substring(0, bar) : currentDeviceId;
+      final path = bar > 0 ? key.substring(bar + 1) : key;
+      byDevice.putIfAbsent(deviceId, () => []).add(path);
+      pathsForCache.add(path);
+    }
     try {
-      final ok = await apiMoveToTrash(user, deviceId, paths);
+      bool allOk = true;
+      for (final entry in byDevice.entries) {
+        final ok = await apiMoveToTrash(user, entry.key, entry.value);
+        if (!ok) allOk = false;
+      }
       if (!mounted) return;
-      if (ok) {
+      if (allOk) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${paths.length} item(s) moved to Trash')),
+          SnackBar(content: Text('${keys.length} item(s) moved to Trash')),
         );
         setState(() {
           _selectionMode = false;
           _selectedPaths.clear();
-          _removePhotosFromCache(paths);
+          _removePhotosFromCache(pathsForCache);
         });
         context.read<GalleryRefreshCubit>().requestTrashRefresh();
       } else {
@@ -724,7 +764,7 @@ class HomeScreenState extends State<HomeScreen> {
                           ? () => _toggleSelection(photo)
                           : () => _openPhotoViewer(context, photos, index),
                       isSelectionMode: _selectionMode,
-                      isSelected: _selectedPaths.contains(photo.path),
+                      isSelected: _selectedPaths.contains(_selectionKey(photo)),
                     );
                   },
                 ),
@@ -744,7 +784,7 @@ class HomeScreenState extends State<HomeScreen> {
                             ? () => _toggleSelection(photo)
                             : () => _openPhotoViewer(context, photos, index),
                         isSelectionMode: _selectionMode,
-                        isSelected: _selectedPaths.contains(photo.path),
+                        isSelected: _selectedPaths.contains(_selectionKey(photo)),
                       ),
                     ),
                     title: Text(photo.path.split('/').last),
@@ -827,8 +867,11 @@ class HomeScreenState extends State<HomeScreen> {
     if ((deviceService.state.serverUrl ?? "").isEmpty) {
       return [];
     }
+    final deviceId = deviceService.state.showAllDevices
+        ? ''
+        : deviceService.state.id;
     List<NetFolder>? folders = await apiGetFolders(
-        deviceService.state.currentUser!.email, deviceService.state.id);
+        deviceService.state.currentUser!.email, deviceId);
 
     final List<String> allFolders = getChildrenFolders(folders);
     return allFolders
@@ -842,8 +885,11 @@ class HomeScreenState extends State<HomeScreen> {
     if (url == null || url.isEmpty) {
       return [];
     }
+    final deviceId = deviceService.state.showAllDevices
+        ? ''
+        : deviceService.state.id;
     List<String>? files = await apiGetFiles(
-        deviceService.state.currentUser!.email, deviceService.state.id, folder);
+        deviceService.state.currentUser!.email, deviceId, folder);
 
     // ignore: dead_null_aware_expression
     return files ?? [];

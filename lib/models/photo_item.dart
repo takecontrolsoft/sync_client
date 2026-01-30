@@ -6,13 +6,16 @@ class PhotoItem {
   final DateTime? date;
   final String? month;
   final bool isVideo;
+  /// When set (e.g. from "all devices" view), use this device for img/stream requests.
+  final String? deviceIdOverride;
 
   PhotoItem(
       {required this.path,
       required this.folder,
       this.date,
       this.month,
-      required this.isVideo});
+      required this.isVideo,
+      this.deviceIdOverride});
 
   /// Full path for API and cache. Avoid duplicating folder when path already
   /// contains it (e.g. server returns "2026/1/file.mp4" for folder "2026/1").
@@ -52,7 +55,15 @@ class PhotoItem {
     return documentExtensions.any((ext) => lower.endsWith(ext));
   }
 
-  factory PhotoItem.fromPath(String path, String folder) {
+  /// Parse server file entry: when from "all devices" the entry is "deviceId/path".
+  /// Returns [deviceId, path] or [null, path] when no deviceId prefix.
+  static List<String?> parseDeviceIdPath(String entry) {
+    final idx = entry.indexOf('/');
+    if (idx <= 0) return [null, entry];
+    return [entry.substring(0, idx), entry.substring(idx + 1)];
+  }
+
+  factory PhotoItem.fromPath(String path, String folder, {String? deviceIdOverride}) {
     // Normalize to forward slashes (server/cache expect /; Windows may give \)
     final pathNorm = path.replaceAll(r'\', '/');
     final folderNorm = folder.replaceAll(r'\', '/');
@@ -128,6 +139,7 @@ class PhotoItem {
       date: extractedDate,
       month: monthKey,
       isVideo: isVideo,
+      deviceIdOverride: deviceIdOverride,
     );
   }
 }

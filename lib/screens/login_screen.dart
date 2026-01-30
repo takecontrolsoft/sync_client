@@ -37,12 +37,16 @@ class LogInScreenState extends State<LogInScreen> {
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
   late TextEditingController _deviceIdController;
+  late TextEditingController _serverUrlController;
 
   @override
   void initState() {
     _emailController = TextEditingController()..addListener(clearError);
     _passwordController = TextEditingController()..addListener(clearError);
     _deviceIdController = TextEditingController(text: currentDeviceSettings.id);
+    _serverUrlController = TextEditingController(
+        text: currentDeviceSettings.serverUrl ?? '')
+      ..addListener(clearError);
     super.initState();
   }
 
@@ -51,6 +55,7 @@ class LogInScreenState extends State<LogInScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _deviceIdController.dispose();
+    _serverUrlController.dispose();
     super.dispose();
   }
 
@@ -118,6 +123,9 @@ class LogInScreenState extends State<LogInScreen> {
                     ),
                     child: Column(
                       children: [
+                        loginField(context, _serverUrlController,
+                            labelText: "Server URL",
+                            hintText: "e.g. http://192.168.1.10:8080"),
                         loginField(context, _emailController,
                             labelText: "Email",
                             hintText: "e.g. you@example.com"),
@@ -276,14 +284,28 @@ class LogInScreenState extends State<LogInScreen> {
       BuildContext context, String email, String password) async {
     final deviceServices = context.read<DeviceServicesCubit>();
     clearError();
+    final serverUrl = _serverUrlController.text.trim();
+    if (serverUrl.isEmpty) {
+      setState(() {
+        _errorMessage = "Server URL is required to log in.";
+      });
+      return;
+    }
     try {
+      await deviceServices.updateServerUrl(serverUrl);
       if (_isLogin) {
         await deviceServices.logInUserEmailPassword(email, password);
       } else {
-        await deviceServices.registerUserEmailPassword(email, password);
-        final newDeviceId = _deviceIdController.text.trim();
-        if (newDeviceId.isNotEmpty) {
-          await deviceServices.updateDeviceId(newDeviceId);
+        // Sign up: try login first; if user exists we just log them in
+        try {
+          await deviceServices.logInUserEmailPassword(email, password);
+        } on InvalidCredentialError {
+          // User does not exist, register
+          await deviceServices.registerUserEmailPassword(email, password);
+          final newDeviceId = _deviceIdController.text.trim();
+          if (newDeviceId.isNotEmpty) {
+            await deviceServices.updateDeviceId(newDeviceId);
+          }
         }
       }
       if (!context.mounted) return;

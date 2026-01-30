@@ -358,6 +358,52 @@ class AccountScreenView extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
+              "Gallery",
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            reactiveBuilder<DeviceServicesCubit, DeviceSettings>(
+              buildWhen: (previous, current) =>
+                  previous.showAllDevices != current.showAllDevices,
+              child: (context, state) {
+                final showAll = state.showAllDevices;
+                return Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  child: SwitchListTile(
+                    title: Text(
+                      showAll
+                          ? "All photos for this account"
+                          : "Only this device",
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    subtitle: Text(
+                      showAll
+                          ? "Gallery shows photos from all your devices."
+                          : "Gallery shows only photos from this device.",
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurface.withValues(alpha: 0.7),
+                      ),
+                    ),
+                    value: showAll,
+                    onChanged: (value) =>
+                        deviceService.updateShowAllDevices(value),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 24),
+            Text(
               "Data & cache",
               style: textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
