@@ -15,6 +15,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:media_kit/media_kit.dart';
@@ -51,11 +53,33 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   VideoController? _videoController;
   String? _errorMessage;
   bool _ready = false;
+  Uint8List? _posterBytes;
 
   @override
   void initState() {
     super.initState();
+    _loadPoster();
     _initPlayer();
+  }
+
+  Future<void> _loadPoster() async {
+    final fullPath = widget.video.fullPath;
+    final cached = await EnhancedCacheService.getCachedThumbnail(fullPath);
+    if (cached != null && mounted) {
+      setState(() => _posterBytes = cached);
+      return;
+    }
+    final deviceService = context.read<DeviceServicesCubit>();
+    final user = deviceService.state.currentUser?.email;
+    final deviceId = deviceService.state.id;
+    if (user == null || deviceId.isEmpty) return;
+    try {
+      final data = await apiGetImageBytes(user, deviceId, fullPath, fullQuality: false);
+      if (data != null && mounted) {
+        setState(() => _posterBytes = data);
+        EnhancedCacheService.cacheThumbnail(fullPath, data);
+      }
+    } catch (_) {}
   }
 
   Future<void> _initPlayer() async {
@@ -344,8 +368,33 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
 
     if (_videoController == null || !_ready) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.white),
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          if (_posterBytes != null)
+            Positioned.fill(
+              child: Image.memory(
+                _posterBytes!,
+                fit: BoxFit.contain,
+              ),
+            ),
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(color: Colors.white),
+                const SizedBox(height: 16),
+                Text(
+                  'Loading video...',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       );
     }
 

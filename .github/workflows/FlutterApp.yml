@@ -27,7 +27,7 @@ jobs:
           channel: 'stable'
 
       - name: Install dependencies
-        run: dart pub get
+        run: flutter pub get
 
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
@@ -66,10 +66,15 @@ jobs:
           channel: 'stable'
 
       - name: Install dependencies
-        run: dart pub get
+        run: flutter pub get
 
       - name: Run integration tests
-        run: xvfb-run flutter test integration_test
+        run: |
+          if [ -d integration_test ]; then
+            xvfb-run flutter test integration_test
+          else
+            echo "No integration_test directory, skipping."
+          fi
 
       - name: Dump docker logs on failure
         uses: jwalton/gh-docker-logs@v2

@@ -129,23 +129,26 @@ Future<bool> apiRestoreFromTrash(
   }
 }
 
+/// Quality for image requests: "" or "thumb" = thumbnail, "high" = compressed preview (max 1920px, JPEG 85%), "full" = full res (JPEG 92%).
 Future<Uint8List?> apiGetImageBytes(
   String userName,
   String deviceId,
   String file, {
   bool fullQuality = false,
+  String? quality,
 }) async {
   var request = Request('POST', getUrl("img"));
   request.headers.addAll(
       <String, String>{'Content-Type': 'application/json; charset=UTF-8'});
 
+  String qualityParam = quality ?? (fullQuality ? "full" : "");
   request.body = jsonEncode(<String, dynamic>{
     'UserData': <String, dynamic>{
       'User': userName,
       'DeviceId': deviceId,
     },
     "File": _normalizePath(file),
-    "Quality": fullQuality ? "full" : ""
+    "Quality": qualityParam,
   });
 
   try {

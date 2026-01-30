@@ -30,6 +30,8 @@
 	<true/>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Syncing photos and videos to your home server requires permissions to your files.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Save downloaded photos to your photo library.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchScreen</key>

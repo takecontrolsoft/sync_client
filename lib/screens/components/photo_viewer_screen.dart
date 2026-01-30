@@ -1,19 +1,22 @@
+import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:intl/intl.dart';
-import 'package:sync_client/services/services.dart';
-import 'package:sync_client/models/photo_item.dart';
-import 'package:sync_client/core/core.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:share_plus/share_plus.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 import 'package:sync_client/config/config.dart';
 import 'package:sync_client/config/theme/app_theme.dart';
+import 'package:sync_client/core/core.dart';
+import 'package:sync_client/models/photo_item.dart';
 import 'package:sync_client/screens/components/video_player_screen.dart';
+import 'package:path/path.dart' as p;
+import 'package:sync_client/services/services.dart';
 
 class PhotoViewerScreen extends StatefulWidget {
   final List<PhotoItem> photos;
@@ -37,8 +40,10 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
   late int _currentIndex;
   bool _showOverlay = true;
   final Map<int, Uint8List?> _thumbnailCache = {};
+  final Map<int, Uint8List?> _highImageCache = {};
   final Map<int, Uint8List?> _fullImageCache = {};
   final Map<int, bool> _loadingStates = {};
+  final Map<int, bool> _highImageLoadingStates = {};
   final Map<int, bool> _fullImageLoadingStates = {};
   final FocusNode _focusNode = FocusNode();
 
@@ -48,10 +53,12 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
 
-    // Start loading current image in full quality immediately
-    _loadFullQualityImage(_currentIndex);
-
-    // Preload adjacent images
+    // Thumbnail first, then "high" (compressed, fast), then "full" in background
+    _loadThumbnail(_currentIndex);
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (!mounted) return;
+      _loadHighThenFullQualityImage(_currentIndex);
+    });
     _preloadAdjacentImages();
 
     // Hide status bar for immersive experience
@@ -103,9 +110,9 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
         // Load thumbnail first for quick display
         _loadThumbnail(index);
 
-        // Then load full quality
+        // Then load high (fast) then full for current and adjacent
         if (index == _currentIndex || (index - _currentIndex).abs() <= 1) {
-          _loadFullQualityImage(index);
+          _loadHighThenFullQualityImage(index);
         }
       }
     }
@@ -165,87 +172,84 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
     }
   }
 
-  Future<void> _loadFullQualityImage(int index) async {
+  /// Load "high" (compressed, fast) first, then "full" in background. Display: full > high > thumbnail.
+  Future<void> _loadHighThenFullQualityImage(int index) async {
+    final photo = widget.photos[index];
+    if (photo.isVideo) return;
+    final deviceService = context.read<DeviceServicesCubit>();
+    final fullPath = photo.fullPath;
+
+    // 1) If we have full in cache, use it
+    final cachedFull =
+        await EnhancedCacheService.getCachedImage(fullPath);
+    if (cachedFull != null && mounted) {
+      setState(() {
+        _fullImageCache[index] = cachedFull;
+        _fullImageLoadingStates[index] = false;
+        _highImageLoadingStates[index] = false;
+      });
+      return;
+    }
+
+    // 2) Load "high" first (server: max 1920px, JPEG 85% — fast)
+    if (!_highImageCache.containsKey(index) &&
+        _highImageLoadingStates[index] != true) {
+      if (mounted) {
+        setState(() => _highImageLoadingStates[index] = true);
+      }
+      try {
+        final highData = await apiGetImageBytes(
+          deviceService.state.currentUser!.email,
+          deviceService.state.id,
+          fullPath,
+          quality: 'high',
+        );
+        if (highData != null && mounted) {
+          setState(() {
+            _highImageCache[index] = highData;
+            _highImageLoadingStates[index] = false;
+          });
+        } else if (mounted) {
+          setState(() => _highImageLoadingStates[index] = false);
+        }
+      } catch (e) {
+        debugPrint('Error loading high quality: $e');
+        if (mounted) {
+          setState(() => _highImageLoadingStates[index] = false);
+        }
+      }
+    }
+
+    // 3) Load "full" in background (server: JPEG 92%)
     if (_fullImageCache.containsKey(index) ||
         _fullImageLoadingStates[index] == true) {
       return;
     }
-
-    // Ensure we update the UI when starting to load
     if (mounted) {
-      setState(() {
-        _fullImageLoadingStates[index] = true;
-      });
+      setState(() => _fullImageLoadingStates[index] = true);
     }
-
     try {
-      final photo = widget.photos[index];
-      final deviceService = context.read<DeviceServicesCubit>();
-
-      final fullPath = photo.fullPath;
-      debugPrint('Loading full quality image for index $index: $fullPath');
-
-      // Check cache for full quality image
-      final cachedFullImage =
-          await EnhancedCacheService.getCachedImage(fullPath);
-      if (cachedFullImage != null) {
-        debugPrint('Found cached full quality image for: $fullPath');
-        if (mounted) {
-          setState(() {
-            _fullImageCache[index] = cachedFullImage;
-            _fullImageLoadingStates[index] = false;
-          });
-        }
-        return;
-      }
-
-      // Load full quality from server
-      debugPrint('Loading full quality from server: $fullPath');
-      final data = await apiGetImageBytes(
+      final fullData = await apiGetImageBytes(
         deviceService.state.currentUser!.email,
         deviceService.state.id,
         fullPath,
-        fullQuality: true,
+        quality: 'full',
       );
-
-      if (data != null && mounted) {
-        debugPrint('Loaded full quality image: ${data.length} bytes');
-
-        // Force UI update with setState
+      if (fullData != null && mounted) {
         setState(() {
-          _fullImageCache[index] = data;
+          _fullImageCache[index] = fullData;
           _fullImageLoadingStates[index] = false;
         });
-
-        // Force a rebuild if current index
-        if (index == _currentIndex) {
-          // Add a small delay to ensure the image is decoded
-          await Future.delayed(const Duration(milliseconds: 100));
-          if (mounted) {
-            setState(() {
-              // Force rebuild by updating a dummy variable if needed
-            });
-          }
-        }
-
-        // Cache the full quality image asynchronously
-        EnhancedCacheService.cacheImage(fullPath, data).catchError((e) {
+        EnhancedCacheService.cacheImage(fullPath, fullData).catchError((e) {
           debugPrint('Failed to cache image: $e');
         });
-      } else {
-        debugPrint('Failed to load full quality image - no data received');
-        if (mounted) {
-          setState(() {
-            _fullImageLoadingStates[index] = false;
-          });
-        }
+      } else if (mounted) {
+        setState(() => _fullImageLoadingStates[index] = false);
       }
     } catch (e) {
-      debugPrint('Error loading full quality image: $e');
+      debugPrint('Error loading full quality: $e');
       if (mounted) {
-        setState(() {
-          _fullImageLoadingStates[index] = false;
-        });
+        setState(() => _fullImageLoadingStates[index] = false);
       }
     }
   }
@@ -255,10 +259,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
       _currentIndex = index;
     });
 
-    // Load full quality for current image
-    _loadFullQualityImage(index);
-
-    // Preload adjacent images
+    _loadHighThenFullQualityImage(index);
     _preloadAdjacentImages();
   }
 
@@ -310,16 +311,19 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                 builder: (context, index) {
                   final photo = widget.photos[index];
                   final fullImage = _fullImageCache[index];
+                  final highImage = _highImageCache[index];
                   final thumbnail = _thumbnailCache[index];
+                  final bestDisplay = fullImage ?? highImage;
                   final isFullQuality = fullImage != null;
                   final isLoadingFull = _fullImageLoadingStates[index] == true;
 
-                  if (thumbnail != null || fullImage != null) {
+                  if (thumbnail != null || bestDisplay != null) {
                     return PhotoViewGalleryPageOptions.customChild(
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
                           AnimatedCrossFade(
+                            // When thumbnail-only: disable zoom/pan so horizontal swipe goes to gallery (next/prev)
                             firstChild: thumbnail != null
                                 ? PhotoView(
                                     imageProvider: MemoryImage(thumbnail),
@@ -333,11 +337,12 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                                           '${widget.photos[index].path}_$index',
                                     ),
                                     gaplessPlayback: true,
+                                    disableGestures: !isFullQuality,
                                   )
                                 : const SizedBox.shrink(),
-                            secondChild: fullImage != null
+                            secondChild: bestDisplay != null
                                 ? PhotoView(
-                                    imageProvider: MemoryImage(fullImage),
+                                    imageProvider: MemoryImage(bestDisplay),
                                     minScale: PhotoViewComputedScale.contained,
                                     maxScale:
                                         PhotoViewComputedScale.covered * 3,
@@ -348,9 +353,10 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                                           '${widget.photos[index].path}_$index',
                                     ),
                                     gaplessPlayback: true,
+                                    disableGestures: !isFullQuality,
                                   )
                                 : const SizedBox.shrink(),
-                            crossFadeState: isFullQuality
+                            crossFadeState: bestDisplay != null
                                 ? CrossFadeState.showSecond
                                 : CrossFadeState.showFirst,
                             duration: const Duration(milliseconds: 1000),
@@ -612,7 +618,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                   ),
                 ),
 
-              // Overlay with controls
+              // Overlay with controls; center ignores pointer so video play button receives taps
               AnimatedOpacity(
                 opacity: _showOverlay ? 1.0 : 0.0,
                 duration: GalleryAnimations.overlayFade,
@@ -689,6 +695,9 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                                       case 'share':
                                         _shareImage();
                                         break;
+                                      case 'download':
+                                        _downloadImage();
+                                        break;
                                       case 'trash':
                                         _moveToTrash();
                                         break;
@@ -703,6 +712,14 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                                       child: ListTile(
                                         leading: Icon(Icons.share),
                                         title: Text('Share'),
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'download',
+                                      child: ListTile(
+                                        leading: Icon(Icons.download),
+                                        title: Text('Download (full quality)'),
                                         contentPadding: EdgeInsets.zero,
                                       ),
                                     ),
@@ -730,7 +747,21 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                           ),
                         ),
 
-                        const Spacer(),
+                        // Center: ignore pointer so taps reach gallery (e.g. video play button)
+                        Expanded(
+                          child: IgnorePointer(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: PhotoViewerStyles.overlayGradientColors,
+                                  stops: PhotoViewerStyles.overlayGradientStops,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
 
                         // Bottom info
                         SafeArea(
@@ -874,9 +905,10 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
   }
 
   Future<void> _shareImage() async {
-    // Use full quality image if available, otherwise use thumbnail
     final imageData =
-        _fullImageCache[_currentIndex] ?? _thumbnailCache[_currentIndex];
+        _fullImageCache[_currentIndex] ??
+        _highImageCache[_currentIndex] ??
+        _thumbnailCache[_currentIndex];
     if (imageData == null) return;
 
     try {
@@ -910,6 +942,116 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error sharing image: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _downloadImage() async {
+    final photo = widget.photos[_currentIndex];
+    if (photo.isVideo) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Download is for photos only')),
+        );
+      }
+      return;
+    }
+
+    // Prefer full quality; load from server if not cached
+    Uint8List? bytes = _fullImageCache[_currentIndex];
+    if (bytes == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Loading full quality…')),
+        );
+      }
+      final deviceService = context.read<DeviceServicesCubit>();
+      final user = deviceService.state.currentUser?.email;
+      final deviceId = deviceService.state.id;
+      if (user == null || deviceId.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Not signed in')),
+          );
+        }
+        return;
+      }
+      try {
+        bytes = await apiGetImageBytes(
+          user,
+          deviceId,
+          photo.fullPath,
+          quality: 'full',
+        );
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to load: $e')),
+          );
+        }
+        return;
+      }
+      if (bytes == null || !mounted) return;
+    }
+
+    final fileName = photo.path.split('/').last;
+    try {
+      if (kIsWeb) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Download is not supported on web')),
+          );
+        }
+        return;
+      }
+      if (Platform.isAndroid || Platform.isIOS) {
+        final result = await ImageGallerySaver.saveImage(
+          bytes!,
+          name: fileName,
+        );
+        if (!mounted) return;
+        if (result['isSuccess'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Saved to gallery'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to save: ${result['error']}')),
+          );
+        }
+      } else {
+        // Desktop: save to Pictures
+        String picturesPath;
+        if (Platform.isWindows) {
+          final userProfile = Platform.environment['USERPROFILE'] ?? '';
+          picturesPath = '$userProfile\\Pictures';
+        } else {
+          final home = Platform.environment['HOME'] ?? '';
+          picturesPath = '$home/Pictures';
+        }
+        final dir = Directory(picturesPath);
+        if (!await dir.exists()) {
+          await dir.create(recursive: true);
+        }
+        final file = File(p.join(picturesPath, fileName));
+        await file.writeAsBytes(bytes!);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Saved to $picturesPath'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving: $e')),
         );
       }
     }
@@ -975,7 +1117,9 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
   void _showImageInfo() {
     final photo = widget.photos[_currentIndex];
     final imageData =
-        _fullImageCache[_currentIndex] ?? _thumbnailCache[_currentIndex];
+        _fullImageCache[_currentIndex] ??
+        _highImageCache[_currentIndex] ??
+        _thumbnailCache[_currentIndex];
     final isFullQuality = _fullImageCache.containsKey(_currentIndex);
 
     showModalBottomSheet(
