@@ -496,6 +496,15 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                 },
               ),
 
+              // When overlay hidden: tap anywhere (center) shows controls again (PhotoView consumes tap otherwise)
+              if (!_showOverlay)
+                Positioned.fill(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () => setState(() => _showOverlay = true),
+                  ),
+                ),
+
               // Always-active left/right tap zones for previous/next (work even when overlay hidden)
               if (widget.photos.length > 1 && _currentIndex > 0)
                 Positioned(
@@ -807,6 +816,36 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                             color: index == _currentIndex
                                 ? PhotoViewerStyles.activeDotColor
                                 : PhotoViewerStyles.inactiveDotColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+              // When overlay hidden: always-visible back button so user can always exit
+              if (!_showOverlay)
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 8, top: 8),
+                      child: Material(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(28),
+                        child: InkWell(
+                          onTap: () => Navigator.of(context).pop(),
+                          borderRadius: BorderRadius.circular(28),
+                          child: Container(
+                            width: 56,
+                            height: 56,
+                            alignment: Alignment.center,
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 28,
+                            ),
                           ),
                         ),
                       ),
