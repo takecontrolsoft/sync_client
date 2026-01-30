@@ -14,6 +14,13 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
+    resolutionStrategy {
+        eachPlugin { details ->
+            if (details.requested.id.namespace == "com.android" && details.requested.id.name == "application") {
+                details.useVersion("8.9.1")
+            }
+        }
+    }
 }
 
 plugins {
