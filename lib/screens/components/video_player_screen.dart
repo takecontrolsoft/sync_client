@@ -38,9 +38,11 @@ class VideoPlayerScreen extends StatefulWidget {
   });
 
   final PhotoItem video;
+
   /// When set, app bar shows prev/next and move-to-trash (unless isFromTrash).
   final List<PhotoItem>? photos;
   final int? initialIndex;
+
   /// When true (e.g. opened from Trash), hide move-to-trash button.
   final bool isFromTrash;
 
@@ -74,7 +76,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     final deviceId = deviceService.state.id;
     if (user == null || deviceId.isEmpty) return;
     try {
-      final data = await apiGetImageBytes(user, deviceId, fullPath, fullQuality: false);
+      final data =
+          await apiGetImageBytes(user, deviceId, fullPath, fullQuality: false);
       if (data != null && mounted) {
         setState(() => _posterBytes = data);
         EnhancedCacheService.cacheThumbnail(fullPath, data);
@@ -131,14 +134,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     super.dispose();
   }
 
-  bool get _hasGallery => widget.photos != null &&
+  bool get _hasGallery =>
+      widget.photos != null &&
       widget.photos!.isNotEmpty &&
       widget.initialIndex != null &&
       widget.initialIndex! >= 0 &&
       widget.initialIndex! < widget.photos!.length;
 
-  bool get _canGoPrevious =>
-      _hasGallery && widget.initialIndex! > 0;
+  bool get _canGoPrevious => _hasGallery && widget.initialIndex! > 0;
 
   bool get _canGoNext =>
       _hasGallery && widget.initialIndex! < widget.photos!.length - 1;

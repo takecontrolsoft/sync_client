@@ -21,6 +21,7 @@ import 'package:sync_client/services/services.dart';
 class PhotoViewerScreen extends StatefulWidget {
   final List<PhotoItem> photos;
   final int initialIndex;
+
   /// When true (e.g. opened from Trash), hide "Move to Trash" option.
   final bool isFromTrash;
 
@@ -180,8 +181,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
     final fullPath = photo.fullPath;
 
     // 1) If we have full in cache, use it
-    final cachedFull =
-        await EnhancedCacheService.getCachedImage(fullPath);
+    final cachedFull = await EnhancedCacheService.getCachedImage(fullPath);
     if (cachedFull != null && mounted) {
       setState(() {
         _fullImageCache[index] = cachedFull;
@@ -302,9 +302,9 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
             });
           },
           child: Stack(
-              children: [
-                // Photo gallery (horizontal swipe already supported by PageView)
-                PhotoViewGallery.builder(
+            children: [
+              // Photo gallery (horizontal swipe already supported by PageView)
+              PhotoViewGallery.builder(
                 pageController: _pageController,
                 itemCount: widget.photos.length,
                 onPageChanged: _onPageChanged,
@@ -757,7 +757,8 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                                 gradient: LinearGradient(
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
-                                  colors: PhotoViewerStyles.overlayGradientColors,
+                                  colors:
+                                      PhotoViewerStyles.overlayGradientColors,
                                   stops: PhotoViewerStyles.overlayGradientStops,
                                 ),
                               ),
@@ -907,8 +908,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
   }
 
   Future<void> _shareImage() async {
-    final imageData =
-        _fullImageCache[_currentIndex] ??
+    final imageData = _fullImageCache[_currentIndex] ??
         _highImageCache[_currentIndex] ??
         _thumbnailCache[_currentIndex];
     if (imageData == null) return;
@@ -1119,8 +1119,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
 
   void _showImageInfo() {
     final photo = widget.photos[_currentIndex];
-    final imageData =
-        _fullImageCache[_currentIndex] ??
+    final imageData = _fullImageCache[_currentIndex] ??
         _highImageCache[_currentIndex] ??
         _thumbnailCache[_currentIndex];
     final isFullQuality = _fullImageCache.containsKey(_currentIndex);

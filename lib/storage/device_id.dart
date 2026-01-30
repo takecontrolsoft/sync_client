@@ -51,7 +51,8 @@ Future<String> getPersistentDeviceId() async {
     }
     if (Platform.isWindows) {
       final windows = await deviceInfo.windowsInfo;
-      if (windows.deviceId.isNotEmpty) return _sanitizeForPath(windows.deviceId);
+      if (windows.deviceId.isNotEmpty)
+        return _sanitizeForPath(windows.deviceId);
       final serial = await _getDesktopSerialNumber();
       if (serial != null && serial.isNotEmpty) return _sanitizeForPath(serial);
       final mac = await _getDesktopMacAddress();
@@ -88,7 +89,11 @@ Future<String?> _getDesktopSerialNumber() async {
     if (Platform.isWindows) {
       final result = await Process.run(
         'powershell',
-        ['-NoProfile', '-Command', r'(Get-CimInstance Win32_BIOS).SerialNumber'],
+        [
+          '-NoProfile',
+          '-Command',
+          r'(Get-CimInstance Win32_BIOS).SerialNumber'
+        ],
         runInShell: false,
       );
       if (result.exitCode == 0 && result.stdout != null) {
@@ -112,7 +117,8 @@ Future<String?> _getDesktopSerialNumber() async {
       );
       if (result.exitCode == 0 && result.stdout != null) {
         final out = result.stdout as String;
-        final match = RegExp(r'"IOPlatformSerialNumber"\s*=\s*"([^"]+)"').firstMatch(out);
+        final match =
+            RegExp(r'"IOPlatformSerialNumber"\s*=\s*"([^"]+)"').firstMatch(out);
         if (match != null) {
           final s = match.group(1)?.trim() ?? '';
           if (s.isNotEmpty && !_isPlaceholderSerial(s)) return s;
@@ -168,9 +174,11 @@ Future<String?> _getDesktopMacAddress() async {
     }
     if (Platform.isMacOS) {
       for (final iface in ['en0', 'en1', 'ether']) {
-        final result = await Process.run('ifconfig', [iface], runInShell: false);
+        final result =
+            await Process.run('ifconfig', [iface], runInShell: false);
         if (result.exitCode == 0 && result.stdout != null) {
-          final match = RegExp(r'ether\s+([0-9a-fA-F:]+)').firstMatch(result.stdout as String);
+          final match = RegExp(r'ether\s+([0-9a-fA-F:]+)')
+              .firstMatch(result.stdout as String);
           if (match != null) {
             final s = match.group(1)?.trim() ?? '';
             if (s.isNotEmpty && !_isSpoofedMac(s)) return s;

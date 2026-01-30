@@ -261,7 +261,8 @@ class _GalleryPhotoTileState extends State<GalleryPhotoTile>
       });
 
       if (data != null && data.isNotEmpty) {
-        debugPrint('Thumbnail loaded from server (${data.length} bytes): $fullPath');
+        debugPrint(
+            'Thumbnail loaded from server (${data.length} bytes): $fullPath');
         await EnhancedCacheService.cacheThumbnail(fullPath, data);
         return data;
       }

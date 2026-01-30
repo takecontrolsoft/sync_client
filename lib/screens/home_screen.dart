@@ -262,30 +262,33 @@ class HomeScreenState extends State<HomeScreen> {
         }
       },
       child: Scaffold(
-        appBar: _selectionMode ? _buildSelectionAppBar() : GalleryAppBar.appBar(
-          context,
-          crossAxisCount: _crossAxisCount,
-          isGridView: _isGridView,
-          onGridSizeChanged: (value) {
-            setState(() {
-              _crossAxisCount = value;
-            });
-          },
-          onViewModeToggle: () {
-            setState(() {
-              _isGridView = !_isGridView;
-            });
-          },
-          onMoveDocumentsToTrashPressed: _moveDocumentsToTrash,
-          onSelectPressed: () {
-            setState(() {
-              _selectionMode = true;
-              _selectedPaths.clear();
-            });
-          },
-        ),
+        appBar: _selectionMode
+            ? _buildSelectionAppBar()
+            : GalleryAppBar.appBar(
+                context,
+                crossAxisCount: _crossAxisCount,
+                isGridView: _isGridView,
+                onGridSizeChanged: (value) {
+                  setState(() {
+                    _crossAxisCount = value;
+                  });
+                },
+                onViewModeToggle: () {
+                  setState(() {
+                    _isGridView = !_isGridView;
+                  });
+                },
+                onMoveDocumentsToTrashPressed: _moveDocumentsToTrash,
+                onSelectPressed: () {
+                  setState(() {
+                    _selectionMode = true;
+                    _selectedPaths.clear();
+                  });
+                },
+              ),
         body: _buildBody(context),
-        floatingActionButton: _selectionMode ? null : _buildFloatingActionButtons(),
+        floatingActionButton:
+            _selectionMode ? null : _buildFloatingActionButtons(),
       ),
     );
   }
@@ -329,7 +332,8 @@ class HomeScreenState extends State<HomeScreen> {
   Future<void> _moveDocumentsToTrash() async {
     final deviceService = context.read<DeviceServicesCubit>();
     // Prefer userId when auth is used so the server scans the correct folder (UploadDirectory/userId/deviceId).
-    final user = deviceService.state.currentUser?.userId ?? deviceService.state.currentUser?.email;
+    final user = deviceService.state.currentUser?.userId ??
+        deviceService.state.currentUser?.email;
     final deviceId = deviceService.state.id;
     if (user == null || user.isEmpty || deviceId.isEmpty) {
       if (mounted) {
@@ -370,16 +374,17 @@ class HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
       if (moved < 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Server did not accept or endpoint not implemented')),
+          const SnackBar(
+              content:
+                  Text('Server did not accept or endpoint not implemented')),
         );
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(
-                moved == 0
-                    ? 'No documents found on the server.'
-                    : '$moved document(s) moved to Trash on server.')),
+            content: Text(moved == 0
+                ? 'No documents found on the server.'
+                : '$moved document(s) moved to Trash on server.')),
       );
       context.read<GalleryRefreshCubit>().requestHomeRefresh();
       context.read<GalleryRefreshCubit>().requestTrashRefresh();
@@ -661,7 +666,8 @@ class HomeScreenState extends State<HomeScreen> {
                   });
                 },
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(
                     children: [
                       Icon(
@@ -673,15 +679,18 @@ class HomeScreenState extends State<HomeScreen> {
                       Expanded(
                         child: Text(
                           month,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                       ),
                       Text(
                         '${photos.length}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                       ),
                     ],

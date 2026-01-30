@@ -113,8 +113,8 @@ class BackgroundAction implements IAction {
         print('Upload skip ${file.path}: $e');
         if (file is File && !syncFileController.isClosed) {
           final failed = SyncedFile(file.path, errorMessage: e.toString());
-          if (!currentDeviceSettings.syncedFiles.any((f) =>
-              f.filename.toLowerCase() == file.path.toLowerCase())) {
+          if (!currentDeviceSettings.syncedFiles.any(
+              (f) => f.filename.toLowerCase() == file.path.toLowerCase())) {
             currentDeviceSettings.syncedFiles.add(failed);
           }
         }

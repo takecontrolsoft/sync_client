@@ -26,7 +26,8 @@ const Color _headerOrange = Color(0xFFE85D04);
 
 class MainAppBar {
   /// [actionsBeforeMenu] are shown in the AppBar before the menu (e.g. refresh on Trash).
-  static AppBar appBar(BuildContext context, {List<Widget>? actionsBeforeMenu}) {
+  static AppBar appBar(BuildContext context,
+      {List<Widget>? actionsBeforeMenu}) {
     final ThemeCubit theme = context.watch<ThemeCubit>();
     final DeviceServicesCubit deviceService =
         context.read<DeviceServicesCubit>();
@@ -127,7 +128,8 @@ class MainAppBar {
       elevation: 0,
       surfaceTintColor: Colors.transparent,
       iconTheme: IconThemeData(color: Colors.white.withValues(alpha: 0.95)),
-      actionsIconTheme: IconThemeData(color: Colors.white.withValues(alpha: 0.95)),
+      actionsIconTheme:
+          IconThemeData(color: Colors.white.withValues(alpha: 0.95)),
       actions: actions,
     );
   }
@@ -136,7 +138,8 @@ class MainAppBar {
   /// [menuButtonKey] should be the GlobalKey of the button that opens the menu (for positioning).
   static void showAppMenu(BuildContext context, GlobalKey menuButtonKey) {
     final ThemeCubit theme = context.read<ThemeCubit>();
-    final DeviceServicesCubit deviceService = context.read<DeviceServicesCubit>();
+    final DeviceServicesCubit deviceService =
+        context.read<DeviceServicesCubit>();
 
     void onClickMenu(MenuItemProvider item) async {
       final option = item.menuUserInfo as AppMenuOption;

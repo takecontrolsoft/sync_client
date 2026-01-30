@@ -102,9 +102,11 @@ class LogInScreenState extends State<LogInScreen> {
                   ),
                   const SizedBox(height: 32),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 28),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 28),
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                      color: colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
@@ -134,10 +136,13 @@ class LogInScreenState extends State<LogInScreen> {
                         ),
                         loginButton(context,
                             child: Text(_isLogin ? "Log in" : "Sign up"),
-                            onPressed: () => _logInOrSignUpUser(context,
-                                _emailController.text, _passwordController.text)),
+                            onPressed: () => _logInOrSignUpUser(
+                                context,
+                                _emailController.text,
+                                _passwordController.text)),
                         TextButton(
-                            onPressed: () => setState(() => _isLogin = !_isLogin),
+                            onPressed: () =>
+                                setState(() => _isLogin = !_isLogin),
                             child: Text(
                               _isLogin
                                   ? "New to Mobi Sync? Sign up"
@@ -153,9 +158,11 @@ class LogInScreenState extends State<LogInScreen> {
                   if (_errorMessage != null && _errorMessage!.isNotEmpty) ...[
                     const SizedBox(height: 20),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        color: colorScheme.errorContainer.withValues(alpha: 0.5),
+                        color:
+                            colorScheme.errorContainer.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: colorScheme.error.withValues(alpha: 0.5),
@@ -197,7 +204,8 @@ class LogInScreenState extends State<LogInScreen> {
               Expanded(
                 child: TextField(
                   controller: _deviceIdController,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.w500),
                   decoration: InputDecoration(
                     hintText: 'Confirm or change the code',
                     floatingLabelBehavior: FloatingLabelBehavior.never,

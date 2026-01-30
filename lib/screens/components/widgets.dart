@@ -44,7 +44,8 @@ Widget loginField(BuildContext context, TextEditingController controller,
             width: 2,
           ),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       ),
     ),
   );
@@ -63,7 +64,8 @@ Widget loginButton(BuildContext context,
           backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: Colors.white,
           elevation: 2,
-          shadowColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+          shadowColor:
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),

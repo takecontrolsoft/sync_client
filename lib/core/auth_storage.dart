@@ -16,7 +16,8 @@ const _storage = FlutterSecureStorage(
 Future<String?> getAuthToken() => _storage.read(key: _keyToken);
 
 /// Saves the auth token to secure storage.
-Future<void> setAuthToken(String token) => _storage.write(key: _keyToken, value: token);
+Future<void> setAuthToken(String token) =>
+    _storage.write(key: _keyToken, value: token);
 
 /// Removes the auth token (e.g. on logout).
 Future<void> clearAuthToken() => _storage.delete(key: _keyToken);

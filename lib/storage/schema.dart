@@ -8,6 +8,7 @@ class User {
 
   String email;
   String? password;
+
   /// Server-side user id (from /auth/login or /auth/register). Used for paths when auth DB is enabled.
   String? userId;
   bool? loggedIn = false;

@@ -24,5 +24,6 @@ final class GetFoldersError extends CustomError {
 }
 
 final class ServerUrlNotSetError extends CustomError {
-  ServerUrlNotSetError() : super("Server URL is not set. Add server in Account.");
+  ServerUrlNotSetError()
+      : super("Server URL is not set. Add server in Account.");
 }

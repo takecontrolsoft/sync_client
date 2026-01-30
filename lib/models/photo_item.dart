@@ -30,8 +30,21 @@ class PhotoItem {
 
   /// File extensions treated as documents (for "move documents to trash").
   static const List<String> documentExtensions = [
-    '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
-    '.txt', '.rtf', '.odt', '.ods', '.odp', '.pages', '.numbers', '.key',
+    '.pdf',
+    '.doc',
+    '.docx',
+    '.xls',
+    '.xlsx',
+    '.ppt',
+    '.pptx',
+    '.txt',
+    '.rtf',
+    '.odt',
+    '.ods',
+    '.odp',
+    '.pages',
+    '.numbers',
+    '.key',
   ];
 
   static bool isDocumentPath(String path) {

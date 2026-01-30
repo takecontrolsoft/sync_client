@@ -57,7 +57,8 @@ class _MainShellState extends State<MainShell> {
             Container(
               height: navTheme.height ?? 64,
               decoration: BoxDecoration(
-                color: navTheme.backgroundColor ?? colorScheme.surfaceContainerHighest,
+                color: navTheme.backgroundColor ??
+                    colorScheme.surfaceContainerHighest,
               ),
               child: Row(
                 children: [
@@ -66,7 +67,8 @@ class _MainShellState extends State<MainShell> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: List.generate(_items.length, (index) {
                         final item = _items[index];
-                        final selected = index == widget.navigationShell.currentIndex;
+                        final selected =
+                            index == widget.navigationShell.currentIndex;
                         return Expanded(
                           child: InkWell(
                             onTap: () => _onTap(index),
@@ -78,7 +80,8 @@ class _MainShellState extends State<MainShell> {
                                   size: 24,
                                   color: selected
                                       ? colorScheme.primary
-                                      : colorScheme.onSurface.withValues(alpha: 0.6),
+                                      : colorScheme.onSurface
+                                          .withValues(alpha: 0.6),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
@@ -89,8 +92,9 @@ class _MainShellState extends State<MainShell> {
                                         ? colorScheme.primary
                                         : colorScheme.onSurface
                                             .withValues(alpha: 0.6),
-                                    fontWeight:
-                                        selected ? FontWeight.w600 : FontWeight.w500,
+                                    fontWeight: selected
+                                        ? FontWeight.w600
+                                        : FontWeight.w500,
                                   ),
                                 ),
                               ],
@@ -104,7 +108,8 @@ class _MainShellState extends State<MainShell> {
                     key: _menuButtonKey,
                     icon: const Icon(Icons.more_vert_rounded),
                     tooltip: 'Menu',
-                    onPressed: () => MainAppBar.showAppMenu(context, _menuButtonKey),
+                    onPressed: () =>
+                        MainAppBar.showAppMenu(context, _menuButtonKey),
                     color: colorScheme.onSurface.withValues(alpha: 0.8),
                   ),
                 ],
@@ -146,41 +151,41 @@ class _BottomBrandStrip extends StatelessWidget {
       child: SizedBox(
         height: 32,
         child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                'images/mobi-sync.png',
-                height: 20,
-                width: 20,
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => Icon(
-                  Icons.cloud_sync_rounded,
-                  size: 20,
-                  color: colorScheme.onSurface.withValues(alpha: 0.7),
-                ),
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'images/mobi-sync.png',
+              height: 20,
+              width: 20,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => Icon(
+                Icons.cloud_sync_rounded,
+                size: 20,
+                color: colorScheme.onSurface.withValues(alpha: 0.7),
               ),
-              const SizedBox(width: 6),
-              Text(
-                'SpaceIt Mobi Sync',
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'SpaceIt Mobi Sync',
+              style: TextStyle(
+                fontSize: 12,
+                color: colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+            ),
+            const SizedBox(width: 4),
+            InkWell(
+              onTap: _openMobisync,
+              child: Text(
+                'mobisync.eu',
                 style: TextStyle(
                   fontSize: 12,
-                  color: colorScheme.onSurface.withValues(alpha: 0.7),
+                  color: colorScheme.primary,
                 ),
               ),
-              const SizedBox(width: 4),
-              InkWell(
-                onTap: _openMobisync,
-                child: Text(
-                  'mobisync.eu',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: colorScheme.primary,
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
     );
   }
 }

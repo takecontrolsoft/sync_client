@@ -201,7 +201,8 @@ class _TrashScreenState extends State<TrashScreen> {
         setState(() => _isRestoring = false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Restore timed out. Check the server and try again.')),
+              content:
+                  Text('Restore timed out. Check the server and try again.')),
         );
       }
     } catch (e) {
@@ -263,7 +264,8 @@ class _TrashScreenState extends State<TrashScreen> {
                 });
               },
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   children: [
                     Icon(
@@ -275,15 +277,17 @@ class _TrashScreenState extends State<TrashScreen> {
                     Expanded(
                       child: Text(
                         month,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                       ),
                     ),
                     Text(
                       '${photos.length}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                     ),
                   ],
@@ -316,8 +320,8 @@ class _TrashScreenState extends State<TrashScreen> {
                 photo: photo,
                 onTap: _selectionMode
                     ? () => _toggleSelection(photo)
-                    : () => _openPhotoViewer(
-                        context, photosInOrder, globalIndex),
+                    : () =>
+                        _openPhotoViewer(context, photosInOrder, globalIndex),
                 isSelectionMode: _selectionMode,
                 isSelected: _selectedPaths.contains(photo.path),
               );
@@ -409,74 +413,75 @@ class _TrashScreenState extends State<TrashScreen> {
                       ],
               ),
         floatingActionButton: _selectionMode
-          ? null
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                FloatingActionButton.small(
-                  heroTag: 'trash_refresh',
-                  onPressed: _isLoading ? null : _loadTrashFiles,
-                  tooltip: 'Refresh',
-                  child: _isLoading && _trashPhotos.isNotEmpty
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Icon(Icons.refresh),
-                ),
-              ],
-            ),
-      body: RefreshIndicator(
-        onRefresh: _loadTrashFiles,
-        child: _isLoading && _trashPhotos.isEmpty
-            ? const Center(child: CircularProgressIndicator())
-            : _errorMessage != null
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            _errorMessage!,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: _loadTrashFiles,
-                            child: const Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                : _trashPhotos.isEmpty
-                    ? Center(
+            ? null
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  FloatingActionButton.small(
+                    heroTag: 'trash_refresh',
+                    onPressed: _isLoading ? null : _loadTrashFiles,
+                    tooltip: 'Refresh',
+                    child: _isLoading && _trashPhotos.isNotEmpty
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Icon(Icons.refresh),
+                  ),
+                ],
+              ),
+        body: RefreshIndicator(
+          onRefresh: _loadTrashFiles,
+          child: _isLoading && _trashPhotos.isEmpty
+              ? const Center(child: CircularProgressIndicator())
+              : _errorMessage != null
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.delete_outline,
-                                size: 64,
-                                color: Theme.of(context).colorScheme.primary),
-                            const SizedBox(height: 16),
                             Text(
-                              'Trash',
-                              style: Theme.of(context).textTheme.headlineSmall,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Items moved to Trash will appear here.',
-                              style: Theme.of(context).textTheme.bodyMedium,
+                              _errorMessage!,
                               textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: _loadTrashFiles,
+                              child: const Text('Retry'),
                             ),
                           ],
                         ),
-                      )
-                    : _buildTrashList(),
+                      ),
+                    )
+                  : _trashPhotos.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.delete_outline,
+                                  size: 64,
+                                  color: Theme.of(context).colorScheme.primary),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Trash',
+                                style:
+                                    Theme.of(context).textTheme.headlineSmall,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Items moved to Trash will appear here.',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        )
+                      : _buildTrashList(),
         ),
       ),
     );

@@ -37,7 +37,8 @@ class ThumbnailCacheService {
   static Future<Directory> _getCacheDir() async {
     if (_cacheDir != null) return _cacheDir!;
 
-    Future<Directory> tryBase(Future<Directory> baseFuture, String label) async {
+    Future<Directory> tryBase(
+        Future<Directory> baseFuture, String label) async {
       final base = await baseFuture;
       if (!await base.exists()) {
         await base.create(recursive: true);
@@ -52,12 +53,14 @@ class ThumbnailCacheService {
       _cacheDir = await tryBase(getApplicationSupportDirectory(), 'support');
       return _cacheDir!;
     } catch (e) {
-      debugPrint('ThumbnailCacheService: support dir failed ($e), trying cache dir');
+      debugPrint(
+          'ThumbnailCacheService: support dir failed ($e), trying cache dir');
       try {
         _cacheDir = await tryBase(getApplicationCacheDirectory(), 'cache');
         return _cacheDir!;
       } catch (e2) {
-        debugPrint('ThumbnailCacheService: cache dir failed ($e2), using temp dir');
+        debugPrint(
+            'ThumbnailCacheService: cache dir failed ($e2), using temp dir');
         try {
           _cacheDir = await tryBase(getTemporaryDirectory(), 'temp');
           return _cacheDir!;
@@ -95,8 +98,8 @@ class ThumbnailCacheService {
 
       // 1) Device files (with timeout so we don't hang on Windows)
       try {
-        final dir = await _getCacheDir()
-            .timeout(const Duration(seconds: 3), onTimeout: () => throw TimeoutException('getCacheDir'));
+        final dir = await _getCacheDir().timeout(const Duration(seconds: 3),
+            onTimeout: () => throw TimeoutException('getCacheDir'));
         final file = File(p.join(dir.path, key));
         if (await file.exists()) {
           final bytes = await file.readAsBytes();
@@ -127,13 +130,15 @@ class ThumbnailCacheService {
         final file = File(filePath);
         await file.writeAsBytes(bytes, flush: true);
         final ok = await file.exists();
-        debugPrint('ThumbnailCacheService put: ${ok ? "OK" : "FAIL"} $filePath');
+        debugPrint(
+            'ThumbnailCacheService put: ${ok ? "OK" : "FAIL"} $filePath');
         if (!ok) {
           debugPrint('ThumbnailCacheService put: file missing after write');
         }
         await _manifestAdd(dir, path);
       } on FileSystemException catch (e) {
-        debugPrint('ThumbnailCacheService put (disk) FileSystemException: ${e.message} path=${e.path}');
+        debugPrint(
+            'ThumbnailCacheService put (disk) FileSystemException: ${e.message} path=${e.path}');
       } catch (e, st) {
         debugPrint('ThumbnailCacheService put (disk) error: $e');
         debugPrint('ThumbnailCacheService put stack: $st');
@@ -151,7 +156,8 @@ class ThumbnailCacheService {
       final file = _manifestFile(dir);
       final lines = await file.exists() ? await file.readAsLines() : <String>[];
       if (lines.contains(path)) return;
-      await file.writeAsString('${path.replaceAll('\n', ' ')}\n', mode: FileMode.append);
+      await file.writeAsString('${path.replaceAll('\n', ' ')}\n',
+          mode: FileMode.append);
     } catch (e) {
       debugPrint('ThumbnailCacheService _manifestAdd error: $e');
     }
@@ -184,7 +190,8 @@ class ThumbnailCacheService {
       if (await manifest.exists()) {
         final lines = await manifest.readAsLines();
         final rest = lines.where((s) => s.trim() != path).toList();
-        await manifest.writeAsString(rest.isEmpty ? '' : '${rest.join('\n')}\n');
+        await manifest
+            .writeAsString(rest.isEmpty ? '' : '${rest.join('\n')}\n');
       }
     } catch (e) {
       debugPrint('ThumbnailCacheService delete error: $e');

@@ -111,7 +111,9 @@ Future<void> _confirmCleanOrphanThumbnails(
     if (!context.mounted) return;
     if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Server did not accept clean request or endpoint not implemented')),
+        const SnackBar(
+            content: Text(
+                'Server did not accept clean request or endpoint not implemented')),
       );
       return;
     }
@@ -129,7 +131,8 @@ Future<void> _confirmCleanOrphanThumbnails(
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Server cleaned orphan thumbnails. Local cache pruned.')),
+            content:
+                Text('Server cleaned orphan thumbnails. Local cache pruned.')),
       );
     }
   } catch (e) {
@@ -186,7 +189,9 @@ Future<void> _confirmRegenerateThumbnails(
     if (!context.mounted) return;
     if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Server did not accept request or endpoint not implemented')),
+        const SnackBar(
+            content: Text(
+                'Server did not accept request or endpoint not implemented')),
       );
       return;
     }
@@ -194,7 +199,8 @@ Future<void> _confirmRegenerateThumbnails(
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Server regenerating thumbnails. Local cache cleared.')),
+            content:
+                Text('Server regenerating thumbnails. Local cache cleared.')),
       );
     }
   } catch (e) {
@@ -293,7 +299,8 @@ Widget _accountActionRow({
                 child: FilledButton.tonal(
                   onPressed: onPressed,
                   style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
@@ -348,7 +355,8 @@ class AccountScreenView extends StatelessWidget {
           children: [
             Text(
               "${deviceService.state.currentUser?.email ?? ""}",
-              style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style:
+                  textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
             Text(
@@ -375,7 +383,8 @@ class AccountScreenView extends StatelessWidget {
                   "Clear synced file list and last sync time. Account and folders are kept.",
               buttonLabel: "Delete",
               colorScheme: colorScheme,
-              onPressed: () => _confirmDeleteSyncMetadata(context, deviceService),
+              onPressed: () =>
+                  _confirmDeleteSyncMetadata(context, deviceService),
             ),
             _accountActionRow(
               context: context,
@@ -384,7 +393,8 @@ class AccountScreenView extends StatelessWidget {
                   "Server deletes thumbnails with no source file. Local cache is pruned to match.",
               buttonLabel: "Clean",
               colorScheme: colorScheme,
-              onPressed: () => _confirmCleanOrphanThumbnails(context, deviceService),
+              onPressed: () =>
+                  _confirmCleanOrphanThumbnails(context, deviceService),
             ),
             _accountActionRow(
               context: context,
@@ -393,7 +403,8 @@ class AccountScreenView extends StatelessWidget {
                   "Server regenerates thumbnails for your media. Local cache is cleared.",
               buttonLabel: "Regenerate",
               colorScheme: colorScheme,
-              onPressed: () => _confirmRegenerateThumbnails(context, deviceService),
+              onPressed: () =>
+                  _confirmRegenerateThumbnails(context, deviceService),
             ),
             const SizedBox(height: 24),
             Text(
@@ -443,25 +454,25 @@ class AccountScreenView extends StatelessWidget {
                 ),
               ),
             ),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: reactiveBuilder<DeviceServicesCubit, DeviceSettings>(
-              buildWhen: (previous, current) =>
-                  current.lastErrorMessage == null ||
-                  previous.lastErrorMessage != current.lastErrorMessage,
-              child: (context, state) => Text(
-                deviceService.state.lastErrorMessage ??
-                    deviceService.state.successMessage ??
-                    "",
-                style: deviceService.state.lastErrorMessage == null
-                    ? successTextStyle(context)
-                    : errorTextStyle(context),
-                textAlign: TextAlign.center,
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: reactiveBuilder<DeviceServicesCubit, DeviceSettings>(
+                buildWhen: (previous, current) =>
+                    current.lastErrorMessage == null ||
+                    previous.lastErrorMessage != current.lastErrorMessage,
+                child: (context, state) => Text(
+                  deviceService.state.lastErrorMessage ??
+                      deviceService.state.successMessage ??
+                      "",
+                  style: deviceService.state.lastErrorMessage == null
+                      ? successTextStyle(context)
+                      : errorTextStyle(context),
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
         ),
       ),
     );

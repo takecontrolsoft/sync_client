@@ -40,7 +40,8 @@ Future<Map<String, String>> _authHeaders() async {
 Future<AuthResult> apiLogin(String email, String password) async {
   var request = Request('POST', getUrl('auth/login'));
   request.headers.addAll(await _authHeaders());
-  request.body = jsonEncode(<String, String>{'User': email, 'Password': password});
+  request.body =
+      jsonEncode(<String, String>{'User': email, 'Password': password});
   try {
     var streamedResponse = await request.send();
     var response = await Response.fromStream(streamedResponse);
@@ -63,7 +64,8 @@ Future<AuthResult> apiLogin(String email, String password) async {
 Future<AuthResult> apiRegister(String email, String password) async {
   var request = Request('POST', getUrl('auth/register'));
   request.headers.addAll(await _authHeaders());
-  request.body = jsonEncode(<String, String>{'User': email, 'Password': password});
+  request.body =
+      jsonEncode(<String, String>{'User': email, 'Password': password});
   try {
     var streamedResponse = await request.send();
     var response = await Response.fromStream(streamedResponse);
@@ -154,8 +156,7 @@ Future<List<String>> apiGetAllFilePaths(
 
   Future<void> visit(NetFolder? f, String prefix) async {
     if (f == null) return;
-    final folderPath =
-        prefix.isEmpty ? f.name : '$prefix/${f.name}';
+    final folderPath = prefix.isEmpty ? f.name : '$prefix/${f.name}';
     final normalized = _normalizePath(folderPath);
     final files = await apiGetFiles(userName, deviceId, normalized);
     for (final name in files) {
@@ -263,7 +264,8 @@ Future<int> apiRunDocumentDetection(String userName, String deviceId) async {
     if (body.isEmpty) return 0;
     try {
       final data = json.decode(body) as Map<String, dynamic>;
-      final moved = data['Moved'] ?? data['Count'] ?? data['moved'] ?? data['count'];
+      final moved =
+          data['Moved'] ?? data['Count'] ?? data['moved'] ?? data['count'];
       if (moved is int) return moved;
       if (moved is num) return moved.toInt();
     } catch (_) {}
@@ -301,7 +303,8 @@ Future<Uint8List?> apiGetImageBytes(
       return response.bodyBytes;
     }
     // Log so we can see 404 etc. (e.g. wrong path on server)
-    print('apiGetImageBytes: server returned ${response.statusCode} for file: $file');
+    print(
+        'apiGetImageBytes: server returned ${response.statusCode} for file: $file');
   } catch (err) {
     print('apiGetImageBytes error: $err');
     throw GetFoldersError();
