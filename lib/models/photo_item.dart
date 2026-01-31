@@ -25,7 +25,6 @@ class PhotoItem {
     final pathSlash = path.replaceAll(r'\', '/');
     final folderSlash = folder.replaceAll(r'\', '/');
     if (folderSlash.isEmpty) return pathSlash;
-    // Path may already be full (e.g. "2026/1/file.mp4") – don't prepend folder again
     if (pathSlash == folderSlash || pathSlash.startsWith('$folderSlash/')) {
       return pathSlash;
     }
@@ -66,14 +65,12 @@ class PhotoItem {
 
   factory PhotoItem.fromPath(String path, String folder,
       {String? deviceIdOverride}) {
-    // Normalize to forward slashes (server/cache expect /; Windows may give \)
     final pathNorm = path.replaceAll(r'\', '/');
     final folderNorm = folder.replaceAll(r'\', '/');
 
     DateTime? extractedDate;
     String? monthKey;
 
-    // Detect video files
     final videoExtensions = [
       '.mp4',
       '.mov',
@@ -88,8 +85,6 @@ class PhotoItem {
 
     final filename = pathNorm.split('/').last;
 
-    // 1) Try date from filename (capture/taken date patterns)
-    //    YYYY-MM-DD, YYYY_MM_DD, YYYYMMDD, IMG_20240115_*, 20240115_*, etc.
     final dateRegex = RegExp(r'(\d{4})[-_]?(\d{2})[-_]?(\d{2})');
     final match = dateRegex.firstMatch(filename);
     if (match != null) {
@@ -100,12 +95,9 @@ class PhotoItem {
           int.parse(match.group(3)!),
         );
         monthKey = DateFormat('MMMM yyyy').format(extractedDate);
-      } catch (e) {
-        // fall through to folder or Recent
-      }
+      } catch (e) {}
     }
 
-    // 2) If no date in filename, use folder (server often stores as Year/Month = date taken)
     if (extractedDate == null && folderNorm.isNotEmpty) {
       final parts = folderNorm.split('/').where((s) => s.isNotEmpty).toList();
       if (parts.length >= 1) {
@@ -117,7 +109,6 @@ class PhotoItem {
               extractedDate = DateTime(year, month, 1);
               monthKey = DateFormat('MMMM yyyy').format(extractedDate);
             } catch (e) {
-              // use year only
               extractedDate = DateTime(year, 1, 1);
               monthKey = DateFormat('MMMM yyyy').format(extractedDate);
             }
@@ -129,7 +120,6 @@ class PhotoItem {
       }
     }
 
-    // 3) Only use "Recent" when we truly have no date (unknown capture date)
     if (extractedDate == null) {
       extractedDate = DateTime.now();
       monthKey = 'Recent';

@@ -1,5 +1,3 @@
-// lib/screens/components/gallery_app_bar.dart
-
 import 'package:flutter/material.dart';
 import 'package:sync_client/config/theme/app_bar.dart';
 
@@ -13,10 +11,8 @@ class GalleryAppBar {
     VoidCallback? onSelectPressed,
     VoidCallback? onMoveDocumentsToTrashPressed,
   }) {
-    // Get the base app bar
     final baseAppBar = MainAppBar.appBar(context);
 
-    // Add gallery-specific actions to the existing actions
     final List<Widget> galleryActions = [
       if (onMoveDocumentsToTrashPressed != null)
         IconButton(
@@ -30,7 +26,6 @@ class GalleryAppBar {
           onPressed: onSelectPressed,
           tooltip: 'Select',
         ),
-      // Grid size selector
       PopupMenuButton<int>(
         icon: const Icon(Icons.grid_view),
         onSelected: onGridSizeChanged,
@@ -41,13 +36,11 @@ class GalleryAppBar {
           const PopupMenuItem(value: 5, child: Text('5 columns')),
         ],
       ),
-      // View mode toggle
       IconButton(
         icon: Icon(isGridView ? Icons.view_list : Icons.grid_view),
         onPressed: onViewModeToggle,
         tooltip: isGridView ? 'List view' : 'Grid view',
       ),
-      // Keep existing actions if any
       if (baseAppBar.actions != null) ...baseAppBar.actions!,
     ];
 

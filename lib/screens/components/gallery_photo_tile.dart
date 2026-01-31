@@ -1,5 +1,3 @@
-// lib/screens/components/gallery_photo_tile.dart
-
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -40,7 +38,6 @@ class MonthHeaderDelegate extends SliverPersistentHeaderDelegate {
   }
 }
 
-// Enhanced photo tile with lazy loading
 class GalleryPhotoTile extends StatefulWidget {
   final PhotoItem photo;
   final VoidCallback onTap;
@@ -89,7 +86,6 @@ class _GalleryPhotoTileState extends State<GalleryPhotoTile>
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Thumbnail image
               _shouldLoad
                   ? FutureBuilder<Uint8List?>(
                       future: _imageFuture,
@@ -135,7 +131,6 @@ class _GalleryPhotoTileState extends State<GalleryPhotoTile>
                       ),
                     ),
 
-              // Video play button overlay
               if (widget.photo.isVideo)
                 Center(
                   child: Container(
@@ -157,7 +152,6 @@ class _GalleryPhotoTileState extends State<GalleryPhotoTile>
                   ),
                 ),
 
-              // Selection overlay (checkbox)
               if (widget.isSelectionMode)
                 Positioned(
                   top: 4,
@@ -183,7 +177,6 @@ class _GalleryPhotoTileState extends State<GalleryPhotoTile>
                   ),
                 ),
 
-              // Video duration badge (optional)
               if (widget.photo.isVideo)
                 Positioned(
                   bottom: 4,
@@ -242,14 +235,12 @@ class _GalleryPhotoTileState extends State<GalleryPhotoTile>
       return null;
     }
     try {
-      // 1) Cache first (memory then disk), then server
       final cachedThumb =
           await EnhancedCacheService.getCachedThumbnail(fullPath);
       if (cachedThumb != null && cachedThumb.isNotEmpty) {
         return cachedThumb;
       }
 
-      // 2) Load from server – always when not in cache
       debugPrint('Thumbnail load from server: $fullPath');
       final deviceId = widget.photo.deviceIdOverride ?? deviceService.state.id;
       final data = await apiGetImageBytes(
