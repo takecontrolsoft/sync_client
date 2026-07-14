@@ -27,15 +27,6 @@ import 'request_utils.dart';
 class Transfers {
   Transfers();
 
-  /// True if the file path indicates a non-camera source (Viber, WhatsApp, Screenshots)
-  /// so the server should store it in Trash.
-  static bool shouldSaveToTrash(String filePath) {
-    final lower = filePath.toLowerCase();
-    return lower.contains('viber') ||
-        lower.contains('whatsapp') ||
-        lower.contains('screenshots');
-  }
-
   Future<SyncedFile?> sendFile(StreamController<SyncedFile> syncFileController,
       String filename, String userName, String dateClassifier) async {
     SyncedFile? result;
@@ -44,9 +35,6 @@ class Transfers {
       "user": utf8.encode(userName).toString(),
       "date": dateClassifier
     };
-    if (Transfers.shouldSaveToTrash(filename)) {
-      hdr["X-Save-To-Trash"] = "true";
-    }
     request.headers.addEntries(hdr.entries);
 
     final file = File(filename);

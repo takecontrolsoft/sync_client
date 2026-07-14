@@ -73,7 +73,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
     final deviceService = context.read<DeviceServicesCubit>();
     final user = deviceService.state.currentUser?.email;
-    final deviceId = widget.video.deviceIdOverride ?? deviceService.state.id;
+    final deviceId =
+        widget.video.deviceIdOverride ?? deviceService.state.id;
     if (user == null || deviceId.isEmpty) return;
     try {
       final data =
@@ -89,7 +90,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     final deviceService = context.read<DeviceServicesCubit>();
     final serverUrl = deviceService.state.serverUrl;
     final user = deviceService.state.currentUser?.email;
-    final deviceId = widget.video.deviceIdOverride ?? deviceService.state.id;
+    final deviceId =
+        widget.video.deviceIdOverride ?? deviceService.state.id;
 
     if (serverUrl == null ||
         serverUrl.isEmpty ||
@@ -207,7 +209,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   Future<void> _moveToTrash() async {
     final deviceService = context.read<DeviceServicesCubit>();
     final user = deviceService.state.currentUser?.email;
-    final deviceId = widget.video.deviceIdOverride ?? deviceService.state.id;
+    final deviceId =
+        widget.video.deviceIdOverride ?? deviceService.state.id;
     if (user == null || user.isEmpty || deviceId.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

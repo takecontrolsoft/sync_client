@@ -30,6 +30,8 @@ import 'package:sync_client/services/services.dart';
 import 'package:sync_client/storage/storage.dart';
 import 'package:sync_client/models/photo_item.dart';
 
+// Photo model and cache service are now in separate files
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -38,6 +40,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
+  // State management
   List<String> _folders = [];
   Map<String, List<PhotoItem>> _photosCache = {};
   Map<String, List<PhotoItem>> _photosByMonth = {};
@@ -47,6 +50,7 @@ class HomeScreenState extends State<HomeScreen> {
   String? _errorMessage;
   Timer? _timeoutTimer;
 
+  // UI State
   bool _isGridView = true;
   int _crossAxisCount = 3;
   final ScrollController _scrollController = ScrollController();
@@ -56,6 +60,7 @@ class HomeScreenState extends State<HomeScreen> {
   bool _wasRouteCurrent = false;
   bool _leftHome = false;
 
+  // Loading configuration
   static const Duration _timeout = Duration(seconds: 15);
   static const Duration _initialDelay = Duration(milliseconds: 100);
 
@@ -91,11 +96,15 @@ class HomeScreenState extends State<HomeScreen> {
 
   void _setupScrollController() {
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels > 200) {}
+      // Hide/show FAB based on scroll position
+      if (_scrollController.position.pixels > 200) {
+        // Could trigger state change here if needed
+      }
     });
   }
 
   Future<void> _initializeLoading() async {
+    // Always load folder/file list from server (fast); thumbnails are cached on device
     Future.delayed(_initialDelay, () {
       if (mounted) {
         _loadFolders();
@@ -114,6 +123,7 @@ class HomeScreenState extends State<HomeScreen> {
       }
     }
 
+    // Sort photos within each month by date
     for (final photos in _photosByMonth.values) {
       photos.sort((a, b) =>
           (b.date ?? DateTime.now()).compareTo(a.date ?? DateTime.now()));
@@ -133,6 +143,7 @@ class HomeScreenState extends State<HomeScreen> {
       });
     }
 
+    // Set timeout
     _timeoutTimer?.cancel();
     _timeoutTimer = Timer(_timeout, () {
       if (mounted && _isLoading) {
@@ -146,6 +157,7 @@ class HomeScreenState extends State<HomeScreen> {
     });
 
     try {
+      // Load folders with timeout
       final folders = await getAllFolders(deviceService).timeout(
         _timeout,
         onTimeout: () => throw TimeoutException('Loading folders timed out'),
@@ -157,6 +169,7 @@ class HomeScreenState extends State<HomeScreen> {
           _isLoading = false;
         });
 
+        // Load files for each folder from server
         _loadFilesProgressively(folders, deviceService);
       }
     } catch (e) {
@@ -189,21 +202,23 @@ class HomeScreenState extends State<HomeScreen> {
         final files = await getAllFiles(deviceService, folder);
         if (mounted) {
           final showAll = deviceService.state.showAllDevices;
+          // Filter out .converted.jpg and create PhotoItems; when showAllDevices, file is "deviceId/path"
           final photos = files
               .where((f) => !f.toLowerCase().contains('.converted.jpg'))
               .map((f) {
-            if (showAll) {
-              final parsed = PhotoItem.parseDeviceIdPath(f);
-              final devId = parsed[0];
-              final path = parsed[1]!;
-              final pathFolder = path.contains('/')
-                  ? path.substring(0, path.lastIndexOf('/'))
-                  : folder;
-              return PhotoItem.fromPath(path, pathFolder,
-                  deviceIdOverride: devId);
-            }
-            return PhotoItem.fromPath(f, folder);
-          }).toList();
+                if (showAll) {
+                  final parsed = PhotoItem.parseDeviceIdPath(f);
+                  final devId = parsed[0];
+                  final path = parsed[1]!;
+                  final pathFolder = path.contains('/')
+                      ? path.substring(0, path.lastIndexOf('/'))
+                      : folder;
+                  return PhotoItem.fromPath(path, pathFolder,
+                      deviceIdOverride: devId);
+                }
+                return PhotoItem.fromPath(f, folder);
+              })
+              .toList();
 
           setState(() {
             _photosCache[folder] = photos;
@@ -343,6 +358,7 @@ class HomeScreenState extends State<HomeScreen> {
   /// Asks the server to run document detection on existing files (server uses its own logic, e.g. Python); thumbnails and metadata cleaned, then documents moved to Trash.
   Future<void> _moveDocumentsToTrash() async {
     final deviceService = context.read<DeviceServicesCubit>();
+    // Prefer userId when auth is used so the server scans the correct folder (UploadDirectory/userId/deviceId).
     final user = deviceService.state.currentUser?.userId ??
         deviceService.state.currentUser?.email;
     final deviceId = deviceService.state.id;
@@ -543,10 +559,12 @@ class HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    // Show error state
     if (_hasError) {
       return _buildErrorState();
     }
 
+    // Show loading state only if no cached data
     if (_isLoading && _photosByMonth.isEmpty) {
       return const Center(
         child: Column(
@@ -560,10 +578,12 @@ class HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    // Show empty state
     if (_photosByMonth.isEmpty && !_isLoading) {
       return _buildEmptyState();
     }
 
+    // Show gallery
     return _buildGallery();
   }
 
@@ -630,6 +650,7 @@ class HomeScreenState extends State<HomeScreen> {
   Widget _buildGallery() {
     final sortedMonths = _photosByMonth.keys.toList();
     sortedMonths.sort((a, b) {
+      // Put "Recent" (unknown date) last; otherwise newest month first (descending by date taken)
       if (a == 'Recent') return 1;
       if (b == 'Recent') return -1;
       try {
@@ -649,13 +670,16 @@ class HomeScreenState extends State<HomeScreen> {
         itemCount: sortedMonths.length * 2 +
             1, // month headers + grids + loading indicator
         itemBuilder: (context, index) {
+          // Loading indicator at top
           if (index == 0 && (_isLoading || _isRefreshing)) {
             return const LinearProgressIndicator();
           }
 
+          // Adjust index for loading indicator
           final adjustedIndex =
               (_isLoading || _isRefreshing) ? index - 1 : index;
 
+          // Calculate which month and whether it's header or grid
           final monthIndex = adjustedIndex ~/ 2;
           final isHeader = adjustedIndex % 2 == 0;
 
@@ -667,6 +691,7 @@ class HomeScreenState extends State<HomeScreen> {
           final photos = _photosByMonth[month] ?? [];
 
           if (isHeader) {
+            // Month header (tappable to collapse/expand)
             final isCollapsed = _collapsedMonths.contains(month);
             return Material(
               color: Theme.of(context).scaffoldBackgroundColor,
@@ -714,6 +739,7 @@ class HomeScreenState extends State<HomeScreen> {
               ),
             );
           } else {
+            // Photos grid (hidden when month is collapsed)
             if (_collapsedMonths.contains(month)) {
               return const SizedBox.shrink();
             }
@@ -744,6 +770,7 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
               );
             } else {
+              // List view
               return Column(
                 children: photos.map((photo) {
                   final index = photos.indexOf(photo);
@@ -757,8 +784,7 @@ class HomeScreenState extends State<HomeScreen> {
                             ? () => _toggleSelection(photo)
                             : () => _openPhotoViewer(context, photos, index),
                         isSelectionMode: _selectionMode,
-                        isSelected:
-                            _selectedPaths.contains(_selectionKey(photo)),
+                        isSelected: _selectedPaths.contains(_selectionKey(photo)),
                       ),
                     ),
                     title: Text(photo.path.split('/').last),
@@ -841,10 +867,11 @@ class HomeScreenState extends State<HomeScreen> {
     if ((deviceService.state.serverUrl ?? "").isEmpty) {
       return [];
     }
-    final deviceId =
-        deviceService.state.showAllDevices ? '' : deviceService.state.id;
-    List<NetFolder>? folders =
-        await apiGetFolders(deviceService.state.currentUser!.email, deviceId);
+    final deviceId = deviceService.state.showAllDevices
+        ? ''
+        : deviceService.state.id;
+    List<NetFolder>? folders = await apiGetFolders(
+        deviceService.state.currentUser!.email, deviceId);
 
     final List<String> allFolders = getChildrenFolders(folders);
     return allFolders
@@ -858,8 +885,9 @@ class HomeScreenState extends State<HomeScreen> {
     if (url == null || url.isEmpty) {
       return [];
     }
-    final deviceId =
-        deviceService.state.showAllDevices ? '' : deviceService.state.id;
+    final deviceId = deviceService.state.showAllDevices
+        ? ''
+        : deviceService.state.id;
     List<String>? files = await apiGetFiles(
         deviceService.state.currentUser!.email, deviceId, folder);
 

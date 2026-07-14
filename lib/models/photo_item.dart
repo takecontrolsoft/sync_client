@@ -6,7 +6,6 @@ class PhotoItem {
   final DateTime? date;
   final String? month;
   final bool isVideo;
-
   /// When set (e.g. from "all devices" view), use this device for img/stream requests.
   final String? deviceIdOverride;
 
@@ -25,6 +24,7 @@ class PhotoItem {
     final pathSlash = path.replaceAll(r'\', '/');
     final folderSlash = folder.replaceAll(r'\', '/');
     if (folderSlash.isEmpty) return pathSlash;
+    // Path may already be full (e.g. "2026/1/file.mp4") – don't prepend folder again
     if (pathSlash == folderSlash || pathSlash.startsWith('$folderSlash/')) {
       return pathSlash;
     }
@@ -63,14 +63,15 @@ class PhotoItem {
     return [entry.substring(0, idx), entry.substring(idx + 1)];
   }
 
-  factory PhotoItem.fromPath(String path, String folder,
-      {String? deviceIdOverride}) {
+  factory PhotoItem.fromPath(String path, String folder, {String? deviceIdOverride}) {
+    // Normalize to forward slashes (server/cache expect /; Windows may give \)
     final pathNorm = path.replaceAll(r'\', '/');
     final folderNorm = folder.replaceAll(r'\', '/');
 
     DateTime? extractedDate;
     String? monthKey;
 
+    // Detect video files
     final videoExtensions = [
       '.mp4',
       '.mov',
@@ -83,24 +84,11 @@ class PhotoItem {
     final lowerPath = pathNorm.toLowerCase();
     final isVideo = videoExtensions.any((ext) => lowerPath.endsWith(ext));
 
-    final filename = pathNorm.split('/').last;
-
-    final dateRegex = RegExp(r'(\d{4})[-_]?(\d{2})[-_]?(\d{2})');
-    final match = dateRegex.firstMatch(filename);
-    if (match != null) {
-      try {
-        extractedDate = DateTime(
-          int.parse(match.group(1)!),
-          int.parse(match.group(2)!),
-          int.parse(match.group(3)!),
-        );
-        monthKey = DateFormat('MMMM yyyy').format(extractedDate);
-      } catch (e) {}
-    }
-
-    if (extractedDate == null && folderNorm.isNotEmpty) {
+    // 1) Use the server folder date (files are stored as Year/Month = date taken).
+    //    This is the single source of truth for the month grouping.
+    if (folderNorm.isNotEmpty) {
       final parts = folderNorm.split('/').where((s) => s.isNotEmpty).toList();
-      if (parts.length >= 1) {
+      if (parts.isNotEmpty) {
         final year = int.tryParse(parts[0]);
         if (year != null && year >= 1900 && year <= 2100) {
           final month = parts.length >= 2 ? int.tryParse(parts[1]) : 1;
@@ -109,6 +97,7 @@ class PhotoItem {
               extractedDate = DateTime(year, month, 1);
               monthKey = DateFormat('MMMM yyyy').format(extractedDate);
             } catch (e) {
+              // use year only
               extractedDate = DateTime(year, 1, 1);
               monthKey = DateFormat('MMMM yyyy').format(extractedDate);
             }
@@ -120,6 +109,7 @@ class PhotoItem {
       }
     }
 
+    // 2) No date folder (e.g. Trash) -> group under "Recent".
     if (extractedDate == null) {
       extractedDate = DateTime.now();
       monthKey = 'Recent';
