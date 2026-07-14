@@ -147,8 +147,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
       }
 
       // Load thumbnail from server
-      final deviceId =
-          photo.deviceIdOverride ?? deviceService.state.id;
+      final deviceId = photo.deviceIdOverride ?? deviceService.state.id;
       final data = await apiGetImageBytes(
         deviceService.state.currentUser!.email,
         deviceId,
@@ -200,8 +199,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
         setState(() => _highImageLoadingStates[index] = true);
       }
       try {
-        final deviceId =
-            photo.deviceIdOverride ?? deviceService.state.id;
+        final deviceId = photo.deviceIdOverride ?? deviceService.state.id;
         final highData = await apiGetImageBytes(
           deviceService.state.currentUser!.email,
           deviceId,
@@ -233,8 +231,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
       setState(() => _fullImageLoadingStates[index] = true);
     }
     try {
-      final deviceId =
-          photo.deviceIdOverride ?? deviceService.state.id;
+      final deviceId = photo.deviceIdOverride ?? deviceService.state.id;
       final fullData = await apiGetImageBytes(
         deviceService.state.currentUser!.email,
         deviceId,

@@ -6,6 +6,7 @@ class PhotoItem {
   final DateTime? date;
   final String? month;
   final bool isVideo;
+
   /// When set (e.g. from "all devices" view), use this device for img/stream requests.
   final String? deviceIdOverride;
 
@@ -63,7 +64,8 @@ class PhotoItem {
     return [entry.substring(0, idx), entry.substring(idx + 1)];
   }
 
-  factory PhotoItem.fromPath(String path, String folder, {String? deviceIdOverride}) {
+  factory PhotoItem.fromPath(String path, String folder,
+      {String? deviceIdOverride}) {
     // Normalize to forward slashes (server/cache expect /; Windows may give \)
     final pathNorm = path.replaceAll(r'\', '/');
     final folderNorm = folder.replaceAll(r'\', '/');

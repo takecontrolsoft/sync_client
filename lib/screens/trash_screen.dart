@@ -41,7 +41,8 @@ class _TrashScreenState extends State<TrashScreen> {
   bool _wasRouteCurrent = false;
   bool _selectionMode = false;
   bool _isRestoring = false;
-  final Set<String> _selectedPaths = {}; // Stores photo.path (e.g. "Trash/2024/01/photo.jpg")
+  final Set<String> _selectedPaths =
+      {}; // Stores photo.path (e.g. "Trash/2024/01/photo.jpg")
   final Set<String> _collapsedMonths = {};
 
   static const String _trashFolder = 'Trash';
@@ -110,7 +111,8 @@ class _TrashScreenState extends State<TrashScreen> {
           final parsed = PhotoItem.parseDeviceIdPath(f);
           final devId = parsed[0];
           final path = parsed[1]!;
-          return PhotoItem.fromPath(path, _trashFolder, deviceIdOverride: devId);
+          return PhotoItem.fromPath(path, _trashFolder,
+              deviceIdOverride: devId);
         }
         return PhotoItem.fromPath(f, _trashFolder);
       }).toList();
@@ -205,7 +207,8 @@ class _TrashScreenState extends State<TrashScreen> {
           // Find the PhotoItem to get its deviceIdOverride
           final photo = _trashPhotos.firstWhere(
             (p) => p.path == path,
-            orElse: () => PhotoItem(path: path, folder: _trashFolder, isVideo: false),
+            orElse: () =>
+                PhotoItem(path: path, folder: _trashFolder, isVideo: false),
           );
           final devId = photo.deviceIdOverride ?? '';
           if (devId.isEmpty) continue; // Skip if no device ID
