@@ -302,10 +302,11 @@ class LogInScreenState extends State<LogInScreen> {
         } on InvalidCredentialError {
           // User does not exist, register
           await deviceServices.registerUserEmailPassword(email, password);
-          final newDeviceId = _deviceIdController.text.trim();
-          if (newDeviceId.isNotEmpty) {
-            await deviceServices.updateDeviceId(newDeviceId);
-          }
+        }
+        // Always update device ID in sign up mode (whether login or register)
+        final newDeviceId = _deviceIdController.text.trim();
+        if (newDeviceId.isNotEmpty) {
+          await deviceServices.updateDeviceId(newDeviceId);
         }
       }
       if (!context.mounted) return;

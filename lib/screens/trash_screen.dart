@@ -41,7 +41,7 @@ class _TrashScreenState extends State<TrashScreen> {
   bool _wasRouteCurrent = false;
   bool _selectionMode = false;
   bool _isRestoring = false;
-  final Set<String> _selectedPaths = {};
+  final Set<String> _selectedPaths = {}; // Stores photo.path (e.g. "Trash/2024/01/photo.jpg")
   final Set<String> _collapsedMonths = {};
 
   static const String _trashFolder = 'Trash';
@@ -87,8 +87,11 @@ class _TrashScreenState extends State<TrashScreen> {
       return;
     }
     final user = deviceService.state.currentUser?.email;
-    final deviceId = deviceService.state.id;
-    if (user == null || user.isEmpty || deviceId.isEmpty) return;
+    final showAll = deviceService.state.showAllDevices;
+    // In all-devices mode, use empty deviceId to get files from all devices
+    final deviceId = showAll ? '' : deviceService.state.id;
+    if (user == null || user.isEmpty) return;
+    if (!showAll && deviceId.isEmpty) return;
     if ((deviceService.state.serverUrl ?? "").isEmpty) return;
 
     setState(() {
@@ -101,8 +104,16 @@ class _TrashScreenState extends State<TrashScreen> {
       if (!mounted) return;
       final photos = files
           .where((f) => !f.toLowerCase().contains('.converted.jpg'))
-          .map((f) => PhotoItem.fromPath(f, _trashFolder))
-          .toList();
+          .map((f) {
+        if (showAll) {
+          // "device1/Trash/2024/01/photo.jpg" -> deviceId="device1", path="Trash/2024/01/photo.jpg"
+          final parsed = PhotoItem.parseDeviceIdPath(f);
+          final devId = parsed[0];
+          final path = parsed[1]!;
+          return PhotoItem.fromPath(path, _trashFolder, deviceIdOverride: devId);
+        }
+        return PhotoItem.fromPath(f, _trashFolder);
+      }).toList();
       setState(() {
         _trashPhotos = photos;
         _groupTrashByMonth();
@@ -161,8 +172,10 @@ class _TrashScreenState extends State<TrashScreen> {
     if (_selectedPaths.isEmpty) return;
     final deviceService = context.read<DeviceServicesCubit>();
     final user = deviceService.state.currentUser?.email;
-    final deviceId = deviceService.state.id;
-    if (user == null || user.isEmpty || deviceId.isEmpty) {
+    final showAll = deviceService.state.showAllDevices;
+    final defaultDeviceId = deviceService.state.id;
+
+    if (user == null || user.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Not signed in')),
@@ -170,16 +183,64 @@ class _TrashScreenState extends State<TrashScreen> {
       }
       return;
     }
-    final paths = _selectedPaths.toList();
+    if (!showAll && defaultDeviceId.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No device selected')),
+        );
+      }
+      return;
+    }
+
     setState(() => _isRestoring = true);
+
     try {
-      final ok = await apiRestoreFromTrash(user, deviceId, paths)
-          .timeout(const Duration(seconds: 60));
+      bool allOk = true;
+      int totalRestored = 0;
+
+      if (showAll) {
+        // In all-devices mode, group photos by deviceIdOverride and restore per device
+        final Map<String, List<String>> photosByDevice = {};
+        for (final path in _selectedPaths) {
+          // Find the PhotoItem to get its deviceIdOverride
+          final photo = _trashPhotos.firstWhere(
+            (p) => p.path == path,
+            orElse: () => PhotoItem(path: path, folder: _trashFolder, isVideo: false),
+          );
+          final devId = photo.deviceIdOverride ?? '';
+          if (devId.isEmpty) continue; // Skip if no device ID
+          photosByDevice.putIfAbsent(devId, () => []).add(path);
+        }
+
+        for (final entry in photosByDevice.entries) {
+          final devId = entry.key;
+          final paths = entry.value;
+          final ok = await apiRestoreFromTrash(user, devId, paths)
+              .timeout(const Duration(seconds: 60));
+          if (ok) {
+            totalRestored += paths.length;
+          } else {
+            allOk = false;
+          }
+        }
+      } else {
+        // Single device mode - restore all selected paths to current device
+        final paths = _selectedPaths.toList();
+        final ok = await apiRestoreFromTrash(user, defaultDeviceId, paths)
+            .timeout(const Duration(seconds: 60));
+        if (ok) {
+          totalRestored = paths.length;
+        } else {
+          allOk = false;
+        }
+      }
+
       if (!mounted) return;
-      if (ok) {
+
+      if (totalRestored > 0) {
         context.read<GalleryRefreshCubit>().requestHomeRefresh();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${paths.length} item(s) restored to Home')),
+          SnackBar(content: Text('$totalRestored item(s) restored to Home')),
         );
         setState(() {
           _selectionMode = false;
@@ -187,13 +248,14 @@ class _TrashScreenState extends State<TrashScreen> {
           _isRestoring = false;
         });
         _loadTrashFiles();
-        // Clear cache in background so UI doesn't hang (many keys = slow)
         unawaited(CacheService.clearCache());
-      } else {
+      } else if (!allOk) {
         setState(() => _isRestoring = false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to restore from Trash')),
         );
+      } else {
+        setState(() => _isRestoring = false);
       }
     } on TimeoutException {
       if (mounted) {
