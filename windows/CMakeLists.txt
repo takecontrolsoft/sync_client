@@ -16,6 +16,12 @@ if(POLICY CMP0175)
   cmake_policy(SET CMP0175 OLD)
 endif()
 
+# permission_handler_windows still includes <experimental/coroutine>, which recent
+# MSVC turns into a hard error (STL1011). Silence it project-wide so the plugin
+# compiles until it migrates to C++20 <coroutine>. Applied before plugins are added
+# so the definition propagates to their targets.
+add_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+
 # Define build configuration option.
 get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(IS_MULTICONFIG)
