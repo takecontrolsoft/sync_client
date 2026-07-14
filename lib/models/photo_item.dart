@@ -84,29 +84,11 @@ class PhotoItem {
     final lowerPath = pathNorm.toLowerCase();
     final isVideo = videoExtensions.any((ext) => lowerPath.endsWith(ext));
 
-    final filename = pathNorm.split('/').last;
-
-    // 1) Try date from filename (capture/taken date patterns)
-    //    YYYY-MM-DD, YYYY_MM_DD, YYYYMMDD, IMG_20240115_*, 20240115_*, etc.
-    final dateRegex = RegExp(r'(\d{4})[-_]?(\d{2})[-_]?(\d{2})');
-    final match = dateRegex.firstMatch(filename);
-    if (match != null) {
-      try {
-        extractedDate = DateTime(
-          int.parse(match.group(1)!),
-          int.parse(match.group(2)!),
-          int.parse(match.group(3)!),
-        );
-        monthKey = DateFormat('MMMM yyyy').format(extractedDate);
-      } catch (e) {
-        // fall through to folder or Recent
-      }
-    }
-
-    // 2) If no date in filename, use folder (server often stores as Year/Month = date taken)
-    if (extractedDate == null && folderNorm.isNotEmpty) {
+    // 1) Use the server folder date (files are stored as Year/Month = date taken).
+    //    This is the single source of truth for the month grouping.
+    if (folderNorm.isNotEmpty) {
       final parts = folderNorm.split('/').where((s) => s.isNotEmpty).toList();
-      if (parts.length >= 1) {
+      if (parts.isNotEmpty) {
         final year = int.tryParse(parts[0]);
         if (year != null && year >= 1900 && year <= 2100) {
           final month = parts.length >= 2 ? int.tryParse(parts[1]) : 1;
@@ -127,7 +109,7 @@ class PhotoItem {
       }
     }
 
-    // 3) Only use "Recent" when we truly have no date (unknown capture date)
+    // 2) No date folder (e.g. Trash) -> group under "Recent".
     if (extractedDate == null) {
       extractedDate = DateTime.now();
       monthKey = 'Recent';
