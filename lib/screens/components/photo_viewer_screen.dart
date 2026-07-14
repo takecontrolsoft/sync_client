@@ -343,7 +343,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                                         color: Colors.black),
                                     heroAttributes: PhotoViewHeroAttributes(
                                       tag:
-                                          '${widget.photos[index].path}_$index',
+                                          '${widget.photos[index].path}_${index}_thumb',
                                     ),
                                     gaplessPlayback: true,
                                     disableGestures: !isFullQuality,
@@ -359,7 +359,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
                                         color: Colors.black),
                                     heroAttributes: PhotoViewHeroAttributes(
                                       tag:
-                                          '${widget.photos[index].path}_$index',
+                                          '${widget.photos[index].path}_${index}_full',
                                     ),
                                     gaplessPlayback: true,
                                     disableGestures: !isFullQuality,
